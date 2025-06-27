@@ -16,7 +16,7 @@
       font-size: 22px;
       margin-bottom: 10px;
     }
-    input, textarea, button {
+    input, textarea, button, select {
       margin: 6px 0;
       width: 100%;
       padding: 10px;
@@ -77,6 +77,15 @@
     <input id="cerca" placeholder="Cerca cliente">
   </div>
 
+  <div style="margin-top:20px;">
+    <select id="mezzo">
+      <option value="">Seleziona mezzo per il tracciamento</option>
+      <option value="Camion Alessio">Camion Alessio</option>
+      <option value="Camion 2">Camion 2</option>
+      <option value="Camion 3">Camion 3</option>
+    </select>
+  </div>
+
   <div id="clienti"></div>
 
   <script type="module">
@@ -90,11 +99,12 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const clientiRef = collection(db, "clienti");
+    const posizioniRef = collection(db, "posizioniMezzo");
 
     let clienteDaModificare = null;
 
@@ -201,6 +211,29 @@
         alert("Geolocalizzazione non supportata dal browser.");
       }
     });
+
+    // Tracciamento automatico mezzo
+    const mezzoSelezionato = document.getElementById("mezzo");
+    if ("geolocation" in navigator) {
+      navigator.geolocation.watchPosition(
+        async position => {
+          const mezzo = mezzoSelezionato.value;
+          if (!mezzo) return;
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          await addDoc(posizioniRef, {
+            mezzo,
+            latitudine: lat,
+            longitudine: lng,
+            timestamp: serverTimestamp()
+          });
+        },
+        error => {
+          console.error("Errore tracciamento posizione:", error);
+        },
+        { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 }
+      );
+    }
 
     const q = query(clientiRef);
     onSnapshot(q, mostraClienti);
