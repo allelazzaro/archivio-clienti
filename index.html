@@ -144,15 +144,16 @@
 
     if (!nomeUtente) document.getElementById("login-section").style.display = "flex";
     else document.getElementById("login-section").style.display = "none";
+ 
 
-    window.salvaNomeUtente = () => {
+    function salvaNomeUtente() {
       const nome = document.getElementById("nome-utente").value.trim();
       if (!nome) return alert("Inserisci il tuo nome");
       nomeUtente = nome;
       localStorage.setItem("nomeUtente", nome);
       document.getElementById("login-section").style.display = "none";
-    };
-
+      }
+window.salvaNomeUtente = salvaNomeUtente;
     window.cambiaNomeUtente = () => {
       localStorage.removeItem("nomeUtente");
       location.reload();
@@ -290,38 +291,46 @@
 
     let watchId = null;
 
-    function avviaTracciamento() {
-      const status = document.getElementById("status");
-      const btn = document.getElementById("btn-tracciamento");
+   function avviaTracciamento() {
+  const status = document.getElementById("status");
+  const btn = document.getElementById("btn-tracciamento");
 
-      if (!nomeUtente) return alert("Devi prima inserire il tuo nome");
-      if (!navigator.geolocation) {
-        alert("Geolocalizzazione non supportata dal browser.");
-        return;
-      }
+  if (!nomeUtente) return alert("Devi prima inserire il tuo nome");
+  if (!navigator.geolocation) {
+    alert("Geolocalizzazione non supportata dal browser.");
+    return;
+  }
 
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-        status.innerText = "⛔ Tracciamento disattivato.";
-        btn.innerText = "▶️ Attiva tracciamento automatico";
-        return;
-      }
+  if (watchId !== null) {
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    status.innerText = "⛔ Tracciamento disattivato.";
+    btn.innerText = "▶️ Attiva tracciamento automatico";
 
-      status.innerText = "📡 Tracciamento attivo...";
-      btn.innerText = "⛔ Disattiva tracciamento";
-      watchId = navigator.geolocation.watchPosition(
-        pos => {
-          inviaPosizioneContinuamente(nomeUtente, pos.coords.latitude, pos.coords.longitude);
-        },
-        err => {
-          status.innerText = "❌ Errore nel tracciamento.";
-          console.error(err);
-        },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-      );
-    }
+    // 🧹 Rimuove subito il mezzo dalla mappa
+    getDocs(query(posizioniRef, where("mezzo", "==", nomeUtente)))
+      .then(snapshot => {
+        snapshot.forEach(docSnap => {
+          deleteDoc(doc(db, "posizioniMezzo", docSnap.id));
+        });
+      });
 
+    return;
+  }
+
+  status.innerText = "📡 Tracciamento attivo...";
+  btn.innerText = "⛔ Disattiva tracciamento";
+  watchId = navigator.geolocation.watchPosition(
+    pos => {
+      inviaPosizioneContinuamente(nomeUtente, pos.coords.latitude, pos.coords.longitude);
+    },
+    err => {
+      status.innerText = "❌ Errore nel tracciamento.";
+      console.error(err);
+    },
+    { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+  );
+}
     const q = query(clientiRef);
     onSnapshot(q, mostraClienti);
 

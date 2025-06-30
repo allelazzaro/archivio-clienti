@@ -80,7 +80,7 @@
     const minutiPassati = (now - timestampMs) / 60000;
 
     // Se troppo vecchio, lo segnamo per eliminazione
-    if (minutiPassati > 5) {
+    if (minutiPassati > 1) {
       toDelete.push(id);
       return;
     }
