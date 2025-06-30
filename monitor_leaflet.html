@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Monitoraggio Mezzi - Leaflet</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
+    <style>
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+      #map { height: 60vh; width: 100%; }
+      #log { padding: 10px; font-size: 14px; }
+      .entry { border-bottom: 1px solid #ccc; padding: 6px 0; }
+      h2 { background: #007bff; color: white; padding: 10px; margin: 0; }
+    </style>
+  </head>
+  <body>
+    <h2>📍 Monitoraggio Mezzi</h2>
+    <div id="map"></div>
+    <div id="log"></div>
+
+    <!-- Leaflet JS -->
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      crossorigin=""
+    ></script>
+
+    <!-- Firebase -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        onSnapshot,
+        deleteDoc,
+        doc
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
+        authDomain: "archivio-clienti-trasporti.firebaseapp.com",
+        projectId: "archivio-clienti-trasporti",
+        storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
+        messagingSenderId: "773533170263",
+        appId: "1:773533170263:web:d05e2b00e991b0294c0112"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const posizioniRef = collection(db, "posizioniMezzo");
+
+      const map = L.map("map").setView([44.8, 10.3], 7);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      const markers = new Map();
+
+      onSnapshot(query(posizioniRef), async snapshot => {
+        document.getElementById("log").innerHTML = "";
+        const latest = new Map();
+        const toDelete = [];
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const id = docSnap.id;
+          const mezzo = (data.mezzo || '').trim().toLowerCase();
+          if (!data.latitudine || !data.longitudine || !data.timestamp || !mezzo) return;
+
+          const current = latest.get(mezzo);
+          if (!current || (data.timestamp?.seconds > current.timestamp?.seconds)) {
+            if (current?.id) toDelete.push(current.id);
+            latest.set(mezzo, { ...data, id });
+          } else {
+            toDelete.push(id);
+          }
+        });
+
+        markers.forEach(marker => marker.remove());
+        markers.clear();
+
+        latest.forEach((data, mezzo) => {
+          const pos = [data.latitudine, data.longitudine];
+          const marker = L.marker(pos).addTo(map).bindPopup(`<strong>${data.mezzo}</strong>`);
+          markers.set(mezzo, marker);
+
+          const time = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : new Date().toLocaleString();
+          const entry = `<div class="entry"><strong>${data.mezzo}</strong><br>📍 ${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}<br>🕒 ${time}</div>`;
+          document.getElementById("log").innerHTML += entry;
+        });
+
+        for (const id of toDelete) {
+          await deleteDoc(doc(db, "posizioniMezzo", id));
+        }
+      });
+    </script>
+  </body>
+</html>

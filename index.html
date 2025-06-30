@@ -50,6 +50,36 @@
       border-radius: 5px;
       font-size: 14px;
     }
+    #login-section {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #f9f9f9;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #login-section input {
+      width: 80%;
+      max-width: 300px;
+    }
+    #change-name {
+      background: #eee;
+      font-size: 12px;
+      padding: 5px 8px;
+      margin-top: 10px;
+      display: inline-block;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 14px;
+      font-style: italic;
+    }
     @media (min-width: 600px) {
       h1 { font-size: 24px; }
       input, textarea, button { font-size: 16px; }
@@ -57,11 +87,19 @@
   </style>
 </head>
 <body>
+  <div id="login-section">
+    <h2>🔐 Inserisci il tuo nome</h2>
+    <input id="nome-utente" placeholder="Es: Camion Alessio">
+    <button onclick="salvaNomeUtente()">Entra</button>
+  </div>
+
   <h1>Archivio Clienti - Trasporti</h1>
 
   <div class="avviso">
     ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati. È vietata la copia, diffusione o qualsiasi utilizzo non legato all'attività di consegna.
   </div>
+
+  <div id="change-name" onclick="cambiaNomeUtente()">🔄 Cambia nome utente</div>
 
   <div>
     <input id="nome" placeholder="Nome cliente">
@@ -77,16 +115,12 @@
     <input id="cerca" placeholder="Cerca cliente">
   </div>
 
-  <div style="margin-top:20px;">
-    <select id="mezzo">
-      <option value="">Seleziona mezzo per il tracciamento</option>
-      <option value="Camion Alessio">Camion Alessio</option>
-      <option value="Camion 2">Camion 2</option>
-      <option value="Camion 3">Camion 3</option>
-    </select>
-  </div>
-
   <div id="clienti"></div>
+
+  <hr>
+  <h2>📡 Tracciamento automatico</h2>
+  <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+  <div id="status"></div>
 
   <script type="module">
     const firebaseConfig = {
@@ -99,12 +133,30 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, getDocs, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const clientiRef = collection(db, "clienti");
     const posizioniRef = collection(db, "posizioniMezzo");
+
+    let nomeUtente = localStorage.getItem("nomeUtente") || "";
+
+    if (!nomeUtente) document.getElementById("login-section").style.display = "flex";
+    else document.getElementById("login-section").style.display = "none";
+
+    window.salvaNomeUtente = () => {
+      const nome = document.getElementById("nome-utente").value.trim();
+      if (!nome) return alert("Inserisci il tuo nome");
+      nomeUtente = nome;
+      localStorage.setItem("nomeUtente", nome);
+      document.getElementById("login-section").style.display = "none";
+    };
+
+    window.cambiaNomeUtente = () => {
+      localStorage.removeItem("nomeUtente");
+      location.reload();
+    };
 
     let clienteDaModificare = null;
 
@@ -198,9 +250,17 @@
     document.getElementById("btn-gps").addEventListener("click", () => {
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
-          position => {
+          async position => {
             const coords = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
             document.getElementById("coordinate").value = coords;
+            if (nomeUtente) {
+              await addDoc(posizioniRef, {
+                mezzo: nomeUtente,
+                latitudine: position.coords.latitude,
+                longitudine: position.coords.longitude,
+                timestamp: serverTimestamp()
+              });
+            }
           },
           error => {
             alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
@@ -212,26 +272,53 @@
       }
     });
 
-    // Tracciamento automatico mezzo
-    const mezzoSelezionato = document.getElementById("mezzo");
-    if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition(
-        async position => {
-          const mezzo = mezzoSelezionato.value;
-          if (!mezzo) return;
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          await addDoc(posizioniRef, {
-            mezzo,
-            latitudine: lat,
-            longitudine: lng,
-            timestamp: serverTimestamp()
-          });
+    async function inviaPosizioneContinuamente(mezzo, lat, lng) {
+      const timestamp = new Date();
+      const nuovo = await addDoc(posizioniRef, {
+        mezzo,
+        latitudine: lat,
+        longitudine: lng,
+        timestamp
+      });
+      const snap = await getDocs(query(posizioniRef, where("mezzo", "==", mezzo), orderBy("timestamp", "desc")));
+      for (const docSnap of snap.docs) {
+        if (docSnap.id !== nuovo.id) {
+          await deleteDoc(doc(db, "posizioniMezzo", docSnap.id));
+        }
+      }
+    }
+
+    let watchId = null;
+
+    function avviaTracciamento() {
+      const status = document.getElementById("status");
+      const btn = document.getElementById("btn-tracciamento");
+
+      if (!nomeUtente) return alert("Devi prima inserire il tuo nome");
+      if (!navigator.geolocation) {
+        alert("Geolocalizzazione non supportata dal browser.");
+        return;
+      }
+
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        status.innerText = "⛔ Tracciamento disattivato.";
+        btn.innerText = "▶️ Attiva tracciamento automatico";
+        return;
+      }
+
+      status.innerText = "📡 Tracciamento attivo...";
+      btn.innerText = "⛔ Disattiva tracciamento";
+      watchId = navigator.geolocation.watchPosition(
+        pos => {
+          inviaPosizioneContinuamente(nomeUtente, pos.coords.latitude, pos.coords.longitude);
         },
-        error => {
-          console.error("Errore tracciamento posizione:", error);
+        err => {
+          status.innerText = "❌ Errore nel tracciamento.";
+          console.error(err);
         },
-        { enableHighAccuracy: true, maximumAge: 30000, timeout: 10000 }
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
       );
     }
 
@@ -240,6 +327,7 @@
 
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
+    window.avviaTracciamento = avviaTracciamento;
   </script>
 </body>
 </html>
