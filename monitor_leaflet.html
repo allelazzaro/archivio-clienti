@@ -62,43 +62,59 @@
 
       const markers = new Map();
 
-      onSnapshot(query(posizioniRef), async snapshot => {
-        document.getElementById("log").innerHTML = "";
-        const latest = new Map();
-        const toDelete = [];
+   onSnapshot(query(posizioniRef), async snapshot => {
+  document.getElementById("log").innerHTML = "";
+  const now = Date.now();
+  const latest = new Map();
+  const toDelete = [];
 
-        snapshot.forEach(docSnap => {
-          const data = docSnap.data();
-          const id = docSnap.id;
-          const mezzo = (data.mezzo || '').trim().toLowerCase();
-          if (!data.latitudine || !data.longitudine || !data.timestamp || !mezzo) return;
+  // 1. Prendiamo la posizione più recente per ogni mezzo
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const id = docSnap.id;
+    const mezzo = (data.mezzo || '').trim().toLowerCase();
 
-          const current = latest.get(mezzo);
-          if (!current || (data.timestamp?.seconds > current.timestamp?.seconds)) {
-            if (current?.id) toDelete.push(current.id);
-            latest.set(mezzo, { ...data, id });
-          } else {
-            toDelete.push(id);
-          }
-        });
+    if (!data.latitudine || !data.longitudine || !data.timestamp || !mezzo) return;
 
-        markers.forEach(marker => marker.remove());
-        markers.clear();
+    const timestampMs = data.timestamp.seconds * 1000;
+    const minutiPassati = (now - timestampMs) / 60000;
 
-        latest.forEach((data, mezzo) => {
-          const pos = [data.latitudine, data.longitudine];
-          const marker = L.marker(pos).addTo(map).bindPopup(`<strong>${data.mezzo}</strong>`);
-          markers.set(mezzo, marker);
+    // Se troppo vecchio, lo segnamo per eliminazione
+    if (minutiPassati > 5) {
+      toDelete.push(id);
+      return;
+    }
 
-          const time = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : new Date().toLocaleString();
-          const entry = `<div class="entry"><strong>${data.mezzo}</strong><br>📍 ${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}<br>🕒 ${time}</div>`;
-          document.getElementById("log").innerHTML += entry;
-        });
+    const attuale = latest.get(mezzo);
+    if (!attuale || data.timestamp.seconds > attuale.timestamp.seconds) {
+      latest.set(mezzo, { ...data, id });
+      if (attuale?.id) toDelete.push(attuale.id); // rimuovi il precedente
+    } else {
+      toDelete.push(id); // documento meno recente
+    }
+  });
 
-        for (const id of toDelete) {
-          await deleteDoc(doc(db, "posizioniMezzo", id));
-        }
-      });
+  // 2. Rimuoviamo vecchi marker
+  markers.forEach(marker => marker.remove());
+  markers.clear();
+
+  // 3. Mostriamo i mezzi attivi
+  latest.forEach((data, mezzo) => {
+    const pos = [data.latitudine, data.longitudine];
+    const marker = L.marker(pos).addTo(map).bindPopup(`<strong>${data.mezzo}</strong>`);
+    markers.set(mezzo, marker);
+
+    const time = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : new Date().toLocaleString();
+    const entry = `<div class="entry"><strong>${data.mezzo}</strong><br>📍 ${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}<br>🕒 ${time}</div>`;
+    document.getElementById("log").innerHTML += entry;
+  });
+
+  // 4. Cancelliamo i documenti vecchi da Firebase
+  for (const id of toDelete) {
+    await deleteDoc(doc(db, "posizioniMezzo", id));
+  }
+});
+
     </script>
   </body>
 </html>
