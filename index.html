@@ -6,123 +6,123 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Archivio Clienti - Trasporti</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 15px;
-      margin: 0;
-      background-color: #f9f9f9;
+    :root { --bg:#f9f9f9; --card:#fff; --txt:#222; --muted:#666; --brand:#007bff; }
+    body { font-family: Arial, sans-serif; padding: 15px; margin: 0; background-color: var(--bg); color:var(--txt); }
+    h1 { font-size: 22px; margin-bottom: 10px; }
+    input, textarea, button, select { margin: 6px 0; width: 100%; padding: 10px; font-size: 16px; box-sizing: border-box; }
+    textarea { resize: vertical; }
+    #clienti { margin-top: 20px; }
+    .cliente { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 8px; background-color: var(--card); }
+    .btn-azione { margin-top: 8px; margin-right: 5px; font-size: 14px; padding: 6px 10px; }
+    .avviso { background-color: #fff3cd; padding: 10px; border-left: 5px solid #ffc107; margin-bottom: 20px; border-radius: 5px; font-size: 14px; }
+
+    /* Overlays */
+    #auth-overlay, #awaiting-approval {
+      position: fixed; inset: 0; background: var(--bg);
+      z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px;
     }
-    h1 {
-      font-size: 22px;
-      margin-bottom: 10px;
+    #auth-box { width: 100%; max-width: 420px; background: var(--card); border: 1px solid #ddd; border-radius: 12px; padding: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+    #auth-header { padding: 14px 16px; border-bottom:1px solid #eee; font-weight:700; display:flex; gap:8px; align-items:center; }
+    #auth-header::before { content:"🔒"; }
+    .tabs { display:flex; gap:0; border-bottom:1px solid #eee; }
+    .tab { flex:1; padding:10px 12px; background:#fafafa; border:none; border-right:1px solid #eee; cursor:pointer; font-weight:600; }
+    .tab:last-child { border-right:none; }
+    .tab.active { background:#fff; color:#000; border-bottom:2px solid var(--brand); }
+    .pane { padding: 14px 16px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .row { display:flex; gap:8px; }
+    .row > * { flex:1; }
+    #change-name { background: #eee; font-size: 12px; padding: 5px 8px; margin-top: 10px; display: inline-block; cursor: pointer; border-radius:6px; }
+    #status { margin-top: 10px; font-size: 14px; font-style: italic; }
+    button { cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+
+    /* User bar */
+    .userbar{
+      background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91;
+      padding:8px 12px; border-radius:8px; margin:8px 0 12px;
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px;
     }
-    input, textarea, button, select {
-      margin: 6px 0;
-      width: 100%;
-      padding: 10px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-    textarea {
-      resize: vertical;
-    }
-    #clienti {
-      margin-top: 20px;
-    }
-    .cliente {
-      border: 1px solid #ccc;
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      background-color: #fff;
-    }
-    .btn-azione {
-      margin-top: 8px;
-      margin-right: 5px;
-      font-size: 14px;
-      padding: 6px 10px;
-    }
-    .avviso {
-      background-color: #fff3cd;
-      padding: 10px;
-      border-left: 5px solid #ffc107;
-      margin-bottom: 20px;
-      border-radius: 5px;
-      font-size: 14px;
-    }
-    #login-section {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #f9f9f9;
-      z-index: 999;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-    #login-section input {
-      width: 80%;
-      max-width: 300px;
-    }
-    #change-name {
-      background: #eee;
-      font-size: 12px;
-      padding: 5px 8px;
-      margin-top: 10px;
-      display: inline-block;
-      cursor: pointer;
-    }
-    #status {
-      margin-top: 10px;
-      font-size: 14px;
-      font-style: italic;
-    }
-    @media (min-width: 600px) {
-      h1 { font-size: 24px; }
-      input, textarea, button { font-size: 16px; }
+    .userbar .pill{
+      background:#fff; border:1px solid #cfe3ff; padding:2px 8px;
+      border-radius:999px; font-size:12px; color:#1b3c6b;
     }
   </style>
 </head>
 <body>
-  <div id="login-section">
-    <h2>🔐 Inserisci il tuo nome</h2>
-    <input id="nome-utente" placeholder="Es: Camion Alessio">
-    <button onclick="salvaNomeUtente()">Entra</button>
+
+  <!-- OVERLAY AUTH -->
+  <div id="auth-overlay">
+    <div id="auth-box">
+      <div id="auth-header">Accesso</div>
+
+      <div class="tabs">
+        <button id="tab-login" class="tab active">Accedi</button>
+        <button id="tab-register" class="tab">Registrati</button>
+      </div>
+
+      <!-- Pane: LOGIN -->
+      <div id="pane-login" class="pane">
+        <input id="log-email" placeholder="Email">
+        <input id="log-password" placeholder="Password" type="password">
+        <button id="btn-login">Accedi</button>
+      </div>
+
+      <!-- Pane: REGISTRAZIONE -->
+      <div id="pane-register" class="pane" style="display:none;">
+        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)">
+        <input id="reg-email" placeholder="Email">
+        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password">
+        <button id="btn-register">Crea account</button>
+        <div class="muted" style="margin-top:8px;">Dopo la registrazione l’account deve essere approvato dall’amministratore.</div>
+      </div>
+    </div>
   </div>
 
-  <h1>Archivio Clienti - Trasporti</h1>
-
-  <div class="avviso">
-    ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati. È vietata la copia, diffusione o qualsiasi utilizzo non legato all'attività di consegna.
+  <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
+  <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
+    <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
+    <div>Sei registrato ma non ancora approvato. Quando l’amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
+    <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
   </div>
 
-  <div id="change-name" onclick="cambiaNomeUtente()">🔄 Cambia nome utente</div>
+  <!-- APP -->
+  <div id="app-wrapper" style="display:none;">
+    <h1>Archivio Clienti - Trasporti</h1>
 
-  <div>
-    <input id="nome" placeholder="Nome cliente">
-    <input id="indirizzo" placeholder="Indirizzo">
-    <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
-    <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
-    <textarea id="note" placeholder="Note per la consegna"></textarea>
-    <button id="btn-aggiungi">Aggiungi cliente</button>
-    <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
+    <!-- 👤 Chi è loggato -->
+    <div id="userbar" class="userbar"></div>
+
+    <div class="avviso">
+      ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
+    </div>
+
+    <div class="row" style="align-items:center;">
+      <div id="change-name" onclick="cambiaNomeUtente()">🔄 Cambia nome mezzo</div>
+      <button id="btn-logout" style="max-width:160px;">Esci</button>
+    </div>
+
+    <div>
+      <input id="nome" placeholder="Nome cliente">
+      <input id="indirizzo" placeholder="Indirizzo">
+      <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
+      <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
+      <textarea id="note" placeholder="Note per la consegna"></textarea>
+      <button id="btn-aggiungi">Aggiungi cliente</button>
+      <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
+    </div>
+
+    <div><input id="cerca" placeholder="Cerca cliente"></div>
+    <div id="clienti"></div>
+
+    <hr>
+    <h2>📡 Tracciamento automatico</h2>
+    <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+    <div id="status"></div>
   </div>
-
-  <div>
-    <input id="cerca" placeholder="Cerca cliente">
-  </div>
-
-  <div id="clienti"></div>
-
-  <hr>
-  <h2>📡 Tracciamento automatico</h2>
-  <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
-  <div id="status"></div>
 
   <script type="module">
+    // --- Firebase setup ---
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
       authDomain: "archivio-clienti-trasporti.firebaseapp.com",
@@ -133,64 +133,243 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot, query, getDocs, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
+      onSnapshot, query, getDocs, getDoc, where, orderBy, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      onAuthStateChanged, signOut, updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const clientiRef = collection(db, "clienti");
+    const db  = getFirestore(app);
+    const auth = getAuth(app);
+
+    // 👑 UID admin per distinguere ruoli se manca il profilo
+    const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+
+    const clientiRef   = collection(db, "clienti");
     const posizioniRef = collection(db, "posizioniMezzo");
 
+    // --- Stato utente/mezzo ---
     let nomeUtente = localStorage.getItem("nomeUtente") || "";
+    let clienteDaModificare = null;
+    let watchId = null;
 
-    if (!nomeUtente) document.getElementById("login-section").style.display = "flex";
-    else document.getElementById("login-section").style.display = "none";
- 
+    // 🔧 listener clienti (solo se approvato)
+    let clientiUnsub = null;
+    function startClientiListener() {
+      if (clientiUnsub) return;
+      const q = query(clientiRef);
+      clientiUnsub = onSnapshot(q, mostraClienti, (err) => console.error(err));
+    }
+    function stopClientiListener() {
+      if (clientiUnsub) { clientiUnsub(); clientiUnsub = null; }
+    }
 
-    function salvaNomeUtente() {
-      const nome = document.getElementById("nome-utente").value.trim();
-      if (!nome) return alert("Inserisci il tuo nome");
-      nomeUtente = nome;
-      localStorage.setItem("nomeUtente", nome);
-      document.getElementById("login-section").style.display = "none";
+    // 🔧 listener profilo (sblocco automatico)
+    let userUnsub = null;
+
+    // --- UI helpers ---
+    const el = (id) => document.getElementById(id);
+    const show = (node) => { node.style.display = (node.id === 'auth-overlay' || node.id === 'awaiting-approval') ? 'flex' : 'block'; };
+    const hide = (node) => node.style.display = 'none';
+    function enableAppUI() { show(el("app-wrapper")); hide(el("auth-overlay")); hide(el("awaiting-approval")); }
+    function disableAppUI() { hide(el("app-wrapper")); }
+    function authErrorMsg(e) {
+      switch (e?.code) {
+        case 'auth/weak-password': return 'La password deve avere almeno 6 caratteri.';
+        case 'auth/email-already-in-use': return 'Questa email è già registrata. Prova ad accedere.';
+        case 'auth/invalid-email': return 'Email non valida.';
+        case 'auth/invalid-credential': return 'Credenziali non valide.';
+        case 'auth/network-request-failed': return 'Problema di rete. Controlla la connessione.';
+        default: return e?.message || 'Errore imprevisto.';
       }
-window.salvaNomeUtente = salvaNomeUtente;
+    }
+    const disableBtn = (btn, on) => btn.disabled = !!on;
+
+    // Userbar render
+    function renderUserBar(uAuth, uData) {
+      const box = document.getElementById("userbar");
+      if (!box) return;
+      const name  = (uData?.name || uAuth?.displayName || (uAuth?.email ? uAuth.email.split("@")[0] : "")).trim();
+      const email = uAuth?.email || "";
+      const role  = (uData?.role) || (uAuth?.uid === ADMIN_UID ? "admin" : "driver");
+      box.innerHTML = `👤 <strong>${name || "(senza nome)"}</strong>
+                       <span class="pill">${email}</span>
+                       <span class="pill">${role}</span>`;
+    }
+
+    // ➜ TABS login/registrazione
+    const tabLogin = el("tab-login");
+    const tabRegister = el("tab-register");
+    const paneLogin = el("pane-login");
+    const paneRegister = el("pane-register");
+    const authHeader = el("auth-header");
+
+    function switchAuth(mode) {
+      if (mode === "login") {
+        paneLogin.style.display = "block";
+        paneRegister.style.display = "none";
+        tabLogin.classList.add("active");
+        tabRegister.classList.remove("active");
+        authHeader.textContent = "Accesso";
+      } else {
+        paneLogin.style.display = "none";
+        paneRegister.style.display = "block";
+        tabRegister.classList.add("active");
+        tabLogin.classList.remove("active");
+        authHeader.textContent = "Registrazione";
+      }
+    }
+    tabLogin.addEventListener("click", () => switchAuth("login"));
+    tabRegister.addEventListener("click", () => switchAuth("register"));
+
+    // --- Auth overlay iniziale ---
+    function showAuth(defaultTab = "login") { disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
+
+    // REGISTRAZIONE → role:"driver"
+    el("btn-register").addEventListener("click", async () => {
+      const name = el("reg-name").value.trim();
+      const email = el("reg-email").value.trim();
+      const password = el("reg-password").value;
+
+      if (!name || !email || !password) { alert("Compila nome, email e password."); return; }
+      if (password.length < 6) { alert("La password deve avere almeno 6 caratteri."); return; }
+
+      disableBtn(el("btn-register"), true);
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName: name });
+        await setDoc(doc(db, "users", cred.user.uid), {
+          name, email, role: "driver", approved: false, createdAt: serverTimestamp()
+        });
+        alert("Registrazione completata! Ora attendi l'approvazione dell'amministratore.");
+      } catch (e) {
+        alert("Registrazione non riuscita: " + authErrorMsg(e));
+      } finally {
+        disableBtn(el("btn-register"), false);
+      }
+    });
+
+    // LOGIN
+    el("btn-login").addEventListener("click", async () => {
+      const email = el("log-email").value.trim();
+      const password = el("log-password").value;
+      if (!email || !password) { alert("Inserisci email e password."); return; }
+      disableBtn(el("btn-login"), true);
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (e) {
+        alert("Accesso non riuscito: " + authErrorMsg(e));
+      } finally {
+        disableBtn(el("btn-login"), false);
+      }
+    });
+
+    // LOGOUT
+    el("btn-logout").addEventListener("click", () => signOut(auth));
+    el("btn-logout-while-waiting").addEventListener("click", () => signOut(auth));
+
+    // Nome mezzo (solo per tracciamento)
     window.cambiaNomeUtente = () => {
-      localStorage.removeItem("nomeUtente");
-      location.reload();
+      const nuovo = prompt("Inserisci il nome del mezzo (es. Camion Alessio):", nomeUtente || "");
+      if (!nuovo) return;
+      nomeUtente = nuovo.trim();
+      localStorage.setItem("nomeUtente", nomeUtente);
+      alert("Nome mezzo aggiornato.");
     };
 
-    let clienteDaModificare = null;
-
-    async function aggiungiOmodificaCliente() {
-      const nome = document.getElementById("nome").value;
-      const indirizzo = document.getElementById("indirizzo").value;
-      const coordinate = document.getElementById("coordinate").value;
-      const note = document.getElementById("note").value;
-
-      if (!nome || !indirizzo) {
-        alert("Inserisci almeno nome e indirizzo.");
+    // Guardia stato auth + approvazione (live)
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        showAuth("login");
+        stopClientiListener();
+        if (userUnsub) { userUnsub(); userUnsub = null; }
+        const ub = document.getElementById("userbar"); if (ub) ub.innerHTML = "";
         return;
       }
+
+      const uref = doc(db, "users", user.uid);
+
+      // Crea/aggiusta profilo se manca o non ha "role"
+      const snap = await getDoc(uref);
+      if (!snap.exists()) {
+        await setDoc(uref, {
+          name: user.displayName || "",
+          email: user.email,
+          role: (user.uid === ADMIN_UID) ? "admin" : "driver",
+          approved: false,
+          createdAt: serverTimestamp()
+        });
+      } else {
+        const dataNow = snap.data() || {};
+        if (!("role" in dataNow)) {
+          await updateDoc(uref, { role: (user.uid === ADMIN_UID) ? "admin" : "driver" });
+        }
+      }
+
+      if (userUnsub) { userUnsub(); userUnsub = null; }
+
+      // Ascolta in tempo reale il profilo
+      userUnsub = onSnapshot(uref, (usnap) => {
+        const data = usnap.data() || {};
+        nomeUtente = data.name || localStorage.getItem("nomeUtente") || (user.email ? user.email.split("@")[0] : "");
+        localStorage.setItem("nomeUtente", nomeUtente);
+
+        // aggiorna userbar
+        renderUserBar(user, data);
+
+        if (data.role === "driver" && data.approved === true) {
+          enableAppUI();
+          startClientiListener();
+        } else if (data.role === "admin") {
+          disableAppUI();
+          hide(el("auth-overlay"));
+          show(el("awaiting-approval"));
+          el("awaiting-approval").innerHTML =
+            "<h3>👑 Sei loggato come admin</h3><div>L’app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
+          document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
+          stopClientiListener();
+        } else {
+          disableAppUI();
+          hide(el("auth-overlay"));
+          show(el("awaiting-approval"));
+          el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
+          stopClientiListener();
+        }
+      });
+    });
+
+    // --- Funzioni app (CRUD clienti + tracking) ---
+    async function aggiungiOmodificaCliente() {
+      const nome = el("nome").value;
+      const indirizzo = el("indirizzo").value;
+      const coordinate = el("coordinate").value;
+      const note = el("note").value;
+
+      if (!nome || !indirizzo) { alert("Inserisci almeno nome e indirizzo."); return; }
 
       if (clienteDaModificare) {
         const docRef = doc(db, "clienti", clienteDaModificare);
         try {
           await updateDoc(docRef, { nome, indirizzo, coordinate, note });
           clienteDaModificare = null;
-          document.getElementById("btn-aggiungi").innerText = "Aggiungi cliente";
-          document.getElementById("btn-annulla").style.display = "none";
+          el("btn-aggiungi").innerText = "Aggiungi cliente";
+          el("btn-annulla").style.display = "none";
         } catch (error) {
           alert("Impossibile salvare le modifiche: il cliente non esiste più.");
           console.error(error);
         }
       } else {
-        await addDoc(clientiRef, { nome, indirizzo, coordinate, note, timestamp: new Date() });
+        await addDoc(clientiRef, { nome, indirizzo, coordinate, note, timestamp: serverTimestamp() });
       }
 
-      document.getElementById("nome").value = "";
-      document.getElementById("indirizzo").value = "";
-      document.getElementById("coordinate").value = "";
-      document.getElementById("note").value = "";
+      el("nome").value = "";
+      el("indirizzo").value = "";
+      el("coordinate").value = "";
+      el("note").value = "";
     }
 
     async function eliminaCliente(id) {
@@ -200,34 +379,34 @@ window.salvaNomeUtente = salvaNomeUtente;
     }
 
     function preparaModificaCliente(id, cliente) {
-      document.getElementById("nome").value = cliente.nome;
-      document.getElementById("indirizzo").value = cliente.indirizzo;
-      document.getElementById("coordinate").value = cliente.coordinate;
-      document.getElementById("note").value = cliente.note;
+      el("nome").value = cliente.nome;
+      el("indirizzo").value = cliente.indirizzo;
+      el("coordinate").value = cliente.coordinate || "";
+      el("note").value = cliente.note || "";
       clienteDaModificare = id;
-      document.getElementById("btn-aggiungi").innerText = "Salva modifiche";
-      document.getElementById("btn-annulla").style.display = "inline-block";
+      el("btn-aggiungi").innerText = "Salva modifiche";
+      el("btn-annulla").style.display = "inline-block";
     }
 
     function annullaModifica() {
       clienteDaModificare = null;
-      document.getElementById("nome").value = "";
-      document.getElementById("indirizzo").value = "";
-      document.getElementById("coordinate").value = "";
-      document.getElementById("note").value = "";
-      document.getElementById("btn-aggiungi").innerText = "Aggiungi cliente";
-      document.getElementById("btn-annulla").style.display = "none";
+      el("nome").value = "";
+      el("indirizzo").value = "";
+      el("coordinate").value = "";
+      el("note").value = "";
+      el("btn-aggiungi").innerText = "Aggiungi cliente";
+      el("btn-annulla").style.display = "none";
     }
 
     function mostraClienti(snapshot) {
-      const clientiDiv = document.getElementById("clienti");
+      const clientiDiv = el("clienti");
       clientiDiv.innerHTML = "";
       snapshot.forEach(docSnap => {
         const c = docSnap.data();
         const div = document.createElement("div");
         div.className = "cliente";
-        div.innerHTML = `<strong>${c.nome}</strong><br>
-                         ${c.indirizzo}<br>
+        div.innerHTML = `<strong>${c.nome || "(senza nome)"}</strong><br>
+                         ${c.indirizzo || ""}<br>
                          ${c.coordinate ? `<a href='https://maps.google.com/?q=${c.coordinate}' target='_blank'>Vai a Google Maps</a><br>` : ""}
                          ${c.note ? `<em>${c.note}</em><br>` : ""}
                          <button class='btn-azione' onclick='eliminaCliente("${docSnap.id}")'>🗑️ Elimina</button>
@@ -237,23 +416,21 @@ window.salvaNomeUtente = salvaNomeUtente;
     }
 
     function filtraClienti() {
-      const queryTxt = document.getElementById("cerca").value.toLowerCase();
+      const queryTxt = el("cerca").value.toLowerCase();
       const clienti = document.querySelectorAll(".cliente");
-      clienti.forEach(c => {
-        c.style.display = c.innerText.toLowerCase().includes(queryTxt) ? "block" : "none";
-      });
+      clienti.forEach(c => { c.style.display = c.innerText.toLowerCase().includes(queryTxt) ? "block" : "none"; });
     }
 
-    document.getElementById("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
-    document.getElementById("btn-annulla").addEventListener("click", annullaModifica);
-    document.getElementById("cerca").addEventListener("input", filtraClienti);
+    el("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
+    el("btn-annulla").addEventListener("click", annullaModifica);
+    el("cerca").addEventListener("input", filtraClienti);
 
-    document.getElementById("btn-gps").addEventListener("click", () => {
+    el("btn-gps").addEventListener("click", () => {
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
           async position => {
             const coords = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
-            document.getElementById("coordinate").value = coords;
+            el("coordinate").value = coords;
             if (nomeUtente) {
               await addDoc(posizioniRef, {
                 mezzo: nomeUtente,
@@ -263,10 +440,7 @@ window.salvaNomeUtente = salvaNomeUtente;
               });
             }
           },
-          error => {
-            alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
-            console.error(error);
-          }
+          error => { alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo."); console.error(error); }
         );
       } else {
         alert("Geolocalizzazione non supportata dal browser.");
@@ -274,13 +448,7 @@ window.salvaNomeUtente = salvaNomeUtente;
     });
 
     async function inviaPosizioneContinuamente(mezzo, lat, lng) {
-      const timestamp = new Date();
-      const nuovo = await addDoc(posizioniRef, {
-        mezzo,
-        latitudine: lat,
-        longitudine: lng,
-        timestamp
-      });
+      const nuovo = await addDoc(posizioniRef, { mezzo, latitudine: lat, longitudine: lng, timestamp: serverTimestamp() });
       const snap = await getDocs(query(posizioniRef, where("mezzo", "==", mezzo), orderBy("timestamp", "desc")));
       for (const docSnap of snap.docs) {
         if (docSnap.id !== nuovo.id) {
@@ -289,53 +457,35 @@ window.salvaNomeUtente = salvaNomeUtente;
       }
     }
 
-    let watchId = null;
-
-   function avviaTracciamento() {
-  const status = document.getElementById("status");
-  const btn = document.getElementById("btn-tracciamento");
-
-  if (!nomeUtente) return alert("Devi prima inserire il tuo nome");
-  if (!navigator.geolocation) {
-    alert("Geolocalizzazione non supportata dal browser.");
-    return;
-  }
-
-  if (watchId !== null) {
-    navigator.geolocation.clearWatch(watchId);
-    watchId = null;
-    status.innerText = "⛔ Tracciamento disattivato.";
-    btn.innerText = "▶️ Attiva tracciamento automatico";
-
-    // 🧹 Rimuove subito il mezzo dalla mappa
-    getDocs(query(posizioniRef, where("mezzo", "==", nomeUtente)))
-      .then(snapshot => {
-        snapshot.forEach(docSnap => {
-          deleteDoc(doc(db, "posizioniMezzo", docSnap.id));
-        });
-      });
-
-    return;
-  }
-
-  status.innerText = "📡 Tracciamento attivo...";
-  btn.innerText = "⛔ Disattiva tracciamento";
-  watchId = navigator.geolocation.watchPosition(
-    pos => {
-      inviaPosizioneContinuamente(nomeUtente, pos.coords.latitude, pos.coords.longitude);
-    },
-    err => {
-      status.innerText = "❌ Errore nel tracciamento.";
-      console.error(err);
-    },
-    { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-  );
-}
-    const q = query(clientiRef);
-    onSnapshot(q, mostraClienti);
-
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
+
+    function avviaTracciamento() {
+      const status = el("status");
+      const btn = el("btn-tracciamento");
+
+      if (!nomeUtente) return alert("Imposta prima il nome del mezzo (🔄 Cambia nome mezzo).");
+      if (!navigator.geolocation) { alert("Geolocalizzazione non supportata dal browser."); return; }
+
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        status.innerText = "⛔ Tracciamento disattivato.";
+        btn.innerText = "▶️ Attiva tracciamento automatico";
+        getDocs(query(posizioniRef, where("mezzo", "==", nomeUtente))).then(snapshot => {
+          snapshot.forEach(docSnap => { deleteDoc(doc(db, "posizioniMezzo", docSnap.id)); });
+        });
+        return;
+      }
+
+      status.innerText = "📡 Tracciamento attivo...";
+      btn.innerText = "⛔ Disattiva tracciamento";
+      watchId = navigator.geolocation.watchPosition(
+        pos => { inviaPosizioneContinuamente(nomeUtente, pos.coords.latitude, pos.coords.longitude); },
+        err => { status.innerText = "❌ Errore nel tracciamento."; console.error(err); },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+      );
+    }
     window.avviaTracciamento = avviaTracciamento;
   </script>
 </body>

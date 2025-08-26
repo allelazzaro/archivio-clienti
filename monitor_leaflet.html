@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -12,34 +11,32 @@
     />
     <style>
       body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-      #map { height: 60vh; width: 100%; }
+      #map { height: 60vh; width: 100%; display:none; }
       #log { padding: 10px; font-size: 14px; }
       .entry { border-bottom: 1px solid #ccc; padding: 6px 0; }
       h2 { background: #007bff; color: white; padding: 10px; margin: 0; }
+      #gate { padding:16px; }
     </style>
   </head>
   <body>
     <h2>📍 Monitoraggio Mezzi</h2>
+    <div id="gate">Controllo accesso in corso...</div>
     <div id="map"></div>
     <div id="log"></div>
 
-    <!-- Leaflet JS -->
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       crossorigin=""
     ></script>
 
-    <!-- Firebase -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
       import {
-        getFirestore,
-        collection,
-        query,
-        onSnapshot,
-        deleteDoc,
-        doc
+        getFirestore, collection, query, onSnapshot, deleteDoc, doc, getDoc
       } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import {
+        getAuth, onAuthStateChanged
+      } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -52,69 +49,33 @@
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
+      const auth = getAuth(app);
+
       const posizioniRef = collection(db, "posizioniMezzo");
 
-      const map = L.map("map").setView([44.8, 10.3], 7);
+      const gate = document.getElementById("gate");
+      const mapDiv = document.getElementById("map");
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
-      }).addTo(map);
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          gate.innerHTML = `Non sei autenticato. <a href="index.html">Vai al login</a>`;
+          return;
+        }
+        const prof = await getDoc(doc(db, "users", user.uid));
+        if (!prof.exists() || prof.data().approved !== true) {
+          gate.innerHTML = `Il tuo account non è approvato. <a href="index.html">Torna all'app</a>`;
+          return;
+        }
 
-      const markers = new Map();
+        // ✅ Utente approvato: mostra la mappa
+        gate.remove();
+        mapDiv.style.display = 'block';
 
-   onSnapshot(query(posizioniRef), async snapshot => {
-  document.getElementById("log").innerHTML = "";
-  const now = Date.now();
-  const latest = new Map();
-  const toDelete = [];
+        const map = L.map("map").setView([44.8, 10.3], 7);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-  // 1. Prendiamo la posizione più recente per ogni mezzo
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const id = docSnap.id;
-    const mezzo = (data.mezzo || '').trim().toLowerCase();
+        const markers = new Map();
 
-    if (!data.latitudine || !data.longitudine || !data.timestamp || !mezzo) return;
-
-    const timestampMs = data.timestamp.seconds * 1000;
-    const minutiPassati = (now - timestampMs) / 60000;
-
-    // Se troppo vecchio, lo segnamo per eliminazione
-    if (minutiPassati > 1) {
-      toDelete.push(id);
-      return;
-    }
-
-    const attuale = latest.get(mezzo);
-    if (!attuale || data.timestamp.seconds > attuale.timestamp.seconds) {
-      latest.set(mezzo, { ...data, id });
-      if (attuale?.id) toDelete.push(attuale.id); // rimuovi il precedente
-    } else {
-      toDelete.push(id); // documento meno recente
-    }
-  });
-
-  // 2. Rimuoviamo vecchi marker
-  markers.forEach(marker => marker.remove());
-  markers.clear();
-
-  // 3. Mostriamo i mezzi attivi
-  latest.forEach((data, mezzo) => {
-    const pos = [data.latitudine, data.longitudine];
-    const marker = L.marker(pos).addTo(map).bindPopup(`<strong>${data.mezzo}</strong>`);
-    markers.set(mezzo, marker);
-
-    const time = data.timestamp?.toDate ? data.timestamp.toDate().toLocaleString() : new Date().toLocaleString();
-    const entry = `<div class="entry"><strong>${data.mezzo}</strong><br>📍 ${pos[0].toFixed(5)}, ${pos[1].toFixed(5)}<br>🕒 ${time}</div>`;
-    document.getElementById("log").innerHTML += entry;
-  });
-
-  // 4. Cancelliamo i documenti vecchi da Firebase
-  for (const id of toDelete) {
-    await deleteDoc(doc(db, "posizioniMezzo", id));
-  }
-});
-
-    </script>
-  </body>
-</html>
+        onSnapshot(query(posizioniR

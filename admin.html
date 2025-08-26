@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Approvazione Utenti</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, sans-serif; padding: 16px; background: #f6f8fa; }
+    h1 { margin-top: 0; }
+    .card { background:#fff; border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:10px; }
+    .row { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+    .muted { color:#666; font-size:14px; }
+    input, button { padding:8px 12px; margin:4px 0; }
+    #login { margin-bottom: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    #status { margin: 8px 0 16px; padding:10px; border-radius:8px; font-size:14px; }
+    .ok { background:#e7f7ec; border:1px solid #33a35c; color:#0b5; }
+    .warn { background:#fff7e6; border:1px solid #f0ad4e; color:#c77c11; }
+    .err { background:#fdecea; border:1px solid #f5c2c7; color:#b02a37; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#eee; font-size:12px; margin-left:6px; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <h1>👑 Admin – Approvazione Utenti</h1>
+  <div id="status" class="warn">🔓 Non loggato.</div>
+
+  <div id="login">
+    <input id="email" placeholder="Email admin (es. nome@azienda.it)">
+    <input id="pass" placeholder="Password" type="password">
+    <button id="btn-login">Accedi</button>
+    <button id="btn-logout">Esci</button>
+  </div>
+
+  <h2>In attesa di approvazione <span id="count" class="badge">0</span></h2>
+  <div id="pending" class="muted">Effettua il login come admin per vedere gli utenti in attesa.</div>
+
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
+      authDomain: "archivio-clienti-trasporti.firebaseapp.com",
+      projectId: "archivio-clienti-trasporti",
+      storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
+      messagingSenderId: "773533170263",
+      appId: "1:773533170263:web:d05e2b00e991b0294c0112"
+    };
+
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getFirestore, collection, query, where, onSnapshot, updateDoc, doc 
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { 
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+      setPersistence, inMemoryPersistence
+      // Se vuoi persistenza di tab al posto della memoria, usa:
+      // setPersistence, browserSessionPersistence
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // 👉 App Firebase separata per l’admin (nome diverso)
+    const adminApp = initializeApp(firebaseConfig, "adminApp");
+    const db = getFirestore(adminApp);
+    const auth = getAuth(adminApp);
+
+    // 👉 Sessione NON condivisa con index (in memoria)
+    await setPersistence(auth, inMemoryPersistence);
+    // Se preferisci persistenza per TAB: usa browserSessionPersistence
+    // await setPersistence(auth, browserSessionPersistence);
+
+    // Usa il ruolo o l’UID per riconoscere l’admin
+    const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+
+    const $ = id => document.getElementById(id);
+    function setStatus(type, msg) { const s=$("status"); s.className=type; s.textContent=msg; }
+    function setLoginDisabled(d) { $("email").disabled=d; $("pass").disabled=d; $("btn-login").disabled=d; }
+
+    $("btn-login").addEventListener("click", async () => {
+      const email = $("email").value.trim();
+      const pass  = $("pass").value;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setStatus("err","❌ Email non valida."); return; }
+      if (!pass) { setStatus("err","❌ Inserisci la password."); return; }
+      try { await signInWithEmailAndPassword(auth, email, pass); }
+      catch(e){ setStatus("err","❌ Login fallito: " + (e.code || e.message)); }
+    });
+    $("btn-logout").addEventListener("click", () => signOut(auth));
+
+    let pendingUnsub = null;
+    function startPendingListener() {
+      if (pendingUnsub) return;
+      // SOLO DRIVER non approvati
+      const q = query(collection(db,"users"),
+                      where("role","==","driver"),
+                      where("approved","==",false));
+      pendingUnsub = onSnapshot(q, (snap) => {
+        const container = $("pending");
+        const count = $("count");
+        container.innerHTML = "";
+        count.textContent = String(snap.size);
+        if (snap.empty) { container.innerHTML = "<div class='muted'>Nessun utente in attesa.</div>"; return; }
+        snap.forEach(d => {
+          const u = d.data();
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="row">
+              <div>
+                <strong>${u.name || "(senza nome)"}</strong><br>
+                <span class="muted">${u.email || ""}</span>
+              </div>
+              <div><button data-uid="${d.id}" class="approve">Approva</button></div>
+            </div>`;
+          container.appendChild(card);
+        });
+        container.querySelectorAll(".approve").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const uid = e.currentTarget.getAttribute("data-uid");
+            await updateDoc(doc(db,"users", uid), { approved: true, role: "driver" });
+            setStatus("ok","✅ Utente approvato.");
+          });
+        });
+      });
+    }
+    function stopPendingListener() {
+      if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
+      $("count").textContent = "0";
+      $("pending").innerHTML = "<div class='muted'>Effettua il login come admin per vedere gli utenti in attesa.</div>";
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { setStatus("warn","🔓 Non loggato."); stopPendingListener(); setLoginDisabled(false); return; }
+      setLoginDisabled(true);
+      if (user.uid === ADMIN_UID) { setStatus("ok",`✅ Loggato come ${user.email} (ADMIN)`); startPendingListener(); }
+      else { setStatus("warn",`⚠️ Loggato come ${user.email}, ma non sei admin.`); stopPendingListener(); }
+    });
+  </script>
+</body>
+</html>
