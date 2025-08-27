@@ -4,11 +4,9 @@
     <title>Monitoraggio Mezzi - Leaflet</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      crossorigin=""
-    />
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          crossorigin="" />
     <style>
       body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
       #map { height: 60vh; width: 100%; display:none; }
@@ -24,15 +22,12 @@
     <div id="map"></div>
     <div id="log"></div>
 
-    <script
-      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-      crossorigin=""
-    ></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
       import {
-        getFirestore, collection, query, onSnapshot, deleteDoc, doc, getDoc
+        getFirestore, collection, query, onSnapshot, doc, getDoc
       } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
       import {
         getAuth, onAuthStateChanged
@@ -55,6 +50,14 @@
 
       const gate = document.getElementById("gate");
       const mapDiv = document.getElementById("map");
+      const logDiv = document.getElementById("log");
+
+      function addLog(msg){
+        const d = document.createElement("div");
+        d.className = "entry";
+        d.textContent = msg;
+        logDiv.prepend(d);
+      }
 
       onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -62,12 +65,17 @@
           return;
         }
         const prof = await getDoc(doc(db, "users", user.uid));
-        if (!prof.exists() || prof.data().approved !== true) {
+        const p = prof.exists() ? prof.data() : {};
+        if (!p.role) { p.role = (user.email || "").includes("@") ? "driver" : "driver"; }
+        const approved = p.approved === true;
+        const isAdmin  = user.uid === "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+
+        if (!approved && !isAdmin) {
           gate.innerHTML = `Il tuo account non è approvato. <a href="index.html">Torna all'app</a>`;
           return;
         }
 
-        // ✅ Utente approvato: mostra la mappa
+        // ✅ Utente approvato o admin: mostra la mappa
         gate.remove();
         mapDiv.style.display = 'block';
 
@@ -78,4 +86,35 @@
 
         const markers = new Map();
 
-        onSnapshot(query(posizioniR
+        function setMarker(mezzo, lat, lng){
+          if (!markers.has(mezzo)) {
+            const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${mezzo}</b>`);
+            markers.set(mezzo, m);
+          } else {
+            const m = markers.get(mezzo);
+            m.setLatLng([lat, lng]);
+          }
+        }
+
+        onSnapshot(query(posizioniRef), (snap) => {
+          const seen = new Set();
+          snap.forEach(d => {
+            const data = d.data();
+            if (!data || data.latitudine == null || data.longitudine == null) return;
+            setMarker(data.mezzo, data.latitudine, data.longitudine);
+            seen.add(data.mezzo);
+          });
+          // rimuovi marker di mezzi non più presenti
+          markers.forEach((m, mezzo) => {
+            if (!seen.has(mezzo)) {
+              map.removeLayer(m);
+              markers.delete(mezzo);
+            }
+          });
+          const now = new Date().toLocaleTimeString();
+          addLog(`[${now}] Aggiornate ${snap.size} posizioni.`);
+        });
+      });
+    </script>
+  </body>
+</html>

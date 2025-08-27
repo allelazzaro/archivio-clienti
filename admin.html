@@ -17,7 +17,12 @@
     .warn { background:#fff7e6; border:1px solid #f0ad4e; color:#c77c11; }
     .err { background:#fdecea; border:1px solid #f5c2c7; color:#b02a37; }
     .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#eee; font-size:12px; margin-left:6px; }
+    .btn-danger { background:#b02a37; color:#fff; border:none; border-radius:6px; }
+    .btn-secondary { background:#eee; border:1px solid #ccc; border-radius:6px; }
+    .btn-primary { background:#0b5; color:#fff; border:none; border-radius:6px; }
     button:disabled { opacity:.6; cursor:not-allowed; }
+    .cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    @media (max-width: 860px){ .cols { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -31,8 +36,17 @@
     <button id="btn-logout">Esci</button>
   </div>
 
-  <h2>In attesa di approvazione <span id="count" class="badge">0</span></h2>
-  <div id="pending" class="muted">Effettua il login come admin per vedere gli utenti in attesa.</div>
+  <div class="cols">
+    <div>
+      <h2>In attesa di approvazione <span id="count-pending" class="badge">0</span></h2>
+      <div id="pending" class="muted">Effettua il login come admin per vedere gli utenti in attesa.</div>
+    </div>
+
+    <div>
+      <h2>Utenti approvati <span id="count-approved" class="badge">0</span></h2>
+      <div id="approved" class="muted">Effettua il login come admin per vedere gli utenti approvati.</div>
+    </div>
+  </div>
 
   <script type="module">
     const firebaseConfig = {
@@ -45,27 +59,20 @@
     };
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { 
-      getFirestore, collection, query, where, onSnapshot, updateDoc, doc 
+    import {
+      getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import { 
+    import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
       setPersistence, inMemoryPersistence
-      // Se vuoi persistenza di tab al posto della memoria, usa:
-      // setPersistence, browserSessionPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
-    // 👉 App Firebase separata per l’admin (nome diverso)
+    // App separata (sessione non condivisa con index)
     const adminApp = initializeApp(firebaseConfig, "adminApp");
     const db = getFirestore(adminApp);
     const auth = getAuth(adminApp);
-
-    // 👉 Sessione NON condivisa con index (in memoria)
     await setPersistence(auth, inMemoryPersistence);
-    // Se preferisci persistenza per TAB: usa browserSessionPersistence
-    // await setPersistence(auth, browserSessionPersistence);
 
-    // Usa il ruolo o l’UID per riconoscere l’admin
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
     const $ = id => document.getElementById(id);
@@ -83,52 +90,96 @@
     $("btn-logout").addEventListener("click", () => signOut(auth));
 
     let pendingUnsub = null;
-    function startPendingListener() {
-      if (pendingUnsub) return;
-      // SOLO DRIVER non approvati
-      const q = query(collection(db,"users"),
-                      where("role","==","driver"),
-                      where("approved","==",false));
-      pendingUnsub = onSnapshot(q, (snap) => {
-        const container = $("pending");
-        const count = $("count");
-        container.innerHTML = "";
-        count.textContent = String(snap.size);
-        if (snap.empty) { container.innerHTML = "<div class='muted'>Nessun utente in attesa.</div>"; return; }
-        snap.forEach(d => {
-          const u = d.data();
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `
-            <div class="row">
-              <div>
-                <strong>${u.name || "(senza nome)"}</strong><br>
-                <span class="muted">${u.email || ""}</span>
-              </div>
-              <div><button data-uid="${d.id}" class="approve">Approva</button></div>
-            </div>`;
-          container.appendChild(card);
+    let approvedUnsub = null;
+
+    function renderUsers(containerId, countId, snap, type){
+      const container = $(containerId);
+      const count = $(countId);
+      container.innerHTML = "";
+      count.textContent = String(snap.size);
+      if (snap.empty) {
+        container.innerHTML = `<div class='muted'>Nessun utente ${type}.</div>`;
+        return;
+      }
+      snap.forEach(d => {
+        const u = d.data();
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="row">
+            <div>
+              <strong>${u.name || "(senza nome)"}</strong><br>
+              <span class="muted">${u.email || ""}</span>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              ${
+                type === "in attesa"
+                ? `<button data-uid="${d.id}" class="approve btn-primary">Approva</button>`
+                : `
+                  <button data-uid="${d.id}" class="revoke btn-secondary">Revoca accesso</button>
+                  <button data-uid="${d.id}" class="remove btn-danger">Elimina record</button>
+                `
+              }
+            </div>
+          </div>`;
+        container.appendChild(card);
+      });
+
+      // Bind azioni
+      container.querySelectorAll(".approve").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const uid = e.currentTarget.getAttribute("data-uid");
+          await updateDoc(doc(db,"users", uid), { approved: true, role: "driver" });
+          setStatus("ok","✅ Utente approvato.");
         });
-        container.querySelectorAll(".approve").forEach(btn => {
-          btn.addEventListener("click", async (e) => {
-            const uid = e.currentTarget.getAttribute("data-uid");
-            await updateDoc(doc(db,"users", uid), { approved: true, role: "driver" });
-            setStatus("ok","✅ Utente approvato.");
-          });
+      });
+      container.querySelectorAll(".revoke").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const uid = e.currentTarget.getAttribute("data-uid");
+          if (!confirm("Revocare l’accesso? L’utente non potrà più usare l’app finché non verrà ri-approvato.")) return;
+          await updateDoc(doc(db,"users", uid), { approved: false });
+          setStatus("ok","✅ Accesso revocato.");
+        });
+      });
+      container.querySelectorAll(".remove").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          const uid = e.currentTarget.getAttribute("data-uid");
+          if (!confirm("Eliminare il record utente in Firestore? Al prossimo login verrà ricreato come non approvato.")) return;
+          await deleteDoc(doc(db,"users", uid));
+          setStatus("ok","🗑️ Record utente eliminato.");
         });
       });
     }
-    function stopPendingListener() {
-      if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
-      $("count").textContent = "0";
-      $("pending").innerHTML = "<div class='muted'>Effettua il login come admin per vedere gli utenti in attesa.</div>";
+
+    function startListeners(){
+      if (!pendingUnsub) {
+        const qPending = query(collection(db,"users"),
+                               where("role","==","driver"),
+                               where("approved","==",false));
+        pendingUnsub = onSnapshot(qPending, (snap) => renderUsers("pending","count-pending",snap,"in attesa"));
+      }
+      if (!approvedUnsub) {
+        const qApproved = query(collection(db,"users"),
+                                where("role","==","driver"),
+                                where("approved","==",true));
+        approvedUnsub = onSnapshot(qApproved, (snap) => renderUsers("approved","count-approved",snap,"approvati"));
+      }
+    }
+
+    function stopListeners(){
+      if (pendingUnsub) { pendingUnsub(); pendingUnsub=null; }
+      if (approvedUnsub) { approvedUnsub(); approvedUnsub=null; }
+      $("count-pending").textContent = "0";
+      $("count-approved").textContent = "0";
+      $("pending").innerHTML  = "<div class='muted'>Effettua il login come admin per vedere gli utenti in attesa.</div>";
+      $("approved").innerHTML = "<div class='muted'>Effettua il login come admin per vedere gli utenti approvati.</div>";
     }
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) { setStatus("warn","🔓 Non loggato."); stopPendingListener(); setLoginDisabled(false); return; }
+      if (!user) { setStatus("warn","🔓 Non loggato."); stopListeners(); setLoginDisabled(false); return; }
       setLoginDisabled(true);
-      if (user.uid === ADMIN_UID) { setStatus("ok",`✅ Loggato come ${user.email} (ADMIN)`); startPendingListener(); }
-      else { setStatus("warn",`⚠️ Loggato come ${user.email}, ma non sei admin.`); stopPendingListener(); }
+      if (user.uid === ADMIN_UID) { setStatus("ok",`✅ Loggato come ${user.email} (ADMIN)`); startListeners(); }
+      else { setStatus("warn",`⚠️ Loggato come ${user.email}, ma non sei admin.`); stopListeners(); }
     });
   </script>
 </body>
