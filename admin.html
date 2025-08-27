@@ -5,48 +5,80 @@
   <title>Admin - Approvazione Utenti</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body { font-family: Arial, sans-serif; padding: 16px; background: #f6f8fa; }
-    h1 { margin-top: 0; }
-    .card { background:#fff; border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:10px; }
-    .row { display:flex; gap:8px; align-items:center; justify-content:space-between; }
-    .muted { color:#666; font-size:14px; }
-    input, button { padding:8px 12px; margin:4px 0; }
-    #login { margin-bottom: 12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    #status { margin: 8px 0 16px; padding:10px; border-radius:8px; font-size:14px; }
+    :root{ --bg:#f6f8fa; --card:#fff; --muted:#666; --b:#ddd; --pri:#0b5; --danger:#b02a37; }
+    body { font-family: Arial, sans-serif; margin:0; background: var(--bg); }
+    header { padding:16px; background:#fff; border-bottom:1px solid #eee; position:sticky; top:0; z-index:10; }
+    h1 { margin:0 0 10px; }
+    .container { padding:16px; }
+    .status { margin: 8px 0 16px; padding:10px; border-radius:8px; font-size:14px; }
     .ok { background:#e7f7ec; border:1px solid #33a35c; color:#0b5; }
     .warn { background:#fff7e6; border:1px solid #f0ad4e; color:#c77c11; }
     .err { background:#fdecea; border:1px solid #f5c2c7; color:#b02a37; }
-    .badge { display:inline-block; padding:2px 8px; border-radius:999px; background:#eee; font-size:12px; margin-left:6px; }
-    .btn-danger { background:#b02a37; color:#fff; border:none; border-radius:6px; }
-    .btn-secondary { background:#eee; border:1px solid #ccc; border-radius:6px; }
-    .btn-primary { background:#0b5; color:#fff; border:none; border-radius:6px; }
-    button:disabled { opacity:.6; cursor:not-allowed; }
+
+    .login-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    input, button, a.btn { padding:8px 12px; border-radius:8px; border:1px solid #ccc; background:#fff; text-decoration:none; color:#000; }
+    button { cursor:pointer; }
+    button:disabled{ opacity:.6; cursor:not-allowed; }
+    .btn-danger{ background:#b02a37; border-color:#b02a37; color:#fff; }
+    .btn-secondary{ background:#eee; }
+    .btn-primary{ background:#0b5; color:#fff; border-color:#0b5; }
+
     .cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-    @media (max-width: 860px){ .cols { grid-template-columns: 1fr; } }
+    @media (max-width: 900px){ .cols { grid-template-columns: 1fr; } }
+
+    .card { background:#fff; border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:10px; }
+    .row { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+    .muted { color:#666; font-size:14px; }
+    .badge{ display:inline-block; min-width:18px; padding:2px 6px; border-radius:999px; font-size:12px; text-align:center; }
+    .badge-gray{ background:#eee; color:#333; }
+    .badge-red{ background:#ff4757; color:#fff; }
+
+    /* Pannello chat laterale */
+    .chat-panel {
+      position: fixed; top:0; right:0; width: min(560px, 100%); height: 100vh;
+      background:#fff; border-left:1px solid #ddd; box-shadow: -6px 0 18px rgba(0,0,0,.08);
+      transform: translateX(100%); transition: transform .25s ease; z-index: 50; display:flex; flex-direction:column;
+    }
+    .chat-panel.open { transform: translateX(0); }
+    .chat-panel header { padding:12px 14px; border-bottom:1px solid #eee; display:flex; align-items:center; justify-content:space-between; }
+    .chat-iframe { border:0; width:100%; height:100%; }
   </style>
 </head>
 <body>
-  <h1>👑 Admin – Approvazione Utenti</h1>
-  <div id="status" class="warn">🔓 Non loggato.</div>
+  <header>
+    <h1>👑 Admin – Approvazione Utenti</h1>
+    <div id="status" class="status warn">🔓 Non loggato.</div>
+    <div class="login-row">
+      <input id="email" placeholder="Email admin">
+      <input id="pass" placeholder="Password" type="password">
+      <button id="btn-login">Accedi</button>
+      <button id="btn-logout">Esci</button>
+      <a href="chat.html" class="btn btn-primary" title="Apri tutte le chat in una pagina dedicata">💬 Console chat (tutte)</a>
+    </div>
+  </header>
 
-  <div id="login">
-    <input id="email" placeholder="Email admin (es. nome@azienda.it)">
-    <input id="pass" placeholder="Password" type="password">
-    <button id="btn-login">Accedi</button>
-    <button id="btn-logout">Esci</button>
+  <div class="container">
+    <div class="cols">
+      <div>
+        <h2>In attesa di approvazione <span id="count-pending" class="badge badge-gray">0</span></h2>
+        <div id="pending" class="muted">Effettua il login come admin per vedere gli utenti in attesa.</div>
+      </div>
+
+      <div>
+        <h2>Utenti approvati <span id="count-approved" class="badge badge-gray">0</span></h2>
+        <div id="approved" class="muted">Effettua il login come admin per vedere gli utenti approvati.</div>
+      </div>
+    </div>
   </div>
 
-  <div class="cols">
-    <div>
-      <h2>In attesa di approvazione <span id="count-pending" class="badge">0</span></h2>
-      <div id="pending" class="muted">Effettua il login come admin per vedere gli utenti in attesa.</div>
-    </div>
-
-    <div>
-      <h2>Utenti approvati <span id="count-approved" class="badge">0</span></h2>
-      <div id="approved" class="muted">Effettua il login come admin per vedere gli utenti approvati.</div>
-    </div>
-  </div>
+  <!-- pannello chat inline -->
+  <aside id="chatPanel" class="chat-panel" aria-hidden="true">
+    <header>
+      <strong id="chatTitle">Chat</strong>
+      <button id="closeChat" class="btn-secondary">✖ Chiudi</button>
+    </header>
+    <iframe id="chatFrame" class="chat-iframe" src="about:blank"></iframe>
+  </aside>
 
   <script type="module">
     const firebaseConfig = {
@@ -60,72 +92,125 @@
 
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc
+      getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc,
+      orderBy, limit
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
-      setPersistence, inMemoryPersistence
+      setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // App separata (sessione non condivisa con index)
     const adminApp = initializeApp(firebaseConfig, "adminApp");
     const db = getFirestore(adminApp);
     const auth = getAuth(adminApp);
-    await setPersistence(auth, inMemoryPersistence);
+    await setPersistence(auth, browserLocalPersistence); // persistenza condivisa con altre pagine
 
+    // ⚠️ METTI QUI IL TUO UID ADMIN REALE
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
     const $ = id => document.getElementById(id);
-    function setStatus(type, msg) { const s=$("status"); s.className=type; s.textContent=msg; }
-    function setLoginDisabled(d) { $("email").disabled=d; $("pass").disabled=d; $("btn-login").disabled=d; }
+    const setStatus = (type, msg) => { const s=$("status"); s.className="status "+type; s.textContent=msg; };
+    const setLoginDisabled = d => { $("email").disabled=d; $("pass").disabled=d; $("btn-login").disabled=d; };
 
+    // pannello chat inline
+    const chatPanel = $("chatPanel"), chatFrame = $("chatFrame"), chatTitle = $("chatTitle");
+    $("closeChat").addEventListener("click", () => { chatPanel.classList.remove("open"); chatPanel.setAttribute("aria-hidden","true"); chatFrame.src="about:blank"; });
+
+    // ---- Login/Logout
     $("btn-login").addEventListener("click", async () => {
       const email = $("email").value.trim();
       const pass  = $("pass").value;
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setStatus("err","❌ Email non valida."); return; }
-      if (!pass) { setStatus("err","❌ Inserisci la password."); return; }
+      if (!email || !pass) { setStatus("err","❌ Inserisci email e password."); return; }
       try { await signInWithEmailAndPassword(auth, email, pass); }
       catch(e){ setStatus("err","❌ Login fallito: " + (e.code || e.message)); }
     });
     $("btn-logout").addEventListener("click", () => signOut(auth));
 
-    let pendingUnsub = null;
-    let approvedUnsub = null;
+    let pendingUnsub = null, approvedUnsub = null;
+
+    // --------- Badge non letti per un driver (ultimi 50 msg) ----------
+    function watchUnreadBadgeForDriver(uid){
+      const msgsRef = collection(db, "threads", uid, "messages");
+      const qRecent = query(msgsRef, orderBy("createdAt","desc"), limit(50));
+      return onSnapshot(qRecent, (snap) => {
+        let count = 0;
+        snap.forEach(d => {
+          const m = d.data();
+          const rb = Array.isArray(m.readBy) ? m.readBy : [];
+          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) count++;
+        });
+        const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
+        if (badge) {
+          if (count > 0) { badge.textContent = String(count); badge.className = "badge badge-red badge-unread"; }
+          else { badge.textContent = "0"; badge.className = "badge badge-gray badge-unread"; }
+        }
+      });
+    }
+
+    // (opzionale) warm-up; se vuoi creare al volo il thread fallo in chat.html
+    async function ensureThreadForDriver(uid, name, email){
+      await getDocs(query(collection(db,"threads"))); // no-op warm
+    }
+
+    function attachInlineChatHandlers(container){
+      container.querySelectorAll(".open-inline").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const uid  = e.currentTarget.dataset.uid;
+          const name = e.currentTarget.dataset.name || uid;
+          if (!uid) { alert("Impossibile aprire la chat: UID mancante."); return; }
+          console.log("[ADMIN] Apri chat inline → uid:", uid, "name:", name);
+          chatTitle.textContent = `Chat con: ${name} (${uid})`;
+          chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}`;
+          chatPanel.classList.add("open");
+          chatPanel.setAttribute("aria-hidden","false");
+        });
+      });
+    }
 
     function renderUsers(containerId, countId, snap, type){
       const container = $(containerId);
       const count = $(countId);
-      container.innerHTML = "";
-      count.textContent = String(snap.size);
-      if (snap.empty) {
-        container.innerHTML = `<div class='muted'>Nessun utente ${type}.</div>`;
-        return;
-      }
+      container.innerHTML = ""; count.textContent = String(snap.size);
+      if (snap.empty) { container.innerHTML = `<div class='muted'>Nessun utente ${type}.</div>`; return; }
+
       snap.forEach(d => {
         const u = d.data();
+        const uid = d.id;
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
           <div class="row">
             <div>
-              <strong>${u.name || "(senza nome)"}</strong><br>
-              <span class="muted">${u.email || ""}</span>
+              <strong>${u.name || "(senza nome)"} </strong>
+              ${ type !== "in attesa" ? `<span class="badge badge-gray badge-unread" data-uid="${uid}" title="Messaggi non letti">0</span>` : "" }
+              <br><span class="muted">${u.email || ""}</span>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               ${
                 type === "in attesa"
-                ? `<button data-uid="${d.id}" class="approve btn-primary">Approva</button>`
+                ? `<button data-uid="${uid}" class="approve btn-primary">Approva</button>`
                 : `
-                  <button data-uid="${d.id}" class="revoke btn-secondary">Revoca accesso</button>
-                  <button data-uid="${d.id}" class="remove btn-danger">Elimina record</button>
+                  <button data-uid="${uid}" class="revoke btn-secondary">Revoca accesso</button>
+                  <button data-uid="${uid}" class="remove btn-danger">Elimina record</button>
+                  <a class="btn-secondary" href="chat.html?uid=${uid}" target="_blank" title="Apri chat in nuova pagina">🔗 Apri chat</a>
+                  <button data-uid="${uid}" data-name="${u.name || uid}" class="open-inline btn-secondary" title="Apri chat nel pannello">🗂 Apri qui</button>
                 `
               }
             </div>
           </div>`;
         container.appendChild(card);
+
+        if (type !== "in attesa") {
+          watchUnreadBadgeForDriver(uid);
+          ensureThreadForDriver(uid, u.name || "", u.email || "");
+        }
       });
 
-      // Bind azioni
+      // attach handlers
+      attachInlineChatHandlers(container);
+
+      // azioni
       container.querySelectorAll(".approve").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           const uid = e.currentTarget.getAttribute("data-uid");
@@ -136,7 +221,7 @@
       container.querySelectorAll(".revoke").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           const uid = e.currentTarget.getAttribute("data-uid");
-          if (!confirm("Revocare l’accesso? L’utente non potrà più usare l’app finché non verrà ri-approvato.")) return;
+          if (!confirm("Revocare l’accesso?")) return;
           await updateDoc(doc(db,"users", uid), { approved: false });
           setStatus("ok","✅ Accesso revocato.");
         });
@@ -144,7 +229,7 @@
       container.querySelectorAll(".remove").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           const uid = e.currentTarget.getAttribute("data-uid");
-          if (!confirm("Eliminare il record utente in Firestore? Al prossimo login verrà ricreato come non approvato.")) return;
+          if (!confirm("Eliminare il record utente in Firestore?")) return;
           await deleteDoc(doc(db,"users", uid));
           setStatus("ok","🗑️ Record utente eliminato.");
         });
@@ -165,7 +250,6 @@
         approvedUnsub = onSnapshot(qApproved, (snap) => renderUsers("approved","count-approved",snap,"approvati"));
       }
     }
-
     function stopListeners(){
       if (pendingUnsub) { pendingUnsub(); pendingUnsub=null; }
       if (approvedUnsub) { approvedUnsub(); approvedUnsub=null; }

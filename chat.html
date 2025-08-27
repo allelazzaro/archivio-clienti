@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat Admin ↔ Driver</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#f5f7fb; }
+    header { background:#007bff; color:#fff; padding:12px 16px; display:flex; align-items:center; justify-content:space-between; }
+    header a { color:#fff; text-decoration:none; opacity:.9; }
+    .wrap { display:grid; grid-template-columns: 300px 1fr; height: calc(100vh - 56px); }
+    .sidebar { border-right:1px solid #e5e7eb; background:#fff; overflow:auto; }
+    .chat { display:flex; flex-direction:column; height:100%; }
+    .empty { padding:16px; color:#667; }
+    #messages { flex:1; overflow:auto; padding:16px; background:#eef3fb; }
+    .msg { max-width:70%; padding:10px 12px; margin:6px 0; border-radius:12px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+    .mine { background:#dff1ff; margin-left:auto; }
+    .meta { font-size:12px; color:#667; margin-top:4px; }
+    #composer { display:flex; gap:8px; padding:10px; background:#fff; border-top:1px solid #e5e7eb; }
+    #composer input { flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:8px; }
+    #composer button { padding:10px 14px; border:none; border-radius:8px; background:#007bff; color:#fff; cursor:pointer; }
+    #composer button:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* Lista chat */
+    .item { display:flex; gap:10px; padding:12px 14px; border-bottom:1px solid #f1f5f9; cursor:pointer; align-items:center; }
+    .item:hover { background:#f8fafc; }
+    .item.active { background:#eaf2ff; }
+    .item .avatar { width:36px; height:36px; border-radius:999px; background:#e6f0ff; display:flex; align-items:center; justify-content:center; font-weight:700; color:#245; }
+    .item .col { flex:1; min-width:0; }
+    .item .name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .item .preview { font-size:13px; color:#667; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .item .right { text-align:right; }
+    .item .time { font-size:12px; color:#778; }
+    .item .badge { display:inline-block; min-width:18px; padding:2px 6px; border-radius:999px; background:#ff4757; color:#fff; font-size:12px; text-align:center; margin-top:4px; }
+    @media (max-width: 900px){ .wrap { grid-template-columns: 1fr; } .sidebar { display:none; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div>💬 Chat Admin ↔ Driver</div>
+    <nav><a href="home.html">🏠 Home</a></nav>
+  </header>
+
+  <div class="wrap">
+    <aside class="sidebar" id="sidebar"><div class="empty">Caricamento…</div></aside>
+
+    <section class="chat">
+      <div id="topbar" class="empty" style="padding:10px 16px;">Seleziona una chat…</div>
+      <div id="messages"></div>
+      <div id="composer">
+        <input id="input" placeholder="Scrivi un messaggio…" />
+        <button id="send">Invia</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
+      query, where, onSnapshot, orderBy, serverTimestamp, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
+      authDomain: "archivio-clienti-trasporti.firebaseapp.com",
+      projectId: "archivio-clienti-trasporti",
+      storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
+      messagingSenderId: "773533170263",
+      appId: "1:773533170263:web:d05e2b00e991b0294c0112"
+    };
+    // ⚠️ Metti il TUO UID admin reale
+    const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    const auth = getAuth(app);
+
+    const $ = (id) => document.getElementById(id);
+    const sidebar = $("sidebar");
+    const messagesDiv = $("messages");
+    const input = $("input");
+    const sendBtn = $("send");
+    const topbar = $("topbar");
+
+    let currentUser = null;
+    let currentThreadId = null;  // = uid driver
+    let unsubMsgs = null;
+
+    const fmtTime = (d)=> new Date(d).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
+    function scrollBottom(){ messagesDiv.scrollTop = messagesDiv.scrollHeight; }
+
+    function renderMessage(m){
+      const wrapper = document.createElement("div");
+      wrapper.className = "msg" + (m.sender === currentUser.uid ? " mine" : "");
+      const ts = fmtDT(m.createdAt) || new Date();
+      wrapper.innerHTML = `<div>${(m.text || "").replace(/</g,"&lt;")}</div><div class="meta">${ts.toLocaleString()}</div>`;
+      messagesDiv.appendChild(wrapper);
+    }
+
+    async function ensureThread(driverUid, driverName, driverEmail){
+      const tref = doc(db, "threads", driverUid);
+      const snap = await getDoc(tref);
+      if (!snap.exists()) {
+        await setDoc(tref, {
+          participants: [ADMIN_UID, driverUid],
+          driverName: driverName || "",
+          driverEmail: driverEmail || "",
+          lastMessage: "",
+          updatedAt: serverTimestamp()
+        });
+      } else {
+        const d = snap.data() || {};
+        if (!d.driverName || !d.driverEmail) {
+          await updateDoc(tref, { driverName: d.driverName || driverName || "", driverEmail: d.driverEmail || driverEmail || "" });
+        }
+      }
+      return tref;
+    }
+
+    function markActive(threadId){
+      document.querySelectorAll(".item").forEach(el => el.classList.remove("active"));
+      const el = document.getElementById(`item-${threadId}`);
+      if (el) el.classList.add("active");
+    }
+
+    function openThread(driverUid, headerLabel){
+      currentThreadId = driverUid;
+      markActive(driverUid);
+      topbar.textContent = headerLabel || "Chat";
+      messagesDiv.innerHTML = "";
+      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
+
+      const msgsRef = collection(db, "threads", currentThreadId, "messages");
+      const qMsgs = query(msgsRef, orderBy("createdAt", "asc"));
+      unsubMsgs = onSnapshot(qMsgs, (snap) => {
+        messagesDiv.innerHTML = "";
+        const toMark = [];
+        snap.forEach(d => {
+          const m = d.data();
+          renderMessage(m);
+          const rb = Array.isArray(m.readBy) ? m.readBy : [];
+          if (!rb.includes(currentUser.uid)) toMark.push(d.id);
+        });
+        scrollBottom();
+        toMark.forEach(async (id) => {
+          const mref = doc(db, "threads", currentThreadId, "messages", id);
+          try { await updateDoc(mref, { readBy: arrayUnion(currentUser.uid) }); } catch {}
+        });
+      });
+    }
+
+    function enableComposer(on){ input.disabled = !on; sendBtn.disabled = !on; }
+
+    async function sendMessage(){
+      const text = input.value.trim();
+      if (!text || !currentThreadId) return;
+      const msgsRef = collection(db, "threads", currentThreadId, "messages");
+      await addDoc(msgsRef, { text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy: [currentUser.uid] });
+      await updateDoc(doc(db,"threads", currentThreadId), { lastMessage: text, updatedAt: serverTimestamp() });
+      input.value = ""; scrollBottom();
+    }
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
+
+    // Sidebar helpers
+    function makeItemEl(threadOrFake){
+      const uid = threadOrFake.id;
+      const d = typeof threadOrFake.data === "function" ? threadOrFake.data() : threadOrFake;
+      const name = d.driverName || uid;
+      const initials = (name || uid).substring(0,2).toUpperCase();
+      const el = document.createElement("div");
+      el.id = `item-${uid}`;
+      el.className = "item";
+      el.setAttribute("data-updated", d.updatedAt ? String(+fmtDT(d.updatedAt)) : "0");
+      el.innerHTML = `
+        <div class="avatar">${initials}</div>
+        <div class="col">
+          <div class="name">${name}</div>
+          <div class="preview" id="pv-${uid}">${d.lastMessage || "—"}</div>
+        </div>
+        <div class="right">
+          <div class="time" id="tm-${uid}">${d.updatedAt ? fmtTime(fmtDT(d.updatedAt)) : ""}</div>
+          <div class="badge" id="ud-${uid}" style="display:none;">0</div>
+        </div>
+      `;
+      el.addEventListener("click", () => openThread(uid, `Driver: ${name}`));
+      return el;
+    }
+    function setPreview(uid, text, ts){
+      const pv = document.getElementById(`pv-${uid}`); if (pv) pv.textContent = text || "—";
+      const tm = document.getElementById(`tm-${uid}`); if (tm) tm.textContent = ts ? fmtTime(ts) : "";
+      const item = document.getElementById(`item-${uid}`);
+      if (item) { item.setAttribute("data-updated", ts ? String(+ts) : "0"); sortSidebar(); }
+    }
+    function setUnread(uid, n){
+      const b = document.getElementById(`ud-${uid}`);
+      if (!b) return;
+      if (!n) { b.style.display = "none"; b.textContent = "0"; }
+      else { b.style.display = "inline-block"; b.textContent = String(n); }
+    }
+    function sortSidebar(){
+      const items = Array.from(sidebar.querySelectorAll(".item"));
+      items.sort((a,b)=> (+b.getAttribute("data-updated")||0) - (+a.getAttribute("data-updated")||0));
+      items.forEach(it => sidebar.appendChild(it));
+    }
+    function watchUnreadAndPreview(threadId){
+      const msgsRef = collection(db, "threads", threadId, "messages");
+      const qLast = query(msgsRef, orderBy("createdAt", "desc"), limit(1));
+      onSnapshot(qLast, (snap) => {
+        if (snap.empty) { setPreview(threadId, "", null); return; }
+        const d = snap.docs[0].data();
+        const ts = fmtDT(d.createdAt);
+        setPreview(threadId, d.text || "", ts || null);
+      });
+      const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
+      onSnapshot(qRecent, (snap) => {
+        let count = 0;
+        snap.forEach(docSnap => {
+          const m = docSnap.data();
+          const rb = Array.isArray(m.readBy) ? m.readBy : [];
+          if (!rb.includes(currentUser.uid) && m.sender !== currentUser.uid) count++;
+        });
+        setUnread(threadId, count);
+      });
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { alert("Non sei autenticato. Torna al login."); location.href = "index.html"; return; }
+      currentUser = user;
+      enableComposer(true);
+
+      const isAdmin = user.uid === ADMIN_UID;
+      const params = new URLSearchParams(location.search);
+      const target = params.get("uid");
+      const driverUid = (target && target !== ADMIN_UID) ? target : null; // protezione anti-admin-uid
+
+      if (isAdmin) {
+        if (!driverUid) {
+          // ADMIN: tutte le chat
+          const threadsRef = collection(db,"threads");
+          const qThreads = query(threadsRef, orderBy("updatedAt","desc"));
+          onSnapshot(qThreads, (snap) => {
+            sidebar.innerHTML = "";
+            if (snap.empty) { sidebar.innerHTML = `<div class="empty">Nessuna chat aperta.</div>`; return; }
+            snap.forEach(t => {
+              const item = makeItemEl(t);
+              sidebar.appendChild(item);
+              watchUnreadAndPreview(t.id);
+            });
+            if (!currentThreadId && !snap.empty) {
+              const first = snap.docs[0];
+              openThread(first.id, `Driver: ${(first.data().driverName || first.id)}`);
+            }
+          });
+          return;
+        }
+
+        // ADMIN: chat singola su un driver specifico
+        const dsnap = await getDoc(doc(db,"users", driverUid));
+        const ddata = dsnap.exists() ? dsnap.data() : {};
+        await ensureThread(driverUid, ddata.name || "", ddata.email || "");
+        sidebar.innerHTML = "";
+        const fake = { id: driverUid, data: () => ({ driverName: ddata.name || driverUid, updatedAt: null, lastMessage: "" }) };
+        const item = makeItemEl(fake);
+        sidebar.appendChild(item);
+        watchUnreadAndPreview(driverUid);
+        openThread(driverUid, `Driver: ${ddata.name || driverUid}`);
+      } else {
+        // DRIVER: solo la propria chat
+        const uref = doc(db, "users", user.uid);
+        const usnap = await getDoc(uref);
+        const udata = usnap.exists() ? usnap.data() : {};
+        if (!udata.approved) { document.body.innerHTML = "<div style='padding:20px;'>Il tuo account non è approvato. Torna più tardi.</div>"; return; }
+        await ensureThread(user.uid, udata.name || "", udata.email || "");
+        sidebar.innerHTML = "";
+        const meItem = makeItemEl({ id: user.uid, data: () => ({ driverName: "Chat con Admin", updatedAt: null, lastMessage: "" }) });
+        meItem.classList.add("active");
+        sidebar.appendChild(meItem);
+        watchUnreadAndPreview(user.uid);
+        openThread(user.uid, "Chat con Admin");
+      }
+    });
+  </script>
+</body>
+</html>

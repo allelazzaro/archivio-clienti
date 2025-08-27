@@ -15,12 +15,7 @@
     .cliente { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 8px; background-color: var(--card); }
     .btn-azione { margin-top: 8px; margin-right: 5px; font-size: 14px; padding: 6px 10px; }
     .avviso { background-color: #fff3cd; padding: 10px; border-left: 5px solid #ffc107; margin-bottom: 20px; border-radius: 5px; font-size: 14px; }
-
-    /* Overlays */
-    #auth-overlay, #awaiting-approval {
-      position: fixed; inset: 0; background: var(--bg);
-      z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px;
-    }
+    #auth-overlay, #awaiting-approval { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px; }
     #auth-box { width: 100%; max-width: 420px; background: var(--card); border: 1px solid #ddd; border-radius: 12px; padding: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
     #auth-header { padding: 14px 16px; border-bottom:1px solid #eee; font-weight:700; display:flex; gap:8px; align-items:center; }
     #auth-header::before { content:"🔒"; }
@@ -35,17 +30,9 @@
     #status { margin-top: 10px; font-size: 14px; font-style: italic; }
     button { cursor:pointer; }
     button:disabled { opacity:.6; cursor:not-allowed; }
-
-    /* User bar */
-    .userbar{
-      background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91;
-      padding:8px 12px; border-radius:8px; margin:8px 0 12px;
-      display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px;
-    }
-    .userbar .pill{
-      background:#fff; border:1px solid #cfe3ff; padding:2px 8px;
-      border-radius:999px; font-size:12px; color:#1b3c6b;
-    }
+    .userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
+    .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
+    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; }
   </style>
 </head>
 <body>
@@ -60,14 +47,12 @@
         <button id="tab-register" class="tab">Registrati</button>
       </div>
 
-      <!-- Pane: LOGIN -->
       <div id="pane-login" class="pane">
         <input id="log-email" placeholder="Email">
         <input id="log-password" placeholder="Password" type="password">
         <button id="btn-login">Accedi</button>
       </div>
 
-      <!-- Pane: REGISTRAZIONE -->
       <div id="pane-register" class="pane" style="display:none;">
         <input id="reg-name" placeholder="Nome (Es: Camion Alessio)">
         <input id="reg-email" placeholder="Email">
@@ -88,8 +73,6 @@
   <!-- APP -->
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
-
-    <!-- 👤 Chi è loggato -->
     <div id="userbar" class="userbar"></div>
 
     <div class="avviso">
@@ -97,6 +80,7 @@
     </div>
 
     <div class="row" style="align-items:center;">
+      <a class="link-pill" href="chat.html">💬 Chat con Admin</a>
       <button id="btn-logout" style="max-width:160px;">Esci</button>
     </div>
 
@@ -120,7 +104,6 @@
   </div>
 
   <script type="module">
-    // --- Firebase setup ---
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
       authDomain: "archivio-clienti-trasporti.firebaseapp.com",
@@ -144,32 +127,24 @@
     const db  = getFirestore(app);
     const auth = getAuth(app);
 
-    // 👑 UID admin
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
     const clientiRef   = collection(db, "clienti");
     const posizioniRef = collection(db, "posizioniMezzo");
 
-    // --- Stato utente/mezzo ---
     let nomeUtente = ""; // letto da Firestore o email
     let clienteDaModificare = null;
     let watchId = null;
 
-    // 🔧 listener clienti (solo se approvato)
     let clientiUnsub = null;
     function startClientiListener() {
       if (clientiUnsub) return;
       const q = query(clientiRef);
       clientiUnsub = onSnapshot(q, mostraClienti, (err) => console.error(err));
     }
-    function stopClientiListener() {
-      if (clientiUnsub) { clientiUnsub(); clientiUnsub = null; }
-    }
+    function stopClientiListener() { if (clientiUnsub) { clientiUnsub(); clientiUnsub = null; } }
 
-    // 🔧 listener profilo (sblocco automatico)
     let userUnsub = null;
-
-    // --- UI helpers ---
     const el = (id) => document.getElementById(id);
     const show = (node) => { node.style.display = (node.id === 'auth-overlay' || node.id === 'awaiting-approval') ? 'flex' : 'block'; };
     const hide = (node) => node.style.display = 'none';
@@ -187,7 +162,6 @@
     }
     const disableBtn = (btn, on) => btn.disabled = !!on;
 
-    // Userbar render
     function renderUserBar(uAuth, uData) {
       const box = document.getElementById("userbar");
       if (!box) return;
@@ -199,7 +173,6 @@
                        <span class="pill">${role}</span>`;
     }
 
-    // ➜ TABS login/registrazione
     const tabLogin = el("tab-login");
     const tabRegister = el("tab-register");
     const paneLogin = el("pane-login");
@@ -223,19 +196,15 @@
     }
     tabLogin.addEventListener("click", () => switchAuth("login"));
     tabRegister.addEventListener("click", () => switchAuth("register"));
-
-    // --- Auth overlay iniziale ---
     function showAuth(defaultTab = "login") { disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
 
-    // REGISTRAZIONE → role:"driver" (approved:false)
+    // REGISTRAZIONE
     el("btn-register").addEventListener("click", async () => {
       const name = el("reg-name").value.trim();
       const email = el("reg-email").value.trim();
       const password = el("reg-password").value;
-
       if (!name || !email || !password) { alert("Compila nome, email e password."); return; }
       if (password.length < 6) { alert("La password deve avere almeno 6 caratteri."); return; }
-
       disableBtn(el("btn-register"), true);
       try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -257,20 +226,15 @@
       const password = el("log-password").value;
       if (!email || !password) { alert("Inserisci email e password."); return; }
       disableBtn(el("btn-login"), true);
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (e) {
-        alert("Accesso non riuscito: " + authErrorMsg(e));
-      } finally {
-        disableBtn(el("btn-login"), false);
-      }
+      try { await signInWithEmailAndPassword(auth, email, password); }
+      catch (e) { alert("Accesso non riuscito: " + authErrorMsg(e)); }
+      finally { disableBtn(el("btn-login"), false); }
     });
 
     // LOGOUT
     el("btn-logout").addEventListener("click", () => signOut(auth));
     el("btn-logout-while-waiting").addEventListener("click", () => signOut(auth));
 
-    // Guardia stato auth + approvazione (live)
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         showAuth("login");
@@ -284,7 +248,6 @@
       const snap = await getDoc(uref);
 
       if (!snap.exists()) {
-        // ✨ Crea il profilo SOLO se non esiste, senza rischiare di resettare 'approved'
         await setDoc(uref, {
           name: user.displayName || "",
           email: user.email,
@@ -294,11 +257,9 @@
         }, { merge: true });
       } else {
         const dataNow = snap.data() || {};
-        // Se manca 'role', impostalo. NON toccare 'approved' qui.
         if (!("role" in dataNow)) {
           await updateDoc(uref, { role: (user.uid === ADMIN_UID) ? "admin" : "driver" });
         }
-        // Assicura che name/email esistano, senza sovrascrivere valori presenti
         await setDoc(uref, {
           name: dataNow.name || user.displayName || "",
           email: dataNow.email || user.email || ""
@@ -306,44 +267,32 @@
       }
 
       if (userUnsub) { userUnsub(); userUnsub = null; }
-
-      // Ascolta in tempo reale il profilo
       userUnsub = onSnapshot(uref, (usnap) => {
         const data = usnap.data() || {};
-        // Nome mezzo SOLO da Firestore (o fallback da email)
         nomeUtente = (data.name || (user.email ? user.email.split("@")[0] : "")).trim();
-
-        // aggiorna userbar
         renderUserBar(user, data);
 
         if (data.role === "driver" && data.approved === true) {
-          enableAppUI();
-          startClientiListener();
+          enableAppUI(); startClientiListener();
         } else if (data.role === "admin") {
-          disableAppUI();
-          hide(el("auth-overlay"));
-          show(el("awaiting-approval"));
+          disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
             "<h3>👑 Sei loggato come admin</h3><div>L’app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
           document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
           stopClientiListener();
         } else {
-          disableAppUI();
-          hide(el("auth-overlay"));
-          show(el("awaiting-approval"));
+          disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
           stopClientiListener();
         }
       });
     });
 
-    // --- Funzioni app (CRUD clienti + tracking) ---
     async function aggiungiOmodificaCliente() {
       const nome = el("nome").value;
       const indirizzo = el("indirizzo").value;
       const coordinate = el("coordinate").value;
       const note = el("note").value;
-
       if (!nome || !indirizzo) { alert("Inserisci almeno nome e indirizzo."); return; }
 
       if (clienteDaModificare) {
@@ -360,11 +309,7 @@
       } else {
         await addDoc(clientiRef, { nome, indirizzo, coordinate, note, timestamp: serverTimestamp() });
       }
-
-      el("nome").value = "";
-      el("indirizzo").value = "";
-      el("coordinate").value = "";
-      el("note").value = "";
+      el("nome").value = ""; el("indirizzo").value = ""; el("coordinate").value = ""; el("note").value = "";
     }
 
     async function eliminaCliente(id) {
@@ -374,28 +319,19 @@
     }
 
     function preparaModificaCliente(id, cliente) {
-      el("nome").value = cliente.nome;
-      el("indirizzo").value = cliente.indirizzo;
-      el("coordinate").value = cliente.coordinate || "";
-      el("note").value = cliente.note || "";
-      clienteDaModificare = id;
-      el("btn-aggiungi").innerText = "Salva modifiche";
-      el("btn-annulla").style.display = "inline-block";
+      el("nome").value = cliente.nome; el("indirizzo").value = cliente.indirizzo;
+      el("coordinate").value = cliente.coordinate || ""; el("note").value = cliente.note || "";
+      clienteDaModificare = id; el("btn-aggiungi").innerText = "Salva modifiche"; el("btn-annulla").style.display = "inline-block";
     }
 
     function annullaModifica() {
       clienteDaModificare = null;
-      el("nome").value = "";
-      el("indirizzo").value = "";
-      el("coordinate").value = "";
-      el("note").value = "";
-      el("btn-aggiungi").innerText = "Aggiungi cliente";
-      el("btn-annulla").style.display = "none";
+      el("nome").value = ""; el("indirizzo").value = ""; el("coordinate").value = ""; el("note").value = "";
+      el("btn-aggiungi").innerText = "Aggiungi cliente"; el("btn-annulla").style.display = "none";
     }
 
     function mostraClienti(snapshot) {
-      const clientiDiv = el("clienti");
-      clientiDiv.innerHTML = "";
+      const clientiDiv = el("clienti"); clientiDiv.innerHTML = "";
       snapshot.forEach(docSnap => {
         const c = docSnap.data();
         const div = document.createElement("div");
@@ -437,18 +373,14 @@
           },
           error => { alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo."); console.error(error); }
         );
-      } else {
-        alert("Geolocalizzazione non supportata dal browser.");
-      }
+      } else { alert("Geolocalizzazione non supportata dal browser."); }
     });
 
     async function inviaPosizioneContinuamente(mezzo, lat, lng) {
       const nuovo = await addDoc(posizioniRef, { mezzo, latitudine: lat, longitudine: lng, timestamp: serverTimestamp() });
       const snap = await getDocs(query(posizioniRef, where("mezzo", "==", mezzo), orderBy("timestamp", "desc")));
       for (const docSnap of snap.docs) {
-        if (docSnap.id !== nuovo.id) {
-          await deleteDoc(doc(db, "posizioniMezzo", docSnap.id));
-        }
+        if (docSnap.id !== nuovo.id) { await deleteDoc(doc(db, "posizioniMezzo", docSnap.id)); }
       }
     }
 
@@ -456,28 +388,20 @@
     window.preparaModificaCliente = preparaModificaCliente;
 
     function avviaTracciamento() {
-      const status = el("status");
-      const btn = el("btn-tracciamento");
-
-      if (!nomeUtente) {
-        alert("Nome mezzo non impostato. Contatta l'amministratore per assegnarne uno.");
-        return;
-      }
+      const status = el("status"); const btn = el("btn-tracciamento");
+      if (!nomeUtente) { alert("Nome mezzo non impostato. Contatta l'amministratore per assegnarne uno."); return; }
       if (!navigator.geolocation) { alert("Geolocalizzazione non supportata dal browser."); return; }
 
       if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-        watchId = null;
-        status.innerText = "⛔ Tracciamento disattivato.";
-        btn.innerText = "▶️ Attiva tracciamento automatico";
+        navigator.geolocation.clearWatch(watchId); watchId = null;
+        status.innerText = "⛔ Tracciamento disattivato."; btn.innerText = "▶️ Attiva tracciamento automatico";
         getDocs(query(posizioniRef, where("mezzo", "==", nomeUtente))).then(snapshot => {
           snapshot.forEach(docSnap => { deleteDoc(doc(db, "posizioniMezzo", docSnap.id)); });
         });
         return;
       }
 
-      status.innerText = "📡 Tracciamento attivo...";
-      btn.innerText = "⛔ Disattiva tracciamento";
+      status.innerText = "📡 Tracciamento attivo..."; btn.innerText = "⛔ Disattiva tracciamento";
       watchId = navigator.geolocation.watchPosition(
         pos => { inviaPosizioneContinuamente(nomeUtente, pos.coords.latitude, pos.coords.longitude); },
         err => { status.innerText = "❌ Errore nel tracciamento."; console.error(err); },
