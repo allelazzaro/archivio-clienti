@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Console Chat (Admin)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <style>
+    :root{
+      --brand:#128c7e; --bg:#eef3f8; --card:#fff; --line:#dbe3ec; --ink:#222;
+      --mine:#dcf8c6; --their:#fff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+
+    header{
+      position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px;
+      padding:10px 12px env(safe-area-inset-right) 10px env(safe-area-inset-left);
+      background:var(--brand); color:#fff;
+    }
+    .title{font-weight:700; flex:1}
+    .btn{background:#fff1;border:1px solid #fff5;color:#fff;padding:6px 10px;border-radius:999px;text-decoration:none}
+    .btn:focus{outline:2px solid #fff8}
+
+    .wrap{display:grid; grid-template-columns: 340px 1fr; height: calc(100dvh - 52px); min-height:420px;}
+    @media (max-width:980px){ .wrap{grid-template-columns:1fr} #drawer{position:fixed; inset:52px 0 0 0; background:#0006; display:none}
+      .sidebar{position:fixed; top:52px; left:0; width:min(92vw,420px); height:calc(100dvh - 52px);
+               background:#fff; border-right:1px solid var(--line); transform:translateX(-100%); transition:transform .25s ease; z-index:30;}
+      .sidebar.open{transform:translateX(0)} .btn-menu{display:inline-block} }
+    .btn-menu{display:none}
+
+    .sidebar{border-right:1px solid var(--line); overflow:auto; background:#fff;}
+    .search{padding:10px;border-bottom:1px solid var(--line)}
+    .search input{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+    .list .item{display:flex;gap:10px;align-items:center;padding:12px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+    .list .item:hover{background:#f4f7fb}
+    .avatar{width:36px;height:36px;border-radius:50%;background:#e7efe7;display:grid;place-items:center;font-weight:700}
+    .meta{margin-left:auto;text-align:right;font-size:12px;color:#667}
+    .name{font-weight:700}
+    .last{font-size:13px;color:#667;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+    .badge{min-width:18px;padding:2px 6px;border-radius:999px;font-size:12px;background:#ff4757;color:#fff;text-align:center;margin-left:6px}
+    .badge.zero{background:#eee;color:#333}
+
+    .chat{display:flex;flex-direction:column;min-height:0}
+    #messages{flex:1;overflow:auto;padding:12px;background:linear-gradient(#dde7f0,#eef3f8)}
+    .bubble{max-width:min(75%,760px);padding:8px 10px 6px;border-radius:16px;margin:6px 0;box-shadow:0 1px 1px #0001;white-space:pre-wrap;word-wrap:break-word}
+    .mine{background:var(--mine); margin-left:auto; border-top-right-radius:6px}
+    .theirs{background:var(--their); margin-right:auto; border-top-left-radius:6px}
+    .meta-msg{font-size:12px;color:#6c6c6c;text-align:right;margin-top:2px}
+    .day{font-size:12px;color:#556;text-align:center;margin:8px 0;position:relative}
+    .day:before,.day:after{content:"";position:absolute;top:50%;height:1px;background:var(--line);width:35%}
+    .day:before{left:0}.day:after{right:0}
+
+    #composer{display:flex;gap:8px;padding:8px 10px;background:#fff;border-top:1px solid var(--line);padding-bottom:max(8px,env(safe-area-inset-bottom))}
+    #text{flex:1;min-height:40px;max-height:calc(1.4em*5);resize:none;overflow:auto;border:1px solid #cfd8e3;border-radius:20px;padding:10px 12px;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    #send{background:var(--brand);color:#fff;border:0;border-radius:18px;padding:10px 14px;min-width:64px}
+    #send:disabled{opacity:.6}
+  </style>
+</head>
+<body>
+  <header>
+    <button class="btn btn-menu" id="btnMenu">☰</button>
+    <div class="title">💬 Console Chat (Admin)</div>
+    <a class="btn" href="home.html">🏠 Home</a>
+  </header>
+
+  <div id="drawer"></div>
+
+  <main class="wrap">
+    <!-- LISTA CHAT -->
+    <aside id="sidebar" class="sidebar" aria-label="Elenco chat">
+      <div class="search"><input id="q" placeholder="Cerca driver..." /></div>
+      <div id="list" class="list"></div>
+    </aside>
+
+    <!-- PANNELLO CHAT -->
+    <section class="chat" aria-label="Conversazione">
+      <div id="messages"></div>
+      <div id="composer">
+        <textarea id="text" rows="1" placeholder="Scrivi un messaggio…"></textarea>
+        <button id="send">Invia</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    // ---------- Firebase ----------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc,
+      query, orderBy, onSnapshot, serverTimestamp, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
+      authDomain: "archivio-clienti-trasporti.firebaseapp.com",
+      projectId: "archivio-clienti-trasporti",
+      storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
+      messagingSenderId: "773533170263",
+      appId: "1:773533170263:web:d05e2b00e991b0294c0112"
+    };
+    const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2"; // <-- il tuo UID admin
+
+    const app  = initializeApp(firebaseConfig);
+    const db   = getFirestore(app);
+    const auth = getAuth(app);
+
+    // ---------- DOM ----------
+    const $ = (id)=>document.getElementById(id);
+    const list = $("list"), q = $("q");
+    const messages = $("messages"), text = $("text"), send = $("send");
+    const sidebar = $("sidebar"), drawer = $("drawer"), btnMenu = $("btnMenu");
+
+    let me=null;            // utente admin
+    let current=null;       // uid driver aperto
+    let unsubMsgs=null;     // unsubscribe messaggi
+
+    // drawer mobile
+    const openDrawer = ()=>{ sidebar.classList.add("open"); drawer.style.display="block"; };
+    const closeDrawer = ()=>{ sidebar.classList.remove("open"); drawer.style.display="none"; };
+    btnMenu.addEventListener("click", openDrawer); drawer.addEventListener("click", closeDrawer);
+
+    // auto-resize textarea
+    function autoresize(){
+      text.style.height="auto";
+      const lh = parseInt(getComputedStyle(text).lineHeight)||22;
+      text.style.height = Math.min(text.scrollHeight, lh*5 + 18) + "px";
+      if (messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40) {
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+    text.addEventListener("input", autoresize);
+    text.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMsg(); }});
+    autoresize();
+
+    const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : new Date());
+    const fmtDay = (d)=> d.toLocaleDateString();
+    const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+
+    function daySep(d){
+      const n = document.createElement("div");
+      n.className="day";
+      n.textContent = fmtDay(d);
+      messages.appendChild(n);
+    }
+    function renderMsg(m){
+      const mine = m.sender===me.uid;
+      const b = document.createElement("div");
+      b.className="bubble "+(mine?"mine":"theirs");
+      b.innerHTML = `${(m.text||"").replace(/</g,"&lt;")}<div class="meta-msg">${fmtTime(fmtDT(m.createdAt))}</div>`;
+      messages.appendChild(b);
+    }
+
+    async function ensureThread(driverUid, name="", email=""){
+      const tref = doc(db,"threads",driverUid);
+      const s = await getDoc(tref);
+      if(!s.exists()){
+        await setDoc(tref,{
+          participants:[ADMIN_UID, driverUid],
+          driverName:name, driverEmail:email, lastMessage:"", updatedAt:serverTimestamp()
+        });
+      }
+      return tref;
+    }
+
+    function openChat(uid, nameTxt=""){
+      current = uid;
+      // evidenzia item
+      document.querySelectorAll(".item").forEach(i=>i.classList.remove("active"));
+      const el = document.getElementById("it-"+uid); if(el) el.classList.add("active");
+
+      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
+      messages.innerHTML="";
+      let prevDay="";
+
+      const qMsgs = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","asc"));
+      unsubMsgs = onSnapshot(qMsgs, snap=>{
+        messages.innerHTML=""; prevDay="";
+        const toMark=[];
+        snap.forEach(d=>{
+          const m=d.data(), dt=fmtDT(m.createdAt), day=dt.toDateString();
+          if (day!==prevDay){ daySep(dt); prevDay=day; }
+          renderMsg(m);
+          const rb = Array.isArray(m.readBy)? m.readBy : [];
+          if(!rb.includes(me.uid)) toMark.push(d.id);
+        });
+        // marca letti
+        toMark.forEach(id=>{
+          updateDoc(doc(db,"threads",uid,"messages",id),{ readBy: arrayUnion(me.uid) }).catch(()=>{});
+        });
+        messages.scrollTop = messages.scrollHeight;
+      });
+
+      closeDrawer();
+    }
+
+    async function sendMsg(){
+      const t = text.value.trim(); if(!t || !current) return;
+      await addDoc(collection(db,"threads",current,"messages"),{
+        text:t, sender: me.uid, createdAt: serverTimestamp(), readBy:[me.uid]
+      });
+      await updateDoc(doc(db,"threads",current),{ lastMessage:t, updatedAt: serverTimestamp() });
+      text.value=""; autoresize(); messages.scrollTop = messages.scrollHeight;
+    }
+    send.addEventListener("click", sendMsg);
+
+    function renderItem({uid, name, lastMessage, updatedAt, unread}){
+      const p = document.createElement("div");
+      p.id = "it-"+uid;
+      p.className="item";
+      p.innerHTML = `
+        <div class="avatar">${(name||uid).substring(0,2).toUpperCase()}</div>
+        <div style="min-width:0">
+          <div class="name">${name||uid}
+            <span class="badge ${unread? "":"zero"}" data-uid="${uid}">${unread||0}</span>
+          </div>
+          <div class="last">${lastMessage || ""}</div>
+        </div>
+        <div class="meta">${updatedAt ? fmtTime(fmtDT(updatedAt)) : ""}</div>
+      `;
+      p.addEventListener("click", ()=> openChat(uid,name||uid));
+      list.appendChild(p);
+    }
+
+    // aggiorna badge non letti per un driver
+    function watchUnread(uid){
+      const qLast = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(50));
+      return onSnapshot(qLast, snap=>{
+        let n=0;
+        snap.forEach(d=>{
+          const m=d.data(); const rb = Array.isArray(m.readBy)? m.readBy : [];
+          if (m.sender !== me.uid && !rb.includes(me.uid)) n++;
+        });
+        const b = document.querySelector(`.badge[data-uid="${uid}"]`);
+        if (b){ b.textContent = n; b.classList.toggle("zero", n===0); }
+      });
+    }
+
+    // ricerca nella lista
+    q.addEventListener("input", ()=>{
+      const v = q.value.toLowerCase();
+      document.querySelectorAll(".item").forEach(el=>{
+        el.style.display = el.textContent.toLowerCase().includes(v) ? "" : "none";
+      });
+    });
+
+    // ------- AUTH -------
+    onAuthStateChanged(auth, async (user)=>{
+      if(!user){ location.href="index.html"; return; }
+      if(user.uid !== ADMIN_UID){ alert("Questa pagina è riservata all'amministratore."); location.href="index.html"; return; }
+      me=user;
+
+      // elenco threads in tempo reale
+      onSnapshot(query(collection(db,"threads"), orderBy("updatedAt","desc")), async snap=>{
+        list.innerHTML="";
+        if (snap.empty){ list.innerHTML = `<div class="item" style="cursor:default">Nessuna chat attiva</div>`; return; }
+
+        snap.forEach(t=>{
+          const d=t.data();
+          renderItem({
+            uid: t.id,
+            name: d.driverName || t.id,
+            lastMessage: d.lastMessage || "",
+            updatedAt: d.updatedAt,
+            unread: 0
+          });
+          watchUnread(t.id);
+        });
+
+        // se non c'è chat selezionata, apri la prima
+        if(!current && !snap.empty){ openChat(snap.docs[0].id, snap.docs[0].data().driverName||snap.docs[0].id); }
+      });
+    });
+  </script>
+</body>
+</html>
