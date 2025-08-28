@@ -122,6 +122,8 @@
       getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
       onAuthStateChanged, signOut, updateProfile
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    // 🔔 IMPORT MESSAGING (nuovo)
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
@@ -235,6 +237,32 @@
     el("btn-logout").addEventListener("click", () => signOut(auth));
     el("btn-logout-while-waiting").addEventListener("click", () => signOut(auth));
 
+    // 🔔 --- PUSH MESSAGING (FCM) ---
+    const messaging = getMessaging(app);
+    const VAPID_PUBLIC_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
+
+    async function enablePushForUser(user){
+      try {
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+          console.warn('Notifiche o Service Worker non supportati');
+          return;
+        }
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') { console.warn('Permesso notifiche negato'); return; }
+        const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY });
+        if (!token) { console.warn('Nessun token FCM ricevuto (controlla HTTPS e /firebase-messaging-sw.js)'); return; }
+        await setDoc(doc(db, "users", user.uid), { fcmTokens: { [token]: true } }, { merge: true });
+        console.log('✅ FCM token salvato per', user.uid);
+      } catch (e) {
+        console.warn('Errore permission/token', e);
+      }
+    }
+
+    onMessage(messaging, (payload) => {
+      console.log('📨 Push in foreground:', payload);
+      // TODO: mostrare un toast in pagina se vuoi
+    });
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         showAuth("login");
@@ -274,12 +302,16 @@
 
         if (data.role === "driver" && data.approved === true) {
           enableAppUI(); startClientiListener();
+          // 🔔 abilita push per driver approvato
+          enablePushForUser(user);
         } else if (data.role === "admin") {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
             "<h3>👑 Sei loggato come admin</h3><div>L’app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
           document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
           stopClientiListener();
+          // (opzionale) abilita push anche per admin
+          enablePushForUser(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
@@ -364,6 +396,8 @@
             el("coordinate").value = coords;
             if (nomeUtente) {
               await addDoc(posizioniRef, {
+                // 🔐 suggerito: salva anche l'uid del proprietario posizione
+                uid: auth.currentUser?.uid || null,
                 mezzo: nomeUtente,
                 latitudine: position.coords.latitude,
                 longitudine: position.coords.longitude,
@@ -373,42 +407,41 @@
           },
           error => { alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo."); console.error(error); }
         );
-      } else { alert("Geolocalizzazione non supportata dal browser."); }
+      } else { alert("Geolocalizzazione non supportata su questo dispositivo."); }
     });
 
-    async function inviaPosizioneContinuamente(mezzo, lat, lng) {
-      const nuovo = await addDoc(posizioniRef, { mezzo, latitudine: lat, longitudine: lng, timestamp: serverTimestamp() });
-      const snap = await getDocs(query(posizioniRef, where("mezzo", "==", mezzo), orderBy("timestamp", "desc")));
-      for (const docSnap of snap.docs) {
-        if (docSnap.id !== nuovo.id) { await deleteDoc(doc(db, "posizioniMezzo", docSnap.id)); }
-      }
+    // Tracciamento automatico (facoltativo: mantieni la tua implementazione)
+    window.avviaTracciamento = function(){
+      const status = document.getElementById('status');
+      if (!('geolocation' in navigator)) { status.textContent = 'Geolocalizzazione non supportata.'; return; }
+      if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; status.textContent = 'Tracciamento disattivato.'; return; }
+      watchId = navigator.geolocation.watchPosition(async pos => {
+        const { latitude, longitude } = pos.coords;
+        status.textContent = `Ultima posizione: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        if (nomeUtente) {
+          await addDoc(posizioniRef, {
+            uid: auth.currentUser?.uid || null,
+            mezzo: nomeUtente,
+            latitudine: latitude,
+            longitudine: longitude,
+            timestamp: serverTimestamp()
+          });
+        }
+      }, err => { status.textContent = 'Errore GPS: ' + err.message; }, { enableHighAccuracy:true, maximumAge:5000 });
     }
 
+    // Espone alcune funzioni globali per i bottoni inline
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
 
-    function avviaTracciamento() {
-      const status = el("status"); const btn = el("btn-tracciamento");
-      if (!nomeUtente) { alert("Nome mezzo non impostato. Contatta l'amministratore per assegnarne uno."); return; }
-      if (!navigator.geolocation) { alert("Geolocalizzazione non supportata dal browser."); return; }
+  </script>
 
-      if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId); watchId = null;
-        status.innerText = "⛔ Tracciamento disattivato."; btn.innerText = "▶️ Attiva tracciamento automatico";
-        getDocs(query(posizioniRef, where("mezzo", "==", nomeUtente))).then(snapshot => {
-          snapshot.forEach(docSnap => { deleteDoc(doc(db, "posizioniMezzo", docSnap.id)); });
-        });
-        return;
-      }
-
-      status.innerText = "📡 Tracciamento attivo..."; btn.innerText = "⛔ Disattiva tracciamento";
-      watchId = navigator.geolocation.watchPosition(
-        pos => { inviaPosizioneContinuamente(nomeUtente, pos.coords.latitude, pos.coords.longitude); },
-        err => { status.innerText = "❌ Errore nel tracciamento."; console.error(err); },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-      );
+  <!-- 🔔 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .catch(err => console.warn('SW (FCM) registration failed', err));
     }
-    window.avviaTracciamento = avviaTracciamento;
   </script>
 </body>
 </html>
