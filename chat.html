@@ -2,80 +2,125 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Chat Admin ↔ Driver</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <style>
     :root{
-      --brand:#007bff;
-      --bg:#f5f7fb;
+      --brand:#128c7e;          /* verde whatsapp-like */
+      --brand2:#25d366;         /* accento */
+      --bg:#e8edf2;
       --card:#fff;
-      --line:#e5e7eb;
+      --line:#dde3ea;
+      --ink:#222;
       --muted:#667;
+      --mine:#dcf8c6;           /* bolle mie */
+      --their:#fff;             /* bolle altrui */
     }
-    * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:var(--bg); }
-    header {
-      background:var(--brand); color:#fff; padding:10px 12px;
-      display:flex; align-items:center; gap:8px; position:sticky; top:0; z-index:20;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--ink);
+      background:var(--bg);
     }
-    .title { font-weight:700; flex:1; }
-    .btn-h {
-      color:#fff; background:transparent; border:1px solid rgba(255,255,255,.35);
-      padding:6px 10px; border-radius:8px; cursor:pointer; text-decoration:none; white-space:nowrap;
+
+    /* HEADER */
+    header{
+      position:sticky; top:0; z-index:20;
+      display:flex; align-items:center; gap:8px;
+      padding:10px 12px env(safe-area-inset-right) 10px env(safe-area-inset-left);
+      background:var(--brand); color:#fff;
     }
-    .wrap { display:grid; grid-template-columns: 300px 1fr; height: calc(100vh - 52px); }
-    .sidebar { border-right:1px solid var(--line); background:var(--card); overflow:auto; }
-    .chat { display:flex; flex-direction:column; height:100%; }
-    .empty { padding:16px; color:var(--muted); }
+    .title{font-weight:700; flex:1}
+    .btn-h{
+      color:#fff; background:transparent;
+      border:1px solid rgba(255,255,255,.35);
+      padding:6px 10px; border-radius:999px; text-decoration:none;
+    }
+    #btnList{display:none}
 
-    #messages { flex:1; overflow:auto; padding:12px; background:#eef3fb; }
-    .msg { max-width:77%; padding:10px 12px; margin:6px 0; border-radius:12px; background:var(--card); box-shadow:0 1px 2px rgba(0,0,0,.05); }
-    .mine { background:#dff1ff; margin-left:auto; }
-    .meta { font-size:12px; color:var(--muted); margin-top:4px; }
+    /* LAYOUT */
+    .wrap{
+      display:grid; grid-template-columns:320px 1fr;
+      height: calc(100dvh - 52px); /* d = dynamic vh, segue tastiera mobile */
+    }
+    .sidebar{
+      background:#fafafa; border-right:1px solid var(--line); overflow:auto;
+    }
+    .chat{ display:flex; flex-direction:column; min-height:0; }
 
-    #composer { display:flex; gap:8px; padding:10px; background:var(--card); border-top:1px solid var(--line); }
-    #composer input { flex:1; padding:12px; border:1px solid #cbd5e1; border-radius:10px; }
-    #composer button { padding:12px 14px; border:none; border-radius:10px; background:var(--brand); color:#fff; cursor:pointer; }
-    #composer button:disabled { opacity:.5; cursor:not-allowed; }
+    /* MESSAGGI */
+    #messages{
+      flex:1; overflow:auto;
+      padding:12px 12px 6px 12px;
+      background:linear-gradient(#dfe7ee, #eef3f8);
+    }
+    .bubble{
+      max-width:min(75%,700px);
+      padding:8px 10px 6px 10px; border-radius:16px; margin:6px 0;
+      box-shadow:0 1px 1px rgba(0,0,0,.05);
+      word-wrap:break-word; white-space:pre-wrap;
+    }
+    .mine{ background:var(--mine); margin-left:auto; border-top-right-radius:6px; }
+    .theirs{ background:var(--their); margin-right:auto; border-top-left-radius:6px; }
+    .meta{ font-size:12px; color:#6c6c6c; text-align:right; margin-top:2px; }
+    .daysep{
+      text-align:center; margin:8px 0; color:#556; font-size:12px;
+      position:relative;
+    }
+    .daysep:before,.daysep:after{
+      content:""; height:1px; background:var(--line); position:absolute; top:50%; width:35%;
+    }
+    .daysep:before{left:0} .daysep:after{right:0}
 
-    /* Lista chat (sidebar) */
-    .item { display:flex; gap:10px; padding:12px 14px; border-bottom:1px solid #f1f5f9; cursor:pointer; align-items:center; }
-    .item:hover { background:#f8fafc; }
-    .item.active { background:#eaf2ff; }
-    .item .avatar { width:36px; height:36px; border-radius:999px; background:#e6f0ff; display:flex; align-items:center; justify-content:center; font-weight:700; color:#245; }
-    .item .col { flex:1; min-width:0; }
-    .item .name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .item .preview { font-size:13px; color:#667; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .item .right { text-align:right; }
-    .item .time { font-size:12px; color:#778; }
-    .item .badge { display:inline-block; min-width:18px; padding:2px 6px; border-radius:999px; background:#ff4757; color:#fff; font-size:12px; text-align:center; margin-top:4px; }
+    /* COMPOSER WhatsApp-like */
+    #composer{
+      display:flex; gap:8px; padding:8px 10px;
+      background:var(--card); border-top:1px solid var(--line);
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+    #input{
+      min-height:40px; max-height: calc(1.4em * 5);
+      flex:1; resize:none; overflow:auto;
+      border:1px solid #cfd8e3; border-radius:20px;
+      padding:10px 12px; outline:none;
+      font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:#fff;
+    }
+    #send{
+      background:var(--brand); color:#fff; border:none;
+      padding:10px 14px; border-radius:18px; min-width:64px; cursor:pointer;
+    }
+    #send:disabled{opacity:.6;cursor:not-allowed}
 
-    /* --- MOBILE --- */
-    #btnList { display:none; }
-    @media (max-width: 768px){
-      .wrap { grid-template-columns: 1fr; }
-      .sidebar {
-        position: fixed; top:52px; left:0; height: calc(100vh - 52px); width: 100%;
-        max-width: 420px; transform: translateX(-100%); transition: transform .25s ease;
-        box-shadow: 6px 0 18px rgba(0,0,0,.1); z-index:30;
+    /* Pulsante “scorri in fondo” */
+    #toBottom{
+      position:fixed; right:12px; bottom: calc(64px + env(safe-area-inset-bottom));
+      display:none; z-index:15;
+      background:#fff; border:1px solid var(--line); border-radius:999px;
+      padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
+    }
+
+    /* LISTA CHAT SEMPLICE (admin) */
+    .item{padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer}
+    .item:hover{background:#f5f7fb}
+    .item.active{background:#e7f5ef}
+
+    /* MOBILE: sidebar come drawer */
+    @media (max-width: 900px){
+      .wrap{ grid-template-columns:1fr; height: calc(100dvh - 52px); }
+      .sidebar{
+        position:fixed; top:52px; left:0; width:min(92vw,420px);
+        height: calc(100dvh - 52px); transform:translateX(-100%);
+        box-shadow:6px 0 24px rgba(0,0,0,.15); background:#fff; z-index:30;
+        transition: transform .25s ease;
       }
-      .sidebar.open { transform: translateX(0); }
-      #overlay {
-        position: fixed; inset:52px 0 0 0; background: rgba(0,0,0,.3); display:none; z-index:25;
-      }
-      #overlay.show { display:block; }
-      #btnList { display:inline-block; }
+      .sidebar.open{ transform:translateX(0) }
+      #btnList{display:inline-block}
+      #overlay{ position:fixed; inset:52px 0 0 0; background:rgba(0,0,0,.32); display:none; z-index:25; }
+      #overlay.show{display:block}
     }
-
-    /* Toast notifica (driver) */
-    .toast {
-      position: fixed; left:50%; transform: translateX(-50%);
-      bottom: 16px; background:#111; color:#fff; padding:10px 14px;
-      border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.25);
-      font-size:14px; z-index: 1000; opacity:0; pointer-events:none; transition: opacity .2s, bottom .2s;
-      max-width: 92vw; text-align:center;
-    }
-    .toast.show { opacity:1; bottom: 24px; }
   </style>
 </head>
 <body>
@@ -88,22 +133,22 @@
   <div id="overlay"></div>
 
   <div class="wrap">
-    <aside class="sidebar" id="sidebar"><div class="empty">Caricamento…</div></aside>
+    <aside id="sidebar" class="sidebar"><div class="item">Caricamento…</div></aside>
 
     <section class="chat">
-      <div id="topbar" class="empty" style="padding:10px 12px;">Seleziona una chat…</div>
       <div id="messages"></div>
+
+      <button id="toBottom" title="Vai all’ultimo messaggio">▼</button>
+
       <div id="composer">
-        <input id="input" placeholder="Scrivi un messaggio…" />
+        <textarea id="input" rows="1" placeholder="Scrivi un messaggio…"></textarea>
         <button id="send">Invia</button>
       </div>
     </section>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
   <script type="module">
+    // --- Firebase setup ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
@@ -120,210 +165,219 @@
       messagingSenderId: "773533170263",
       appId: "1:773533170263:web:d05e2b00e991b0294c0112"
     };
-    // ⚠️ Metti il TUO UID admin reale
+    // ⚠️ metti qui il TUO UID admin reale
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
     const auth = getAuth(app);
 
-    const $ = (id) => document.getElementById(id);
+    // --- DOM ---
+    const $ = (id)=>document.getElementById(id);
     const sidebar = $("sidebar");
-    const messagesDiv = $("messages");
+    const messages = $("messages");
     const input = $("input");
     const sendBtn = $("send");
-    const topbar = $("topbar");
     const btnList = $("btnList");
     const overlay = $("overlay");
     const navBtn = $("navBtn");
-    const toastEl = $("toast");
+    const toBottom = $("toBottom");
 
-    let currentUser = null;
-    let currentThreadId = null;
-    let unsubMsgs = null;
+    let currentUser=null;
+    let currentThreadId=null; // = uid driver
+    let unsubMsgs=null;
+    let isNearBottom=true;
 
-    const fmtTime = (d)=> new Date(d).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+    // --- Helpers UI ---
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
-    function scrollBottom(){ messagesDiv.scrollTop = messagesDiv.scrollHeight; }
+    const fmtDay = (d)=> d.toLocaleDateString();
+    const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
 
+    function scrollBottom(smooth=true){
+      messages.scrollTo({top:messages.scrollHeight, behavior: smooth?"smooth":"auto"});
+    }
+    function atBottom(){
+      return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40;
+    }
+
+    // Drawer mobile
     function openSidebar(){ sidebar.classList.add("open"); overlay.classList.add("show"); }
     function closeSidebar(){ sidebar.classList.remove("open"); overlay.classList.remove("show"); }
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    function renderMessage(m){
-      const wrapper = document.createElement("div");
-      wrapper.className = "msg" + (m.sender === currentUser.uid ? " mine" : "");
-      const ts = fmtDT(m.createdAt) || new Date();
-      wrapper.innerHTML = `<div>${(m.text || "").replace(/</g,"&lt;")}</div><div class="meta">${ts.toLocaleString()}</div>`;
-      messagesDiv.appendChild(wrapper);
+    // Auto-grow textarea (stile WhatsApp)
+    function autoresize(){
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, parseInt(getComputedStyle(input).lineHeight)*5 + 18) + "px";
+      // se sto in fondo, resta in fondo quando cresce
+      if (atBottom()) scrollBottom(false);
+    }
+    input.addEventListener("input", autoresize);
+    input.addEventListener("focus", ()=> setTimeout(()=> scrollBottom(false), 50));
+    autoresize();
+
+    // VisualViewport: evita che la tastiera copra il composer
+    if (window.visualViewport){
+      const onVV = () => {
+        document.body.style.setProperty('--vvh', window.visualViewport.height + "px");
+        if (atBottom()) scrollBottom(false);
+      };
+      window.visualViewport.addEventListener('resize', onVV);
+      window.visualViewport.addEventListener('scroll', onVV);
     }
 
-    async function ensureThread(driverUid, driverName, driverEmail){
-      const tref = doc(db, "threads", driverUid);
+    // Pulsante “vai in fondo”
+    messages.addEventListener("scroll", () => {
+      isNearBottom = atBottom();
+      toBottom.style.display = isNearBottom ? "none" : "block";
+    });
+    toBottom.addEventListener("click", ()=> scrollBottom());
+
+    // --- Chat render ---
+    function renderDaySeparator(date){
+      const sep = document.createElement("div");
+      sep.className = "daysep";
+      sep.textContent = fmtDay(date);
+      messages.appendChild(sep);
+    }
+    function renderMessage(m){
+      const mine = m.sender === currentUser.uid;
+      const wrap = document.createElement("div");
+      wrap.className = "bubble " + (mine ? "mine" : "theirs");
+      wrap.innerHTML = `${(m.text||"").replace(/</g,"&lt;")}<div class="meta">${fmtTime(fmtDT(m.createdAt)||new Date())}</div>`;
+      messages.appendChild(wrap);
+    }
+
+    // --- Data access ---
+    async function ensureThread(driverUid, driverName="", driverEmail=""){
+      const tref = doc(db,"threads", driverUid);
       const snap = await getDoc(tref);
-      if (!snap.exists()) {
-        await setDoc(tref, {
-          participants: [ADMIN_UID, driverUid],
-          driverName: driverName || "",
-          driverEmail: driverEmail || "",
-          lastMessage: "",
-          updatedAt: serverTimestamp()
+      if (!snap.exists()){
+        await setDoc(tref,{
+          participants:[ADMIN_UID, driverUid],
+          driverName, driverEmail,
+          lastMessage:"", updatedAt: serverTimestamp()
         });
       }
       return tref;
     }
 
-    function markActive(threadId){
-      document.querySelectorAll(".item").forEach(el => el.classList.remove("active"));
-      const el = document.getElementById(`item-${threadId}`);
-      if (el) el.classList.add("active");
-    }
-
-    function openThread(driverUid, headerLabel){
+    function openThread(driverUid, headerLabel="Chat"){
       currentThreadId = driverUid;
-      markActive(driverUid);
-      topbar.textContent = headerLabel || "Chat";
-      messagesDiv.innerHTML = "";
-      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
+      // evidenzia nella sidebar (se presente)
+      document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
+      const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
 
-      const msgsRef = collection(db, "threads", currentThreadId, "messages");
-      const qMsgs = query(msgsRef, orderBy("createdAt", "asc"));
-      unsubMsgs = onSnapshot(qMsgs, (snap) => {
-        messagesDiv.innerHTML = "";
-        const toMark = [];
-        snap.forEach(d => {
+      // stream messaggi
+      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
+      messages.innerHTML = "";
+      let lastDay = "";
+
+      const msgsRef = collection(db,"threads",driverUid,"messages");
+      const qMsgs = query(msgsRef, orderBy("createdAt","asc"));
+      unsubMsgs = onSnapshot(qMsgs, snap=>{
+        messages.innerHTML = "";
+        lastDay = "";
+        const toMark=[];
+        snap.forEach(d=>{
           const m = d.data();
+          const dt = fmtDT(m.createdAt) || new Date();
+          const day = dt.toDateString();
+          if (day !== lastDay){ renderDaySeparator(dt); lastDay = day; }
           renderMessage(m);
-          const rb = Array.isArray(m.readBy) ? m.readBy : [];
+          const rb = Array.isArray(m.readBy)? m.readBy : [];
           if (!rb.includes(currentUser.uid)) toMark.push(d.id);
         });
-        scrollBottom();
-        toMark.forEach(async (id) => {
-          const mref = doc(db, "threads", currentThreadId, "messages", id);
-          try { await updateDoc(mref, { readBy: arrayUnion(currentUser.uid) }); } catch {}
-        });
+        if (toMark.length) {
+          // marca letti
+          toMark.forEach(id=>{
+            const mref = doc(db,"threads",driverUid,"messages",id);
+            updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
+          });
+        }
+        scrollBottom(false);
       });
-      closeSidebar();
+
+      closeSidebar(); // su mobile richiudiamo la lista
     }
 
-    function enableComposer(on){ input.disabled = !on; sendBtn.disabled = !on; }
-
-    async function sendMessage(){
+    // --- Invio ---
+    async function send(){
       const text = input.value.trim();
       if (!text || !currentThreadId) return;
-      const msgsRef = collection(db, "threads", currentThreadId, "messages");
-      await addDoc(msgsRef, { text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy: [currentUser.uid] });
-      await updateDoc(doc(db,"threads", currentThreadId), { lastMessage: text, updatedAt: serverTimestamp() });
-      input.value = ""; scrollBottom();
-    }
-    sendBtn.addEventListener("click", sendMessage);
-    input.addEventListener("keydown", e => { if (e.key === "Enter") sendMessage(); });
-
-    // Sidebar helpers
-    function makeItemEl(threadOrFake){
-      const uid = threadOrFake.id;
-      const d = typeof threadOrFake.data === "function" ? threadOrFake.data() : threadOrFake;
-      const name = d.driverName || uid;
-      const initials = (name || uid).substring(0,2).toUpperCase();
-      const el = document.createElement("div");
-      el.id = `item-${uid}`;
-      el.className = "item";
-      el.innerHTML = `
-        <div class="avatar">${initials}</div>
-        <div class="col">
-          <div class="name">${name}</div>
-          <div class="preview" id="pv-${uid}">${d.lastMessage || "—"}</div>
-        </div>
-      `;
-      el.addEventListener("click", () => openThread(uid, `Driver: ${name}`));
-      return el;
-    }
-
-    // --- Notifiche in-app lato driver ---
-    function showToast(msg, ms=2500){
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      setTimeout(()=> toastEl.classList.remove("show"), ms);
-    }
-    function beep(){
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.value = 880;
-        g.gain.setValueAtTime(0.0001, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-        o.connect(g); g.connect(ctx.destination);
-        o.start(); o.stop(ctx.currentTime + 0.2);
-      } catch {}
-    }
-    function vibrate(){ if (navigator.vibrate) navigator.vibrate(60); }
-    function notifyIncoming(text){
-      showToast(`📩 Nuovo messaggio: ${text}`);
-      beep(); vibrate();
-    }
-    function watchIncomingForDriver(threadId, adminUid, myUid){
-      const msgsRef = collection(db, "threads", threadId, "messages");
-      const qLast = query(msgsRef, orderBy("createdAt","desc"), limit(1));
-      let initialized = false;
-      return onSnapshot(qLast, (snap) => {
-        if (snap.empty) { initialized = true; return; }
-        const doc = snap.docs[0];
-        const m = doc.data();
-        const rb = Array.isArray(m.readBy) ? m.readBy : [];
-        const isFromAdmin = m.sender === adminUid;
-        const iHaveNotRead = !rb.includes(myUid);
-        if (initialized && isFromAdmin && iHaveNotRead) {
-          notifyIncoming(m.text || "Nuovo messaggio");
-        }
-        initialized = true;
+      const msgsRef = collection(db,"threads", currentThreadId, "messages");
+      await addDoc(msgsRef,{
+        text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy:[currentUser.uid]
       });
+      await updateDoc(doc(db,"threads",currentThreadId),{
+        lastMessage:text, updatedAt: serverTimestamp()
+      });
+      input.value=""; autoresize(); scrollBottom();
     }
+    sendBtn.addEventListener("click", send);
+    input.addEventListener("keydown", (e)=>{
+      if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+    });
 
-    // Header nav: Home solo per admin, "Torna all’app" per driver
+    // --- Header nav: admin/driver ---
     function setHeaderForRole(isAdmin){
-      if (isAdmin){
-        navBtn.textContent = "🏠 Home";
-        navBtn.href = "home.html";
-      } else {
-        navBtn.textContent = "⬅ Torna all’app";
-        navBtn.href = "index.html"; // pagina principale driver
-      }
+      if (isAdmin){ navBtn.textContent="🏠 Home"; navBtn.href="home.html"; }
+      else { navBtn.textContent="⬅ Torna all’app"; navBtn.href="index.html"; }
     }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) { location.href = "index.html"; return; }
+    // --- Sidebar item helper (admin) ---
+    function addSidebarItem(uid, name){
+      const el = document.createElement("div");
+      el.id = "it-"+uid;
+      el.className = "item";
+      el.textContent = name || uid;
+      el.addEventListener("click", ()=> openThread(uid, `Driver: ${name||uid}`));
+      sidebar.appendChild(el);
+    }
+
+    // --- AUTH FLOW ---
+    onAuthStateChanged(auth, async (user)=>{
+      if (!user){ location.href="index.html"; return; }
       currentUser = user;
-      enableComposer(true);
 
       const isAdmin = user.uid === ADMIN_UID;
       setHeaderForRole(isAdmin);
 
-      if (!isAdmin) {
-        // DRIVER
-        await ensureThread(user.uid, "", "");
-        sidebar.innerHTML = "";
-        const meItem = makeItemEl({ id: user.uid, data: () => ({ driverName: "Chat con Admin" }) });
-        sidebar.appendChild(meItem);
-        openThread(user.uid, "Chat con Admin");
-        // attiva notifiche
-        watchIncomingForDriver(user.uid, ADMIN_UID, user.uid);
-      } else {
-        // ADMIN: mostra tutte le chat
-        const threadsRef = collection(db,"threads");
-        const qThreads = query(threadsRef, orderBy("updatedAt","desc"));
-        onSnapshot(qThreads, (snap) => {
+      const params = new URLSearchParams(location.search);
+      const target = params.get("uid");
+      const driverUid = (target && target !== ADMIN_UID) ? target : null;
+
+      if (isAdmin){
+        // admin: tutte le chat o focus su una
+        if (driverUid){
+          const u = await getDoc(doc(db,"users",driverUid));
+          const d = u.exists()? u.data() : {};
+          await ensureThread(driverUid, d.name||"", d.email||"");
           sidebar.innerHTML = "";
-          if (snap.empty) { sidebar.innerHTML = `<div class="empty">Nessuna chat aperta.</div>`; return; }
-          snap.forEach(t => { const item = makeItemEl(t); sidebar.appendChild(item); });
-          if (!currentThreadId && !snap.empty) {
-            const first = snap.docs[0];
-            openThread(first.id, `Driver: ${(first.data().driverName || first.id)}`);
-          }
-        });
+          addSidebarItem(driverUid, d.name || driverUid);
+          openThread(driverUid, `Driver: ${d.name||driverUid}`);
+        } else {
+          sidebar.innerHTML = "";
+          const qThreads = query(collection(db,"threads"), orderBy("updatedAt","desc"));
+          onSnapshot(qThreads, snap=>{
+            sidebar.innerHTML="";
+            if (snap.empty){ sidebar.innerHTML = "<div class='item'>Nessuna chat</div>"; return; }
+            snap.forEach(t=>{
+              const d=t.data();
+              addSidebarItem(t.id, d.driverName || t.id);
+            });
+            if (!currentThreadId && !snap.empty){
+              const first=snap.docs[0]; openThread(first.id, `Driver: ${(first.data().driverName||first.id)}`);
+            }
+          });
+        }
+      } else {
+        // driver: solo sua chat
+        await ensureThread(user.uid,"",""); // minimal
+        sidebar.innerHTML = "";
+        addSidebarItem(user.uid,"Chat con Admin");
+        openThread(user.uid,"Chat con Admin");
       }
     });
   </script>
