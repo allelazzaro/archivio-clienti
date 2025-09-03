@@ -2,145 +2,95 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Chat</title>
+  <title>Console Chat (Admin)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <style>
     :root{
-      --brand:#128c7e;
-      --brand2:#25d366;
-      --bg:#e8edf2;
-      --card:#fff;
-      --line:#dde3ea;
-      --ink:#222;
-      --muted:#667;
-      --mine:#dcf8c6;
-      --their:#fff;
-      --vvh:100vh;
+      --brand:#128c7e; --bg:#eef3f8; --card:#fff; --line:#dbe3ec; --ink:#222;
+      --mine:#dcf8c6; --their:#fff;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0;
-      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink);
-      background:var(--bg);
-    }
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+
     header{
-      position:sticky; top:0; z-index:20;
-      display:flex; align-items:center; gap:8px;
+      position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px;
       padding:10px 12px env(safe-area-inset-right) 10px env(safe-area-inset-left);
       background:var(--brand); color:#fff;
     }
     .title{font-weight:700; flex:1}
-    .btn-h{
-      color:#fff; background:transparent;
-      border:1px solid rgba(255,255,255,.35);
-      padding:6px 10px; border-radius:999px; text-decoration:none;
-    }
-    #btnList{display:none}
+    .btn{background:#fff1;border:1px solid #fff5;color:#fff;padding:6px 10px;border-radius:999px;text-decoration:none}
+    .btn:focus{outline:2px solid #fff8}
 
-    .wrap{
-      display:grid; grid-template-columns:320px 1fr;
-      height: calc(var(--vvh) - 52px);
-      transition: height .2s;
+    .wrap{display:grid; grid-template-columns: 340px 1fr; height: calc(100dvh - 52px); min-height:420px;}
+    @media (max-width:980px){
+      .wrap{grid-template-columns:1fr}
+      #drawer{position:fixed; inset:52px 0 0 0; background:#0006; display:none}
+      .sidebar{position:fixed; top:52px; left:0; width:min(92vw,420px); height:calc(100dvh - 52px);
+               background:#fff; border-right:1px solid var(--line); transform:translateX(-100%); transition:transform .25s ease; z-index:30;}
+      .sidebar.open{transform:translateX(0)} .btn-menu{display:inline-block}
     }
-    .sidebar{
-      background:#fafafa; border-right:1px solid var(--line); overflow:auto;
-    }
-    .chat{ display:flex; flex-direction:column; min-height:0; }
+    .btn-menu{display:none}
 
-    #messages{
-      flex:1; overflow:auto;
-      padding:12px 12px 6px 12px;
-      background:linear-gradient(#dfe7ee, #eef3f8);
-      min-height:0;
-    }
-    .bubble{
-      max-width:min(75%,700px);
-      padding:8px 10px 6px 10px; border-radius:16px; margin:6px 0;
-      box-shadow:0 1px 1px rgba(0,0,0,.05);
-      word-wrap:break-word; white-space:pre-wrap;
-    }
-    .mine{ background:var(--mine); margin-left:auto; border-top-right-radius:6px; }
-    .theirs{ background:var(--their); margin-right:auto; border-top-left-radius:6px; }
-    .meta{ font-size:12px; color:#6c6c6c; text-align:right; margin-top:2px; }
-    .daysep{
-      text-align:center; margin:8px 0; color:#556; font-size:12px;
-      position:relative;
-    }
-    .daysep:before,.daysep:after{
-      content:""; height:1px; background:var(--line); position:absolute; top:50%; width:35%;
-    }
-    .daysep:before{left:0} .daysep:after{right:0}
+    .sidebar{border-right:1px solid var(--line); overflow:auto; background:#fff;}
+    .search{padding:10px;border-bottom:1px solid var(--line)}
+    .search input{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+    .list .item{display:flex;gap:10px;align-items:center;padding:12px 12px;border-bottom:1px solid var(--line);cursor:pointer}
+    .list .item:hover{background:#f4f7fb}
+    .avatar{width:36px;height:36px;border-radius:50%;background:#e7efe7;display:grid;place-items:center;font-weight:700}
+    .meta{margin-left:auto;text-align:right;font-size:12px;color:#667}
+    .name{font-weight:700}
+    .last{font-size:13px;color:#667;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+    .badge{min-width:18px;padding:2px 6px;border-radius:999px;font-size:12px;background:#ff4757;color:#fff;text-align:center;margin-left:6px}
+    .badge.zero{background:#eee;color:#333}
 
-    #composer{
-      display:flex; gap:8px; padding:8px 10px;
-      background:var(--card); border-top:1px solid var(--line);
-      padding-bottom: max(8px, env(safe-area-inset-bottom));
-      position:sticky;
-      bottom:0;
-      z-index:10;
-    }
-    #input{
-      min-height:40px; max-height: calc(1.4em * 5);
-      flex:1; resize:none; overflow:auto;
-      border:1px solid #cfd8e3; border-radius:20px;
-      padding:10px 12px; outline:none;
-      font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:#fff;
-    }
-    #send{
-      background:var(--brand); color:#fff; border:none;
-      padding:10px 14px; border-radius:18px; min-width:64px; cursor:pointer;
-    }
-    #send:disabled{opacity:.6;cursor:not-allowed}
-    #toBottom{
-      position:fixed; right:12px; bottom: calc(64px + env(safe-area-inset-bottom));
-      display:none; z-index:15;
-      background:#fff; border:1px solid var(--line); border-radius:999px;
-      padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
-    }
-    .item{padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer}
-    .item:hover{background:#f5f7fb}
-    .item.active{background:#e7f5ef}
-    @media (max-width: 900px){
-      .wrap{ grid-template-columns:1fr; height: calc(var(--vvh, 100vh) - 52px); }
-      .sidebar{
-        position:fixed; top:52px; left:0; width:min(92vw,420px);
-        height: calc(var(--vvh, 100vh) - 52px); transform:translateX(-100%);
-        box-shadow:6px 0 24px rgba(0,0,0,.15); background:#fff; z-index:30;
-        transition: transform .25s ease;
-      }
-      .sidebar.open{ transform:translateX(0) }
-      #btnList{display:inline-block}
-      #overlay{ position:fixed; inset:52px 0 0 0; background:rgba(0,0,0,.32); display:none; z-index:25; }
-      #overlay.show{display:block}
-    }
+    .chat{display:flex;flex-direction:column;min-height:0}
+    #messages{flex:1;overflow:auto;padding:12px;background:linear-gradient(#dde7f0,#eef3f8)}
+    .bubble{max-width:min(75%,760px);padding:8px 10px 6px;border-radius:16px;margin:6px 0;box-shadow:0 1px 1px #0001;white-space:pre-wrap;word-wrap:break-word}
+    .mine{background:var(--mine); margin-left:auto; border-top-right-radius:6px}
+    .theirs{background:var(--their); margin-right:auto; border-top-left-radius:6px}
+    .meta-msg{font-size:12px;color:#6c6c6c;text-align:right;margin-top:2px}
+    .day{font-size:12px;color:#556;text-align:center;margin:8px 0;position:relative}
+    .day:before,.day:after{content:"";position:absolute;top:50%;height:1px;background:var(--line);width:35%}
+    .day:before{left:0}.day:after{right:0}
+
+    #composer{display:flex;gap:8px;padding:8px 10px;background:#fff;border-top:1px solid var(--line);padding-bottom:max(8px,env(safe-area-inset-bottom))}
+    #text{flex:1;min-height:40px;max-height:calc(1.4em*5);resize:none;overflow:auto;border:1px solid #cfd8e3;border-radius:20px;padding:10px 12px;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    #send{background:var(--brand);color:#fff;border:0;border-radius:18px;padding:10px 14px;min-width:64px;touch-action:manipulation}
+    #send:disabled{opacity:.6}
   </style>
 </head>
 <body>
   <header>
-    <button id="btnList" class="btn-h">☰ Chat</button>
-    <div class="title">💬 Chat</div>
-    <a id="navBtn" href="#" class="btn-h">...</a>
+    <button class="btn btn-menu" id="btnMenu">☰</button>
+    <div class="title">💬 Console Chat (Admin)</div>
+    <a class="btn" href="home.html">🏠 Home</a>
   </header>
-  <div id="overlay"></div>
-  <div class="wrap">
-    <aside id="sidebar" class="sidebar"><div class="item">Caricamento…</div></aside>
-    <section class="chat">
+
+  <div id="drawer"></div>
+
+  <main class="wrap">
+    <!-- LISTA CHAT -->
+    <aside id="sidebar" class="sidebar" aria-label="Elenco chat">
+      <div class="search"><input id="q" placeholder="Cerca driver…" /></div>
+      <div id="list" class="list"></div>
+    </aside>
+
+    <!-- PANNELLO CHAT -->
+    <section class="chat" aria-label="Conversazione">
       <div id="messages"></div>
-      <button id="toBottom" title="Vai all’ultimo messaggio">▼</button>
       <div id="composer">
-        <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
-        <button id="send">Invia</button>
+        <textarea id="text" rows="1" placeholder="Scrivi un messaggio…"></textarea>
+        <button id="send" type="button">Invia</button>
       </div>
     </section>
-  </div>
+  </main>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-      getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
-      query, onSnapshot, orderBy, serverTimestamp, limit
+      getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc,
+      query, orderBy, onSnapshot, serverTimestamp, limit
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -155,241 +105,176 @@
     };
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    const app  = initializeApp(firebaseConfig);
+    const db   = getFirestore(app);
     const auth = getAuth(app);
 
     const $ = (id)=>document.getElementById(id);
-    const sidebar = $("sidebar");
-    const messages = $("messages");
-    const input = $("input");
-    const sendBtn = $("send");
-    const btnList = $("btnList");
-    const overlay = $("overlay");
-    const navBtn = $("navBtn");
-    const toBottom = $("toBottom");
+    const list = $("list"), q = $("q");
+    const messages = $("messages"), text = $("text"), send = $("send");
+    const sidebar = $("sidebar"), drawer = $("drawer"), btnMenu = $("btnMenu");
 
-    let currentUser=null;
-    let currentThreadId=null;
-    let unsubMsgs=null;
-    let isNearBottom=true;
+    let me=null, current=null, unsubMsgs=null;
 
-    const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
+    // drawer mobile
+    const openDrawer = ()=>{ sidebar.classList.add("open"); drawer.style.display="block"; };
+    const closeDrawer = ()=>{ sidebar.classList.remove("open"); drawer.style.display="none"; };
+    btnMenu.addEventListener("click", openDrawer); drawer.addEventListener("click", closeDrawer);
+
+    // auto-resize textarea
+    function autoresize(){
+      text.style.height="auto";
+      const lh = parseInt(getComputedStyle(text).lineHeight)||22;
+      text.style.height = Math.min(text.scrollHeight, lh*5 + 18) + "px";
+      if (messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40) {
+        messages.scrollTop = messages.scrollHeight;
+      }
+    }
+    text.addEventListener("input", autoresize);
+    text.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMsg(); }});
+    autoresize();
+
+    const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : new Date());
     const fmtDay = (d)=> d.toLocaleDateString();
     const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
 
-    function scrollBottom(smooth=true){
-      messages.scrollTo({top:messages.scrollHeight, behavior: smooth?"smooth":"auto"});
+    function daySep(d){
+      const n = document.createElement("div");
+      n.className="day";
+      n.textContent = fmtDay(d);
+      messages.appendChild(n);
     }
-    function atBottom(){
-      return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40;
-    }
-
-    // Drawer mobile
-    function openSidebar(){ sidebar.classList.add("open"); overlay.classList.add("show"); }
-    function closeSidebar(){ sidebar.classList.remove("open"); overlay.classList.remove("show"); }
-    btnList.addEventListener("click", openSidebar);
-    overlay.addEventListener("click", closeSidebar);
-
-    // Auto-grow textarea
-    function autoresize(){
-      input.style.height = "auto";
-      input.style.height = Math.min(input.scrollHeight, parseInt(getComputedStyle(input).lineHeight)*5 + 18) + "px";
-    }
-    input.addEventListener("input", autoresize);
-
-    // Focus: quando tocchi il campo, NON scrollare subito, solo se non già in fondo
-    input.addEventListener("focus", ()=>{
-      autoresize();
-      // Scrolla solo se non già in fondo
-      if (!atBottom()) setTimeout(()=> scrollBottom(false), 450);
-    });
-    autoresize();
-
-    // VisualViewport: aggiorna solo l’altezza, NON scrollare qui!
-    if (window.visualViewport){
-      const updateViewportHeight = () => {
-        const vh = window.visualViewport.height;
-        document.body.style.setProperty('--vvh', vh + "px");
-        const wrap = document.querySelector('.wrap');
-        if (wrap) {
-          wrap.style.height = (vh - 52) + "px";
-        }
-      };
-      window.visualViewport.addEventListener('resize', updateViewportHeight);
-      window.visualViewport.addEventListener('scroll', updateViewportHeight);
-      updateViewportHeight();
+    function renderMsg(m){
+      const mine = m.sender===me.uid;
+      const b = document.createElement("div");
+      b.className="bubble "+(mine?"mine":"theirs");
+      b.innerHTML = `${(m.text||"").replace(/</g,"&lt;")}<div class="meta-msg">${fmtTime(fmtDT(m.createdAt))}</div>`;
+      messages.appendChild(b);
     }
 
-    // Pulsante “vai in fondo”
-    messages.addEventListener("scroll", () => {
-      isNearBottom = atBottom();
-      toBottom.style.display = isNearBottom ? "none" : "block";
-    });
-    toBottom.addEventListener("click", ()=> scrollBottom());
-
-    // MutationObserver: scrolla in fondo solo quando arriva un nuovo messaggio
-    const observer = new MutationObserver(()=>{
-      if (document.activeElement === input) {
-        // Se il campo è in focus, scrolla in fondo dopo breve timeout
-        setTimeout(()=>scrollBottom(false), 150);
-      }
-    });
-    observer.observe(messages, { childList: true, subtree: false });
-
-    // --- Chat render ---
-    function renderDaySeparator(date){
-      const sep = document.createElement("div");
-      sep.className = "daysep";
-      sep.textContent = fmtDay(date);
-      messages.appendChild(sep);
-    }
-    function renderMessage(m){
-      const mine = m.sender === currentUser.uid;
-      const wrap = document.createElement("div");
-      wrap.className = "bubble " + (mine ? "mine" : "theirs");
-      wrap.innerHTML = `${(m.text||"").replace(/</g,"&lt;")}<div class="meta">${fmtTime(fmtDT(m.createdAt)||new Date())}</div>`;
-      messages.appendChild(wrap);
-    }
-
-    // --- Data access ---
-    async function ensureThread(driverUid, driverName="", driverEmail=""){
-      const tref = doc(db,"threads", driverUid);
-      const snap = await getDoc(tref);
-      if (!snap.exists()){
+    async function ensureThread(driverUid, name="", email=""){
+      const tref = doc(db,"threads",driverUid);
+      const s = await getDoc(tref);
+      if(!s.exists()){
         await setDoc(tref,{
           participants:[ADMIN_UID, driverUid],
-          driverName, driverEmail,
-          lastMessage:"", updatedAt: serverTimestamp()
+          driverName:name, driverEmail:email, lastMessage:"", updatedAt:serverTimestamp()
         });
       }
       return tref;
     }
 
-    function openThread(driverUid, headerLabel="Chat"){
-      currentThreadId = driverUid;
-      document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
-      const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
-      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
-      messages.innerHTML = "";
-      let lastDay = "";
+    function openChat(uid, nameTxt=""){
+      current = uid;
+      document.querySelectorAll(".item").forEach(i=>i.classList.remove("active"));
+      const el = document.getElementById("it-"+uid); if(el) el.classList.add("active");
 
-      const msgsRef = collection(db,"threads",driverUid,"messages");
-      const qMsgs = query(msgsRef, orderBy("createdAt","asc"));
+      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
+      messages.innerHTML="";
+      let prevDay="";
+
+      const qMsgs = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","asc"));
       unsubMsgs = onSnapshot(qMsgs, snap=>{
-        messages.innerHTML = "";
-        lastDay = "";
+        messages.innerHTML=""; prevDay="";
         const toMark=[];
         snap.forEach(d=>{
-          const m = d.data();
-          const dt = fmtDT(m.createdAt) || new Date();
-          const day = dt.toDateString();
-          if (day !== lastDay){ renderDaySeparator(dt); lastDay = day; }
-          renderMessage(m);
+          const m=d.data(), dt=fmtDT(m.createdAt), day=dt.toDateString();
+          if (day!==prevDay){ daySep(dt); prevDay=day; }
+          renderMsg(m);
           const rb = Array.isArray(m.readBy)? m.readBy : [];
-          if (!rb.includes(currentUser.uid)) toMark.push(d.id);
+          if(!rb.includes(me.uid)) toMark.push(d.id);
         });
-        if (toMark.length) {
-          toMark.forEach(id=>{
-            const mref = doc(db,"threads",driverUid,"messages",id);
-            updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
-          });
-        }
+        toMark.forEach(id=>{
+          updateDoc(doc(db,"threads",uid,"messages",id),{ readBy: arrayUnion(me.uid) }).catch(()=>{});
+        });
+        messages.scrollTop = messages.scrollHeight;
+        // cursore subito pronto a scrivere
+        text.focus();
       });
 
-      closeSidebar();
+      closeDrawer();
     }
 
-    // --- Invio ---
-    async function send(){
-      const text = input.value.trim();
-      if (!text || !currentThreadId) return;
-      const msgsRef = collection(db,"threads", currentThreadId, "messages");
-      await addDoc(msgsRef,{
-        text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy:[currentUser.uid]
+    async function sendMsg(){
+      const t = text.value.trim(); if(!t || !current) return;
+      await addDoc(collection(db,"threads",current,"messages"),{
+        text:t, sender: me.uid, createdAt: serverTimestamp(), readBy:[me.uid]
       });
-      await updateDoc(doc(db,"threads",currentThreadId),{
-        lastMessage:text, updatedAt: serverTimestamp()
-      });
-      // Non togliere subito il focus!
-      setTimeout(()=>{
-        input.value="";
-        autoresize();
-        input.focus();     // rimetti il focus dopo svuotamento
-      }, 120);
-      // Lo scroll viene gestito dal MutationObserver
+      await updateDoc(doc(db,"threads",current),{ lastMessage:t, updatedAt: serverTimestamp() });
+      text.value=""; autoresize(); messages.scrollTop = messages.scrollHeight;
+      text.focus(); // mantieni keyboard aperta
     }
-    sendBtn.addEventListener("click", send);
-    input.addEventListener("keydown", (e)=>{
-      if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+
+    // evita che il bottone prenda focus e chiuda la tastiera
+    let touchSending=false;
+    send.addEventListener("mousedown", e=>e.preventDefault());
+    send.addEventListener("touchstart", e=>{
+      touchSending=true; e.preventDefault(); sendMsg(); setTimeout(()=>touchSending=false,0);
+    }, {passive:false});
+    send.addEventListener("click", ()=>{ if(!touchSending) sendMsg(); });
+
+    function renderItem({uid, name, lastMessage, updatedAt, unread}){
+      const p = document.createElement("div");
+      p.id = "it-"+uid;
+      p.className="item";
+      p.innerHTML = `
+        <div class="avatar">${(name||uid).substring(0,2).toUpperCase()}</div>
+        <div style="min-width:0">
+          <div class="name">${name||uid}
+            <span class="badge ${unread? "":"zero"}" data-uid="${uid}">${unread||0}</span>
+          </div>
+          <div class="last">${lastMessage || ""}</div>
+        </div>
+        <div class="meta">${updatedAt ? fmtTime(fmtDT(updatedAt)) : ""}</div>
+      `;
+      p.addEventListener("click", ()=> openChat(uid,name||uid));
+      list.appendChild(p);
+    }
+
+    function watchUnread(uid){
+      const qLast = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(50));
+      return onSnapshot(qLast, snap=>{
+        let n=0;
+        snap.forEach(d=>{
+          const m=d.data(); const rb = Array.isArray(m.readBy)? m.readBy : [];
+          if (m.sender !== me.uid && !rb.includes(me.uid)) n++;
+        });
+        const b = document.querySelector(`.badge[data-uid="${uid}"]`);
+        if (b){ b.textContent = n; b.classList.toggle("zero", n===0); }
+      });
+    }
+
+    q.addEventListener("input", ()=>{
+      const v = q.value.toLowerCase();
+      document.querySelectorAll(".item").forEach(el=>{
+        el.style.display = el.textContent.toLowerCase().includes(v) ? "" : "none";
+      });
     });
 
-    // --- Header nav: admin/driver ---
-    function setHeaderForRole(isAdmin){
-      if (isAdmin){ navBtn.textContent="🏠 Home"; navBtn.href="home.html"; }
-      else { navBtn.textContent="⬅ Torna all’app"; navBtn.href="index.html"; }
-    }
-
-    // --- Sidebar item helper (admin) ---
-    function addSidebarItem(uid, name){
-      const el = document.createElement("div");
-      el.id = "it-"+uid;
-      el.className = "item";
-      el.textContent = name || uid;
-      el.addEventListener("click", ()=> openThread(uid, `Driver: ${name||uid}`));
-      sidebar.appendChild(el);
-    }
-
-    // --- AUTH FLOW ---
     onAuthStateChanged(auth, async (user)=>{
-      if (!user){ location.href="index.html"; return; }
-      currentUser = user;
+      if(!user){ location.href="index.html"; return; }
+      if(user.uid !== ADMIN_UID){ alert("Questa pagina è riservata all'amministratore."); location.href="index.html"; return; }
+      me=user;
 
-      const isAdmin = user.uid === ADMIN_UID;
-      setHeaderForRole(isAdmin);
+      onSnapshot(query(collection(db,"threads"), orderBy("updatedAt","desc")), async snap=>{
+        list.innerHTML="";
+        if (snap.empty){ list.innerHTML = `<div class="item" style="cursor:default">Nessuna chat attiva</div>`; return; }
 
-      const params = new URLSearchParams(location.search);
-      const target = params.get("uid");
-      const driverUid = (target && target !== ADMIN_UID) ? target : null;
-
-      if (isAdmin){
-        // admin: tutte le chat o focus su una
-        if (driverUid){
-          const u = await getDoc(doc(db,"users",driverUid));
-          const d = u.exists()? u.data() : {};
-          await ensureThread(driverUid, d.name||"", d.email||"");
-          sidebar.innerHTML = "";
-          addSidebarItem(driverUid, d.name || driverUid);
-          openThread(driverUid, `Driver: ${d.name||driverUid}`);
-        } else {
-          sidebar.innerHTML = "";
-          const qThreads = query(collection(db,"threads"), orderBy("updatedAt","desc"));
-          onSnapshot(qThreads, snap=>{
-            sidebar.innerHTML="";
-            if (snap.empty){ sidebar.innerHTML = "<div class='item'>Nessuna chat</div>"; return; }
-            snap.forEach(t=>{
-              const d=t.data();
-              addSidebarItem(t.id, d.driverName || t.id);
-            });
-            if (!currentThreadId && !snap.empty){
-              const first=snap.docs[0]; openThread(first.id, `Driver: ${(first.data().driverName||first.id)}`);
-            }
+        snap.forEach(t=>{
+          const d=t.data();
+          renderItem({
+            uid: t.id,
+            name: d.driverName || t.id,
+            lastMessage: d.lastMessage || "",
+            updatedAt: d.updatedAt,
+            unread: 0
           });
-        }
-      } else {
-        // driver: solo sua chat
-        await ensureThread(user.uid,"",""); // minimal
-        sidebar.innerHTML = "";
-        addSidebarItem(user.uid,"Chat con Admin");
-        openThread(user.uid,"Chat con Admin");
-      }
+          watchUnread(t.id);
+        });
+
+        if(!current && !snap.empty){ openChat(snap.docs[0].id, snap.docs[0].data().driverName||snap.docs[0].id); }
+      });
     });
-  </script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .catch(err => console.warn('SW (FCM) registration failed', err));
-    }
   </script>
 </body>
 </html>
