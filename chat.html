@@ -194,14 +194,17 @@
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // Auto-grow textarea (stile WhatsApp)
+    // Auto-grow textarea (stile WhatsApp) -- AGGIORNATO
     function autoresize(){
       input.style.height = "auto";
       input.style.height = Math.min(input.scrollHeight, parseInt(getComputedStyle(input).lineHeight)*5 + 18) + "px";
-      if (atBottom()) scrollBottom(false);
+      // lo scroll lo facciamo dopo un piccolo timeout per evitare “salti” su mobile
+      if (atBottom()) setTimeout(() => scrollBottom(false), 100);
     }
     input.addEventListener("input", autoresize);
-    input.addEventListener("focus", ()=> setTimeout(()=> scrollBottom(false), 50));
+
+    // Quando ottieni focus sul campo, scrolla in fondo dopo breve timeout (la tastiera si sta aprendo)
+    input.addEventListener("focus", ()=> setTimeout(()=> scrollBottom(false), 250));
     autoresize();
 
     // VisualViewport: evita che la tastiera copra il composer e adatta la chat
@@ -215,7 +218,7 @@
         }
         // Se la tastiera si apre, scorri in fondo
         if (messages && messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80) {
-          scrollBottom(false);
+          setTimeout(()=>scrollBottom(false), 150);
         }
       };
       window.visualViewport.addEventListener('resize', updateViewportHeight);
@@ -288,7 +291,7 @@
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
           });
         }
-        scrollBottom(false);
+        setTimeout(() => scrollBottom(false), 150);
       });
 
       closeSidebar();
@@ -305,7 +308,9 @@
       await updateDoc(doc(db,"threads",currentThreadId),{
         lastMessage:text, updatedAt: serverTimestamp()
       });
-      input.value=""; autoresize(); scrollBottom();
+      input.value=""; autoresize();
+      input.focus(); // <-- questo mantiene la tastiera aperta!
+      setTimeout(() => scrollBottom(false), 150); // scrolla dopo invio
     }
     sendBtn.addEventListener("click", send);
     input.addEventListener("keydown", (e)=>{
