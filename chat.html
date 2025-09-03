@@ -17,7 +17,7 @@
       --their:#fff;             /* bolle altrui */
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{height:100%; overflow:hidden}
     body{
       margin:0;
       font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
@@ -48,7 +48,11 @@
     .sidebar{
       background:#fafafa; border-right:1px solid var(--line); overflow:auto;
     }
-    .chat{ display:flex; flex-direction:column; min-height:0; }
+    .chat{
+  display:grid;
+  grid-template-rows: 1fr auto;
+  min-height:0;
+}
 
     /* MESSAGGI */
     #messages{
@@ -76,10 +80,14 @@
 
     /* COMPOSER WhatsApp-like */
     #composer{
-      display:flex; gap:8px; padding:8px 10px;
-      background:var(--card); border-top:1px solid var(--line);
-      padding-bottom: max(8px, env(safe-area-inset-bottom));
-    }
+  position:sticky;
+  bottom:0;
+  z-index:10;
+  background: var(--card);
+  border-top:1px solid var(--line);
+  padding:8px 10px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
     #input{
       min-height:40px; max-height: calc(1.4em * 5);
       flex:1; resize:none; overflow:auto;
@@ -183,6 +191,19 @@
     const navBtn = $("navBtn");
     const toBottom = $("toBottom");
 
+// Keep composer visible space
+const composer = document.getElementById('composer');
+function syncBottomPadding(){
+  if (!composer) return;
+  messages.style.paddingBottom = (composer.offsetHeight + 8) + 'px';
+}
+window.addEventListener('resize', syncBottomPadding);
+if (window.visualViewport){
+  window.visualViewport.addEventListener('resize', syncBottomPadding);
+  window.visualViewport.addEventListener('scroll',  syncBottomPadding);
+}
+syncBottomPadding();
+
     let currentUser=null;
     let currentThreadId=null; // = uid driver
     let unsubMsgs=null;
@@ -213,7 +234,7 @@
       // se sto in fondo, resta in fondo quando cresce
       if (atBottom()) scrollBottom(false);
     }
-    input.addEventListener("input", autoresize);
+    input.addEventListener("input", ()=>{ autoresize(); syncBottomPadding(); });
     input.addEventListener("focus", ()=> setTimeout(()=> scrollBottom(false), 50));
     autoresize();
 
@@ -277,6 +298,7 @@
       const msgsRef = collection(db,"threads",driverUid,"messages");
       const qMsgs = query(msgsRef, orderBy("createdAt","asc"));
       unsubMsgs = onSnapshot(qMsgs, snap=>{
+        const wasNearBottom = atBottom();
         messages.innerHTML = "";
         lastDay = "";
         const toMark=[];
@@ -288,7 +310,8 @@
           renderMessage(m);
           const rb = Array.isArray(m.readBy)? m.readBy : [];
           if (!rb.includes(currentUser.uid)) toMark.push(d.id);
-        });
+                if (wasNearBottom) scrollBottom(false);
+      });
         if (toMark.length) {
           // marca letti
           toMark.forEach(id=>{

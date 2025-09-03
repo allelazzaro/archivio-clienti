@@ -10,7 +10,7 @@
       --mine:#dcf8c6; --their:#fff;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{height:100%; overflow:hidden}
     body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
 
     header{
@@ -41,7 +41,7 @@
     .badge{min-width:18px;padding:2px 6px;border-radius:999px;font-size:12px;background:#ff4757;color:#fff;text-align:center;margin-left:6px}
     .badge.zero{background:#eee;color:#333}
 
-    .chat{display:flex;flex-direction:column;min-height:0}
+    .chat{display:grid;grid-template-rows:1fr auto;min-height:0}
     #messages{flex:1;overflow:auto;padding:12px;background:linear-gradient(#dde7f0,#eef3f8)}
     .bubble{max-width:min(75%,760px);padding:8px 10px 6px;border-radius:16px;margin:6px 0;box-shadow:0 1px 1px #0001;white-space:pre-wrap;word-wrap:break-word}
     .mine{background:var(--mine); margin-left:auto; border-top-right-radius:6px}
@@ -51,7 +51,7 @@
     .day:before,.day:after{content:"";position:absolute;top:50%;height:1px;background:var(--line);width:35%}
     .day:before{left:0}.day:after{right:0}
 
-    #composer{display:flex;gap:8px;padding:8px 10px;background:#fff;border-top:1px solid var(--line);padding-bottom:max(8px,env(safe-area-inset-bottom))}
+    #composer{display:flex;gap:8px;padding:8px 10px;background:#fff;border-top:1px solid var(--line);padding-bottom:max(8px,env(safe-area-inset-bottom));position:sticky;bottom:0;z-index:10}
     #text{flex:1;min-height:40px;max-height:calc(1.4em*5);resize:none;overflow:auto;border:1px solid #cfd8e3;border-radius:20px;padding:10px 12px;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
     #send{background:var(--brand);color:#fff;border:0;border-radius:18px;padding:10px 14px;min-width:64px}
     #send:disabled{opacity:.6}
@@ -131,7 +131,7 @@
         messages.scrollTop = messages.scrollHeight;
       }
     }
-    text.addEventListener("input", autoresize);
+    text.addEventListener("input", ()=>{ autoresize(); syncBottomPadding(); });
     text.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMsg(); }});
     autoresize();
 
@@ -177,6 +177,7 @@
 
       const qMsgs = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","asc"));
       unsubMsgs = onSnapshot(qMsgs, snap=>{
+        const wasNearBottom = (messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40);
         messages.innerHTML=""; prevDay="";
         const toMark=[];
         snap.forEach(d=>{
