@@ -6,26 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <style>
     :root{
-      --brand:#128c7e;          /* verde whatsapp-like */
-      --brand2:#25d366;         /* accento */
+      --brand:#128c7e;
+      --brand2:#25d366;
       --bg:#e8edf2;
       --card:#fff;
       --line:#dde3ea;
       --ink:#222;
       --muted:#667;
-      --mine:#dcf8c6;           /* bolle mie */
-      --their:#fff;             /* bolle altrui */
+      --mine:#dcf8c6;
+      --their:#fff;
+      --vvh:100vh; /* viewport height dinamico */
     }
     *{box-sizing:border-box}
-    html,body{height:100%; overflow:hidden}
+    html,body{height:100%}
     body{
       margin:0;
       font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       color:var(--ink);
       background:var(--bg);
     }
-
-    /* HEADER */
     header{
       position:sticky; top:0; z-index:20;
       display:flex; align-items:center; gap:8px;
@@ -40,25 +39,21 @@
     }
     #btnList{display:none}
 
-    /* LAYOUT */
     .wrap{
       display:grid; grid-template-columns:320px 1fr;
-      height: calc(100dvh - 52px); /* d = dynamic vh, segue tastiera mobile */
+      height: calc(var(--vvh) - 52px); /* usa viewport dinamico se disponibile */
+      transition: height .2s;
     }
     .sidebar{
       background:#fafafa; border-right:1px solid var(--line); overflow:auto;
     }
-    .chat{
-  display:grid;
-  grid-template-rows: 1fr auto;
-  min-height:0;
-}
+    .chat{ display:flex; flex-direction:column; min-height:0; }
 
-    /* MESSAGGI */
     #messages{
       flex:1; overflow:auto;
       padding:12px 12px 6px 12px;
       background:linear-gradient(#dfe7ee, #eef3f8);
+      min-height:0;
     }
     .bubble{
       max-width:min(75%,700px);
@@ -78,16 +73,14 @@
     }
     .daysep:before{left:0} .daysep:after{right:0}
 
-    /* COMPOSER WhatsApp-like */
     #composer{
-  position:sticky;
-  bottom:0;
-  z-index:10;
-  background: var(--card);
-  border-top:1px solid var(--line);
-  padding:8px 10px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
-}
+      display:flex; gap:8px; padding:8px 10px;
+      background:var(--card); border-top:1px solid var(--line);
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      position:sticky;
+      bottom:0;
+      z-index:10;
+    }
     #input{
       min-height:40px; max-height: calc(1.4em * 5);
       flex:1; resize:none; overflow:auto;
@@ -101,26 +94,20 @@
       padding:10px 14px; border-radius:18px; min-width:64px; cursor:pointer;
     }
     #send:disabled{opacity:.6;cursor:not-allowed}
-
-    /* Pulsante “scorri in fondo” */
     #toBottom{
       position:fixed; right:12px; bottom: calc(64px + env(safe-area-inset-bottom));
       display:none; z-index:15;
       background:#fff; border:1px solid var(--line); border-radius:999px;
       padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
     }
-
-    /* LISTA CHAT SEMPLICE (admin) */
     .item{padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer}
     .item:hover{background:#f5f7fb}
     .item.active{background:#e7f5ef}
-
-    /* MOBILE: sidebar come drawer */
     @media (max-width: 900px){
-      .wrap{ grid-template-columns:1fr; height: calc(100dvh - 52px); }
+      .wrap{ grid-template-columns:1fr; height: calc(var(--vvh, 100vh) - 52px); }
       .sidebar{
         position:fixed; top:52px; left:0; width:min(92vw,420px);
-        height: calc(100dvh - 52px); transform:translateX(-100%);
+        height: calc(var(--vvh, 100vh) - 52px); transform:translateX(-100%);
         box-shadow:6px 0 24px rgba(0,0,0,.15); background:#fff; z-index:30;
         transition: transform .25s ease;
       }
@@ -137,24 +124,18 @@
     <div class="title">💬 Chat</div>
     <a id="navBtn" href="#" class="btn-h">...</a>
   </header>
-
   <div id="overlay"></div>
-
   <div class="wrap">
     <aside id="sidebar" class="sidebar"><div class="item">Caricamento…</div></aside>
-
     <section class="chat">
       <div id="messages"></div>
-
       <button id="toBottom" title="Vai all’ultimo messaggio">▼</button>
-
       <div id="composer">
         <textarea id="input" rows="1" placeholder="Scrivi un messaggio…"></textarea>
         <button id="send">Invia</button>
       </div>
     </section>
   </div>
-
   <script type="module">
     // --- Firebase setup ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -173,7 +154,6 @@
       messagingSenderId: "773533170263",
       appId: "1:773533170263:web:d05e2b00e991b0294c0112"
     };
-    // ⚠️ metti qui il TUO UID admin reale
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
     const app = initializeApp(firebaseConfig);
@@ -191,21 +171,8 @@
     const navBtn = $("navBtn");
     const toBottom = $("toBottom");
 
-// Keep composer visible space
-const composer = document.getElementById('composer');
-function syncBottomPadding(){
-  if (!composer) return;
-  messages.style.paddingBottom = (composer.offsetHeight + 8) + 'px';
-}
-window.addEventListener('resize', syncBottomPadding);
-if (window.visualViewport){
-  window.visualViewport.addEventListener('resize', syncBottomPadding);
-  window.visualViewport.addEventListener('scroll',  syncBottomPadding);
-}
-syncBottomPadding();
-
     let currentUser=null;
-    let currentThreadId=null; // = uid driver
+    let currentThreadId=null;
     let unsubMsgs=null;
     let isNearBottom=true;
 
@@ -231,21 +198,29 @@ syncBottomPadding();
     function autoresize(){
       input.style.height = "auto";
       input.style.height = Math.min(input.scrollHeight, parseInt(getComputedStyle(input).lineHeight)*5 + 18) + "px";
-      // se sto in fondo, resta in fondo quando cresce
       if (atBottom()) scrollBottom(false);
     }
-    input.addEventListener("input", ()=>{ autoresize(); syncBottomPadding(); });
+    input.addEventListener("input", autoresize);
     input.addEventListener("focus", ()=> setTimeout(()=> scrollBottom(false), 50));
     autoresize();
 
-    // VisualViewport: evita che la tastiera copra il composer
+    // VisualViewport: evita che la tastiera copra il composer e adatta la chat
     if (window.visualViewport){
-      const onVV = () => {
-        document.body.style.setProperty('--vvh', window.visualViewport.height + "px");
-        if (atBottom()) scrollBottom(false);
+      const updateViewportHeight = () => {
+        const vh = window.visualViewport.height;
+        document.body.style.setProperty('--vvh', vh + "px");
+        const wrap = document.querySelector('.wrap');
+        if (wrap) {
+          wrap.style.height = (vh - 52) + "px";
+        }
+        // Se la tastiera si apre, scorri in fondo
+        if (messages && messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80) {
+          scrollBottom(false);
+        }
       };
-      window.visualViewport.addEventListener('resize', onVV);
-      window.visualViewport.addEventListener('scroll', onVV);
+      window.visualViewport.addEventListener('resize', updateViewportHeight);
+      window.visualViewport.addEventListener('scroll', updateViewportHeight);
+      updateViewportHeight();
     }
 
     // Pulsante “vai in fondo”
@@ -286,11 +261,8 @@ syncBottomPadding();
 
     function openThread(driverUid, headerLabel="Chat"){
       currentThreadId = driverUid;
-      // evidenzia nella sidebar (se presente)
       document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
       const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
-
-      // stream messaggi
       if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
       messages.innerHTML = "";
       let lastDay = "";
@@ -298,7 +270,6 @@ syncBottomPadding();
       const msgsRef = collection(db,"threads",driverUid,"messages");
       const qMsgs = query(msgsRef, orderBy("createdAt","asc"));
       unsubMsgs = onSnapshot(qMsgs, snap=>{
-        const wasNearBottom = atBottom();
         messages.innerHTML = "";
         lastDay = "";
         const toMark=[];
@@ -310,10 +281,8 @@ syncBottomPadding();
           renderMessage(m);
           const rb = Array.isArray(m.readBy)? m.readBy : [];
           if (!rb.includes(currentUser.uid)) toMark.push(d.id);
-                if (wasNearBottom) scrollBottom(false);
-      });
+        });
         if (toMark.length) {
-          // marca letti
           toMark.forEach(id=>{
             const mref = doc(db,"threads",driverUid,"messages",id);
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
@@ -322,7 +291,7 @@ syncBottomPadding();
         scrollBottom(false);
       });
 
-      closeSidebar(); // su mobile richiudiamo la lista
+      closeSidebar();
     }
 
     // --- Invio ---
@@ -404,12 +373,11 @@ syncBottomPadding();
       }
     });
   </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/firebase-messaging-sw.js')
-      .catch(err => console.warn('SW (FCM) registration failed', err));
-  }
-</script>
-
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .catch(err => console.warn('SW (FCM) registration failed', err));
+    }
+  </script>
 </body>
 </html>
