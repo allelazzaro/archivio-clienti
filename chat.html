@@ -15,7 +15,7 @@
       --muted:#667;
       --mine:#dcf8c6;
       --their:#fff;
-      --vvh:100vh; /* viewport height dinamico */
+      --vvh:100vh;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -41,7 +41,7 @@
 
     .wrap{
       display:grid; grid-template-columns:320px 1fr;
-      height: calc(var(--vvh) - 52px); /* usa viewport dinamico se disponibile */
+      height: calc(var(--vvh) - 52px);
       transition: height .2s;
     }
     .sidebar{
@@ -131,7 +131,7 @@
       <div id="messages"></div>
       <button id="toBottom" title="Vai all’ultimo messaggio">▼</button>
       <div id="composer">
-        <textarea id="input" rows="1" placeholder="Scrivi un messaggio…"></textarea>
+        <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
         <button id="send">Invia</button>
       </div>
     </section>
@@ -194,20 +194,21 @@
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // Auto-grow textarea (stile WhatsApp) -- AGGIORNATO
+    // Auto-grow textarea
     function autoresize(){
       input.style.height = "auto";
       input.style.height = Math.min(input.scrollHeight, parseInt(getComputedStyle(input).lineHeight)*5 + 18) + "px";
-      // lo scroll lo facciamo dopo un piccolo timeout per evitare “salti” su mobile
-      if (atBottom()) setTimeout(() => scrollBottom(false), 100);
     }
     input.addEventListener("input", autoresize);
 
-    // Quando ottieni focus sul campo, scrolla in fondo dopo breve timeout (la tastiera si sta aprendo)
-    input.addEventListener("focus", ()=> setTimeout(()=> scrollBottom(false), 250));
+    // Focus: quando tocchi il campo, scrolla solo dopo timeout più lungo
+    input.addEventListener("focus", ()=> {
+      autoresize();
+      setTimeout(()=> scrollBottom(false), 400);
+    });
     autoresize();
 
-    // VisualViewport: evita che la tastiera copra il composer e adatta la chat
+    // VisualViewport: solo aggiorna l’altezza, NON scrollare qui!
     if (window.visualViewport){
       const updateViewportHeight = () => {
         const vh = window.visualViewport.height;
@@ -215,10 +216,6 @@
         const wrap = document.querySelector('.wrap');
         if (wrap) {
           wrap.style.height = (vh - 52) + "px";
-        }
-        // Se la tastiera si apre, scorri in fondo
-        if (messages && messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80) {
-          setTimeout(()=>scrollBottom(false), 150);
         }
       };
       window.visualViewport.addEventListener('resize', updateViewportHeight);
@@ -291,7 +288,7 @@
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
           });
         }
-        setTimeout(() => scrollBottom(false), 150);
+        // Non fare scroll qui!
       });
 
       closeSidebar();
@@ -309,8 +306,8 @@
         lastMessage:text, updatedAt: serverTimestamp()
       });
       input.value=""; autoresize();
-      input.focus(); // <-- questo mantiene la tastiera aperta!
-      setTimeout(() => scrollBottom(false), 150); // scrolla dopo invio
+      input.focus(); // la tastiera rimane aperta!
+      // Non scrollare dopo invio!
     }
     sendBtn.addEventListener("click", send);
     input.addEventListener("keydown", (e)=>{
