@@ -137,7 +137,6 @@
     </section>
   </div>
   <script type="module">
-    // --- Firebase setup ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
@@ -160,7 +159,6 @@
     const db  = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- DOM ---
     const $ = (id)=>document.getElementById(id);
     const sidebar = $("sidebar");
     const messages = $("messages");
@@ -176,7 +174,6 @@
     let unsubMsgs=null;
     let isNearBottom=true;
 
-    // --- Helpers UI ---
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
     const fmtDay = (d)=> d.toLocaleDateString();
     const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
@@ -201,14 +198,15 @@
     }
     input.addEventListener("input", autoresize);
 
-    // Focus: quando tocchi il campo, scrolla solo dopo timeout più lungo
-    input.addEventListener("focus", ()=> {
+    // Focus: quando tocchi il campo, NON scrollare subito, solo se non già in fondo
+    input.addEventListener("focus", ()=>{
       autoresize();
-      setTimeout(()=> scrollBottom(false), 400);
+      // Scrolla solo se non già in fondo
+      if (!atBottom()) setTimeout(()=> scrollBottom(false), 450);
     });
     autoresize();
 
-    // VisualViewport: solo aggiorna l’altezza, NON scrollare qui!
+    // VisualViewport: aggiorna solo l’altezza, NON scrollare qui!
     if (window.visualViewport){
       const updateViewportHeight = () => {
         const vh = window.visualViewport.height;
@@ -229,6 +227,15 @@
       toBottom.style.display = isNearBottom ? "none" : "block";
     });
     toBottom.addEventListener("click", ()=> scrollBottom());
+
+    // MutationObserver: scrolla in fondo solo quando arriva un nuovo messaggio
+    const observer = new MutationObserver(()=>{
+      if (document.activeElement === input) {
+        // Se il campo è in focus, scrolla in fondo dopo breve timeout
+        setTimeout(()=>scrollBottom(false), 150);
+      }
+    });
+    observer.observe(messages, { childList: true, subtree: false });
 
     // --- Chat render ---
     function renderDaySeparator(date){
@@ -288,7 +295,6 @@
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
           });
         }
-        // Non fare scroll qui!
       });
 
       closeSidebar();
@@ -305,9 +311,13 @@
       await updateDoc(doc(db,"threads",currentThreadId),{
         lastMessage:text, updatedAt: serverTimestamp()
       });
-      input.value=""; autoresize();
-      input.focus(); // la tastiera rimane aperta!
-      // Non scrollare dopo invio!
+      // Non togliere subito il focus!
+      setTimeout(()=>{
+        input.value="";
+        autoresize();
+        input.focus();     // rimetti il focus dopo svuotamento
+      }, 120);
+      // Lo scroll viene gestito dal MutationObserver
     }
     sendBtn.addEventListener("click", send);
     input.addEventListener("keydown", (e)=>{
