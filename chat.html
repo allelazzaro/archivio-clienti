@@ -7,15 +7,13 @@
   <style>
     :root{
       --brand:#128c7e;
-      --brand2:#25d366;
       --bg:#e8edf2;
       --card:#fff;
       --line:#dde3ea;
       --ink:#222;
-      --muted:#667;
       --mine:#dcf8c6;
       --their:#fff;
-      --vvh:100vh; /* viewport height dinamico */
+      --vvh:100vh;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -24,6 +22,8 @@
       font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       color:var(--ink);
       background:var(--bg);
+      overscroll-behavior-y: contain;
+      -webkit-tap-highlight-color: transparent;
     }
     header{
       position:sticky; top:0; z-index:20;
@@ -33,20 +33,17 @@
     }
     .title{font-weight:700; flex:1}
     .btn-h{
-      color:#fff; background:transparent;
-      border:1px solid rgba(255,255,255,.35);
+      color:#fff; background:transparent; border:1px solid #ffffff59;
       padding:6px 10px; border-radius:999px; text-decoration:none;
     }
     #btnList{display:none}
 
     .wrap{
       display:grid; grid-template-columns:320px 1fr;
-      height: calc(var(--vvh) - 52px); /* usa viewport dinamico se disponibile */
+      height: calc(var(--vvh) - 52px); /* 52px ≈ header */
       transition: height .2s;
     }
-    .sidebar{
-      background:#fafafa; border-right:1px solid var(--line); overflow:auto;
-    }
+    .sidebar{background:#fafafa; border-right:1px solid var(--line); overflow:auto}
     .chat{ display:flex; flex-direction:column; min-height:0; }
 
     #messages{
@@ -65,8 +62,7 @@
     .theirs{ background:var(--their); margin-right:auto; border-top-left-radius:6px; }
     .meta{ font-size:12px; color:#6c6c6c; text-align:right; margin-top:2px; }
     .daysep{
-      text-align:center; margin:8px 0; color:#556; font-size:12px;
-      position:relative;
+      text-align:center; margin:8px 0; color:#556; font-size:12px; position:relative;
     }
     .daysep:before,.daysep:after{
       content:""; height:1px; background:var(--line); position:absolute; top:50%; width:35%;
@@ -77,9 +73,7 @@
       display:flex; gap:8px; padding:8px 10px;
       background:var(--card); border-top:1px solid var(--line);
       padding-bottom: max(8px, env(safe-area-inset-bottom));
-      position:sticky;
-      bottom:0;
-      z-index:10;
+      position:sticky; bottom:0; z-index:10;
     }
     #input{
       min-height:40px; max-height: calc(1.4em * 5);
@@ -92,6 +86,7 @@
     #send{
       background:var(--brand); color:#fff; border:none;
       padding:10px 14px; border-radius:18px; min-width:64px; cursor:pointer;
+      touch-action: manipulation;
     }
     #send:disabled{opacity:.6;cursor:not-allowed}
     #toBottom{
@@ -103,11 +98,12 @@
     .item{padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer}
     .item:hover{background:#f5f7fb}
     .item.active{background:#e7f5ef}
+
     @media (max-width: 900px){
-      .wrap{ grid-template-columns:1fr; height: calc(var(--vvh, 100vh) - 52px); }
+      .wrap{ grid-template-columns:1fr; height: calc(var(--vvh) - 52px); }
       .sidebar{
         position:fixed; top:52px; left:0; width:min(92vw,420px);
-        height: calc(var(--vvh, 100vh) - 52px); transform:translateX(-100%);
+        height: calc(var(--vvh) - 52px); transform:translateX(-100%);
         box-shadow:6px 0 24px rgba(0,0,0,.15); background:#fff; z-index:30;
         transition: transform .25s ease;
       }
@@ -122,29 +118,30 @@
   <header>
     <button id="btnList" class="btn-h">☰ Chat</button>
     <div class="title">💬 Chat</div>
-    <a id="navBtn" href="#" class="btn-h">...</a>
+    <a id="navBtn" href="#" class="btn-h">.</a>
   </header>
+
   <div id="overlay"></div>
+
   <div class="wrap">
     <aside id="sidebar" class="sidebar"><div class="item">Caricamento…</div></aside>
     <section class="chat">
       <div id="messages"></div>
       <button id="toBottom" title="Vai all’ultimo messaggio">▼</button>
       <div id="composer">
-        <textarea id="input" rows="1" placeholder="Scrivi un messaggio…"></textarea>
-        <button id="send">Invia</button>
+        <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
+        <button id="send" type="button">Invia</button>
       </div>
     </section>
   </div>
+
   <script type="module">
-    // --- Firebase setup ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
-      query, onSnapshot, orderBy, serverTimestamp, limit
+      query, onSnapshot, orderBy, serverTimestamp, limit, arrayUnion
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -160,7 +157,6 @@
     const db  = getFirestore(app);
     const auth = getAuth(app);
 
-    // --- DOM ---
     const $ = (id)=>document.getElementById(id);
     const sidebar = $("sidebar");
     const messages = $("messages");
@@ -176,7 +172,6 @@
     let unsubMsgs=null;
     let isNearBottom=true;
 
-    // --- Helpers UI ---
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
     const fmtDay = (d)=> d.toLocaleDateString();
     const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
@@ -189,48 +184,57 @@
     }
 
     // Drawer mobile
-    function openSidebar(){ sidebar.classList.add("open"); overlay.classList.add("show"); }
-    function closeSidebar(){ sidebar.classList.remove("open"); overlay.classList.remove("show"); }
+    const openSidebar=()=>{ sidebar.classList.add("open"); overlay.classList.add("show"); };
+    const closeSidebar=()=>{ sidebar.classList.remove("open"); overlay.classList.remove("show"); };
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // Auto-grow textarea (stile WhatsApp)
+    // Auto-grow textarea
     function autoresize(){
       input.style.height = "auto";
-      input.style.height = Math.min(input.scrollHeight, parseInt(getComputedStyle(input).lineHeight)*5 + 18) + "px";
-      if (atBottom()) scrollBottom(false);
+      const lh = parseInt(getComputedStyle(input).lineHeight)||20;
+      input.style.height = Math.min(input.scrollHeight, lh*5 + 18) + "px";
     }
     input.addEventListener("input", autoresize);
-    input.addEventListener("focus", ()=> setTimeout(()=> scrollBottom(false), 50));
     autoresize();
 
-    // VisualViewport: evita che la tastiera copra il composer e adatta la chat
+    // Mantieni layout stabile quando compare la tastiera
     if (window.visualViewport){
       const updateViewportHeight = () => {
         const vh = window.visualViewport.height;
         document.body.style.setProperty('--vvh', vh + "px");
         const wrap = document.querySelector('.wrap');
-        if (wrap) {
-          wrap.style.height = (vh - 52) + "px";
-        }
-        // Se la tastiera si apre, scorri in fondo
-        if (messages && messages.scrollHeight - messages.scrollTop - messages.clientHeight < 80) {
-          scrollBottom(false);
-        }
+        if (wrap) { wrap.style.height = (vh - 52) + "px"; }
       };
       window.visualViewport.addEventListener('resize', updateViewportHeight);
       window.visualViewport.addEventListener('scroll', updateViewportHeight);
       updateViewportHeight();
     }
 
-    // Pulsante “vai in fondo”
+    // “Vai in fondo” se non sei vicino al bottom
     messages.addEventListener("scroll", () => {
       isNearBottom = atBottom();
       toBottom.style.display = isNearBottom ? "none" : "block";
     });
     toBottom.addEventListener("click", ()=> scrollBottom());
 
-    // --- Chat render ---
+    // Scroll automatico quando entrano nuovi msg SOLO se stai scrivendo (tastiera aperta)
+    const observer = new MutationObserver(()=>{
+      if (document.activeElement === input) setTimeout(()=>scrollBottom(false), 120);
+    });
+    observer.observe(messages, { childList: true });
+
+    // Focus al composer (apre tastiera)
+    function focusComposer() {
+      input.focus();
+      try { input.setSelectionRange(input.value.length, input.value.length); } catch {}
+      autoresize();
+      if (!atBottom()) setTimeout(()=>scrollBottom(false), 300);
+    }
+    window.addEventListener('pageshow', ()=> setTimeout(focusComposer, 200));
+    input.addEventListener("focus", ()=>{ autoresize(); if(!atBottom()) setTimeout(()=>scrollBottom(false), 450); });
+
+    // Render UI
     function renderDaySeparator(date){
       const sep = document.createElement("div");
       sep.className = "daysep";
@@ -245,7 +249,7 @@
       messages.appendChild(wrap);
     }
 
-    // --- Data access ---
+    // Data
     async function ensureThread(driverUid, driverName="", driverEmail=""){
       const tref = doc(db,"threads", driverUid);
       const snap = await getDoc(tref);
@@ -259,7 +263,7 @@
       return tref;
     }
 
-    function openThread(driverUid, headerLabel="Chat"){
+    function openThread(driverUid){
       currentThreadId = driverUid;
       document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
       const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
@@ -288,13 +292,13 @@
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
           });
         }
-        scrollBottom(false);
+        setTimeout(focusComposer, 50);
       });
 
       closeSidebar();
     }
 
-    // --- Invio ---
+    // Invio (tastiera resta aperta)
     async function send(){
       const text = input.value.trim();
       if (!text || !currentThreadId) return;
@@ -305,30 +309,38 @@
       await updateDoc(doc(db,"threads",currentThreadId),{
         lastMessage:text, updatedAt: serverTimestamp()
       });
-      input.value=""; autoresize(); scrollBottom();
+      input.value="";
+      autoresize();
+      setTimeout(focusComposer, 0);
     }
-    sendBtn.addEventListener("click", send);
+
+    // Invia con Enter e con tocco senza perdere focus
+    let touchSending=false;
+    sendBtn.addEventListener("mousedown", (e)=>{ e.preventDefault(); });
+    sendBtn.addEventListener("touchstart", (e)=>{
+      touchSending=true; e.preventDefault(); send(); setTimeout(()=>{ touchSending=false; }, 0);
+    }, { passive:false });
+    sendBtn.addEventListener("click", (e)=>{ if (!touchSending) send(); });
     input.addEventListener("keydown", (e)=>{
       if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
     });
 
-    // --- Header nav: admin/driver ---
+    // Header nav: admin/driver
     function setHeaderForRole(isAdmin){
       if (isAdmin){ navBtn.textContent="🏠 Home"; navBtn.href="home.html"; }
       else { navBtn.textContent="⬅ Torna all’app"; navBtn.href="index.html"; }
     }
 
-    // --- Sidebar item helper (admin) ---
     function addSidebarItem(uid, name){
       const el = document.createElement("div");
       el.id = "it-"+uid;
       el.className = "item";
       el.textContent = name || uid;
-      el.addEventListener("click", ()=> openThread(uid, `Driver: ${name||uid}`));
+      el.addEventListener("click", ()=> openThread(uid));
       sidebar.appendChild(el);
     }
 
-    // --- AUTH FLOW ---
+    // AUTH
     onAuthStateChanged(auth, async (user)=>{
       if (!user){ location.href="index.html"; return; }
       currentUser = user;
@@ -341,14 +353,13 @@
       const driverUid = (target && target !== ADMIN_UID) ? target : null;
 
       if (isAdmin){
-        // admin: tutte le chat o focus su una
         if (driverUid){
           const u = await getDoc(doc(db,"users",driverUid));
           const d = u.exists()? u.data() : {};
           await ensureThread(driverUid, d.name||"", d.email||"");
           sidebar.innerHTML = "";
           addSidebarItem(driverUid, d.name || driverUid);
-          openThread(driverUid, `Driver: ${d.name||driverUid}`);
+          openThread(driverUid);
         } else {
           sidebar.innerHTML = "";
           const qThreads = query(collection(db,"threads"), orderBy("updatedAt","desc"));
@@ -360,19 +371,20 @@
               addSidebarItem(t.id, d.driverName || t.id);
             });
             if (!currentThreadId && !snap.empty){
-              const first=snap.docs[0]; openThread(first.id, `Driver: ${(first.data().driverName||first.id)}`);
+              const first=snap.docs[0];
+              openThread(first.id);
             }
           });
         }
       } else {
-        // driver: solo sua chat
-        await ensureThread(user.uid,"",""); // minimal
+        await ensureThread(user.uid,"",""); // crea sua chat
         sidebar.innerHTML = "";
         addSidebarItem(user.uid,"Chat con Admin");
-        openThread(user.uid,"Chat con Admin");
+        openThread(user.uid);
       }
     });
   </script>
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/firebase-messaging-sw.js')
