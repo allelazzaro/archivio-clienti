@@ -32,7 +32,7 @@
 
     .wrap{
       display:grid; grid-template-columns:320px 1fr;
-      height: calc(var(--vvh) - 52px); /* 52px ≈ header */
+      height: min( calc(var(--vvh) - 52px), calc(100dvh - 52px) ); /* 52px ≈ header */
       transition:height .2s;
     }
     .sidebar{background:#fafafa; border-right:1px solid var(--line); overflow:auto}
@@ -84,7 +84,7 @@
       .wrap{ grid-template-columns:1fr; height: calc(var(--vvh) - 52px) }
       .sidebar{
         position:fixed; top:52px; left:0; width:min(92vw,420px);
-        height: calc(var(--vvh) - 52px); transform:translateX(-100%);
+        height: min( calc(var(--vvh) - 52px), calc(100dvh - 52px) ); transform:translateX(-100%);
         box-shadow:6px 0 24px rgba(0,0,0,.15); background:#fff; z-index:30; transition: transform .25s ease;
       }
       .sidebar.open{ transform:translateX(0) }
