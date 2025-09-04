@@ -11,7 +11,7 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    /* Blocca lo scroll pagina: scorre solo l'area messaggi */
+    /* Scorre solo l'area messaggi */
     html,body{overflow:hidden}
 
     body{
@@ -181,18 +181,20 @@
       updateVH();
     }
 
-    // Evita lo scroll-into-view aggressivo di iOS quando tocchi il composer
+    // ===== NIENTE SALTO + TASTIERA SI APRE SEMPRE (iOS) =====
+    // Se tocchi direttamente la textarea: lasciamo il comportamento nativo.
+    // Se tocchi il bordo/area del composer: evitiamo lo scroll e diamo focus sincrono.
     composer.addEventListener('touchstart', (e)=>{
-      e.preventDefault();
-      setTimeout(()=>{
-        input.focus();
-        try { input.setSelectionRange(input.value.length, input.value.length); } catch {}
-      }, 0);
+      const t = e.target;
+      if (t === input) return;                 // tocco diretto: Safari apre tastiera
+      e.preventDefault();                      // evita scroll-into-view
+      input.focus({ preventScroll:true });     // focus sincrono => tastiera si apre
+      try { input.setSelectionRange(input.value.length, input.value.length); } catch {}
     }, {passive:false});
     composer.addEventListener('mousedown', (e)=>{
       if (e.target === input) return;
       e.preventDefault();
-      input.focus();
+      input.focus({ preventScroll:true });
     });
 
     // Auto-grow textarea
@@ -279,7 +281,7 @@
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
           });
         }
-        setTimeout(()=>{ input.focus(); }, 50);
+        setTimeout(()=> input.focus(), 50);
       });
 
       closeSidebar();

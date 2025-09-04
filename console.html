@@ -11,7 +11,6 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    /* Scorre solo l'area messaggi, non tutta la pagina */
     html,body{overflow:hidden}
 
     body{
@@ -126,15 +125,13 @@
     const list = $("list"), q = $("q");
     const messages = $("messages"), text = $("text"), send = $("send");
     const sidebar = $("sidebar"), drawer = $("drawer"), btnMenu = $("btnMenu");
+    const composer = document.getElementById('composer');
 
     let me=null, current=null, unsubMsgs=null;
 
     // ===== Viewport dinamico con tastiera (iOS) =====
     if (window.visualViewport){
-      const updateVH = () => {
-        const vh = window.visualViewport.height;
-        document.body.style.setProperty('--vvh', vh + 'px');
-      };
+      const updateVH = () => document.body.style.setProperty('--vvh', window.visualViewport.height + 'px');
       visualViewport.addEventListener('resize', updateVH);
       visualViewport.addEventListener('scroll', updateVH);
       updateVH();
@@ -146,19 +143,18 @@
     btnMenu?.addEventListener("click", openDrawer); 
     drawer?.addEventListener("click", closeDrawer);
 
-    // ===== Evita “salto” quando tocchi il composer (iOS) =====
-    const composer = document.getElementById('composer');
+    // ===== NIENTE SALTO + TASTIERA SI APRE SEMPRE (iOS) =====
     composer.addEventListener('touchstart', (e)=>{
-      e.preventDefault();         // blocca lo scroll automatico di Safari
-      setTimeout(()=>{            // focus manuale
-        text.focus();
-        try { text.setSelectionRange(text.value.length, text.value.length); } catch {}
-      }, 0);
+      const t = e.target;
+      if (t === text) return;                 // tocco diretto sulla textarea
+      e.preventDefault();                      // evita scroll-into-view
+      text.focus({ preventScroll:true });      // focus sincrono => tastiera si apre
+      try { text.setSelectionRange(text.value.length, text.value.length); } catch {}
     }, {passive:false});
     composer.addEventListener('mousedown', (e)=>{
       if (e.target === text) return;
       e.preventDefault();
-      text.focus();
+      text.focus({ preventScroll:true });
     });
 
     // ===== Auto-resize textarea =====
