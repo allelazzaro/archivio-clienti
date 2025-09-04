@@ -152,6 +152,7 @@
     let currentThreadId=null;
     let unsubMsgs=null;
     let isNearBottom=true;
+    let firstLoad=true; // <<< NEW: evita scroll automatico al primo caricamento
 
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
     const fmtDay = (d)=> d.toLocaleDateString();
@@ -181,14 +182,12 @@
       updateVH();
     }
 
-    // ===== NIENTE SALTO + TASTIERA SI APRE (solo quando tocchi) =====
-    // Se tocchi direttamente la textarea: comportamento nativo.
-    // Se tocchi il bordo/area del composer: evitiamo lo scroll e diamo focus sincrono.
+    // ===== iOS: niente salto, tastiera si apre SOLO quando tocchi =====
     composer.addEventListener('touchstart', (e)=>{
       const t = e.target;
-      if (t === input) return;                 // tocco diretto: Safari apre tastiera
-      e.preventDefault();                      // evita scroll-into-view
-      input.focus({ preventScroll:true });     // focus sincrono => tastiera si apre
+      if (t === input) return;                 // tocco diretto: nativo
+      e.preventDefault();                      // blocca scroll-into-view
+      input.focus({ preventScroll:true });     // focus sincrono → tastiera si apre
       try { input.setSelectionRange(input.value.length, input.value.length); } catch {}
     }, {passive:false});
     composer.addEventListener('mousedown', (e)=>{
@@ -212,12 +211,6 @@
       toBottom.style.display = isNearBottom ? "none" : "block";
     });
     toBottom.addEventListener("click", ()=> scrollBottom(true));
-
-    // Scroll automatico quando arrivano nuovi messaggi SE stai scrivendo
-    const observer = new MutationObserver(()=>{
-      if (document.activeElement === input) setTimeout(()=>scrollBottom(false), 80);
-    });
-    observer.observe(messages, { childList: true });
 
     // Render UI
     function renderDaySeparator(date){
@@ -250,6 +243,8 @@
 
     function openThread(driverUid){
       currentThreadId = driverUid;
+      firstLoad = true; // <<< NEW: reset ad ogni apertura chat
+
       document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
       const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
       if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
@@ -277,8 +272,15 @@
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
           });
         }
-        // NIENTE focus() qui -> evita il salto su iOS
-        if (atBottom()) scrollBottom(false);
+
+        // --- SCROLL LOGIC CORRETTA ---
+        if (firstLoad){
+          // Primo caricamento: NON scorrere in fondo
+          firstLoad = false;
+        } else if (atBottom()){
+          // Aggiornamenti successivi: scendi solo se eri già in fondo
+          scrollBottom(false);
+        }
       });
 
       closeSidebar();
@@ -297,7 +299,9 @@
       });
       input.value="";
       autoresize();
-      input.focus({ preventScroll:true }); // dopo invio mantieni tastiera aperta
+      // dopo invio: mantieni tastiera e vai in fondo
+      input.focus({ preventScroll:true });
+      scrollBottom(false);
     }
 
     // Invia con Enter e con tocco senza perdere focus
