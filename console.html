@@ -143,7 +143,7 @@
     btnMenu?.addEventListener("click", openDrawer); 
     drawer?.addEventListener("click", closeDrawer);
 
-    // ===== NIENTE SALTO + TASTIERA SI APRE SEMPRE (iOS) =====
+    // ===== NIENTE SALTO + TASTIERA SOLO SU TAP =====
     composer.addEventListener('touchstart', (e)=>{
       const t = e.target;
       if (t === text) return;                 // tocco diretto sulla textarea
@@ -224,8 +224,8 @@
         toMark.forEach(id=>{
           updateDoc(doc(db,"threads",uid,"messages",id),{ readBy: arrayUnion(me.uid) }).catch(()=>{});
         });
-        scrollBottom(false);
-        text.focus();
+        // Niente focus automatico qui -> evita salto
+        if (atBottom()) scrollBottom(false);
       });
 
       closeDrawer();
@@ -238,7 +238,7 @@
       });
       await updateDoc(doc(db,"threads",current),{ lastMessage:t, updatedAt: serverTimestamp() });
       text.value=""; autoresize(); scrollBottom(false);
-      text.focus(); // tastiera resta aperta
+      text.focus({ preventScroll:true }); // tastiera resta aperta
     }
 
     // Invio: niente perdita di focus
@@ -312,9 +312,6 @@
         if(!current && !snap.empty){ openChat(snap.docs[0].id); }
       });
     });
-
-    // Focus pronto quando apri la pagina
-    window.addEventListener('pageshow', ()=> setTimeout(()=> text.focus(), 150));
   </script>
 </body>
 </html>

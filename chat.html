@@ -181,8 +181,8 @@
       updateVH();
     }
 
-    // ===== NIENTE SALTO + TASTIERA SI APRE SEMPRE (iOS) =====
-    // Se tocchi direttamente la textarea: lasciamo il comportamento nativo.
+    // ===== NIENTE SALTO + TASTIERA SI APRE (solo quando tocchi) =====
+    // Se tocchi direttamente la textarea: comportamento nativo.
     // Se tocchi il bordo/area del composer: evitiamo lo scroll e diamo focus sincrono.
     composer.addEventListener('touchstart', (e)=>{
       const t = e.target;
@@ -218,10 +218,6 @@
       if (document.activeElement === input) setTimeout(()=>scrollBottom(false), 80);
     });
     observer.observe(messages, { childList: true });
-
-    // Focus iniziale per avere subito la tastiera
-    window.addEventListener('pageshow', ()=> setTimeout(()=>{ input.focus(); }, 150));
-    input.addEventListener("focus", ()=>{ autoresize(); if(!atBottom()) setTimeout(()=>scrollBottom(false), 300); });
 
     // Render UI
     function renderDaySeparator(date){
@@ -281,7 +277,8 @@
             updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
           });
         }
-        setTimeout(()=> input.focus(), 50);
+        // NIENTE focus() qui -> evita il salto su iOS
+        if (atBottom()) scrollBottom(false);
       });
 
       closeSidebar();
@@ -300,7 +297,7 @@
       });
       input.value="";
       autoresize();
-      setTimeout(()=> input.focus(), 0);
+      input.focus({ preventScroll:true }); // dopo invio mantieni tastiera aperta
     }
 
     // Invia con Enter e con tocco senza perdere focus
