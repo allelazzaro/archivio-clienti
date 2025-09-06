@@ -165,6 +165,7 @@
     let unsubMsgs=null;
     let isNearBottom=true;
     let firstLoad=true;
+    let keyboardOpen=false; // Definita qui all'inizio
 
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
     const fmtDay = (d)=> d.toLocaleDateString();
