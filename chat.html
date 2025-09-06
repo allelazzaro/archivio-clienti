@@ -219,8 +219,41 @@
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // SOLUZIONE iOS SEMPLIFICATA
-    // Niente gestione viewport complessa, solo il minimo indispensabile
+    // GESTIONE VIEWPORT PER COMPORTAMENTO WHATSAPP
+    function handleViewportChange() {
+      // Utilizza Visual Viewport API se disponibile (iOS 13+)
+      if (window.visualViewport) {
+        const viewport = window.visualViewport;
+        const vh = viewport.height;
+        const vw = viewport.width;
+        
+        // Aggiorna CSS custom properties per altezza dinamica
+        document.documentElement.style.setProperty('--vh', (vh * 0.01) + 'px');
+        document.documentElement.style.setProperty('--vw', (vw * 0.01) + 'px');
+        
+        // Se eri in fondo, mantieni la posizione quando cambia l'altezza
+        if (isNearBottom) {
+          requestAnimationFrame(() => {
+            scrollBottom(false);
+          });
+        }
+      } else {
+        // Fallback per browser meno recenti
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', vh + 'px');
+      }
+    }
+
+    // Inizializza e ascolta i cambiamenti
+    handleViewportChange();
+    
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportChange);
+      window.visualViewport.addEventListener('scroll', handleViewportChange);
+    } else {
+      window.addEventListener('resize', handleViewportChange);
+      window.addEventListener('orientationchange', handleViewportChange);
+    }
     
     // Auto-resize semplice
     function autoresize(){
