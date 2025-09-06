@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <style>
     :root{
       --brand:#128c7e; --bg:#e8edf2; --card:#fff; --line:#dde3ea; --ink:#222;
@@ -11,13 +11,15 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    /* Scorre solo l'area messaggi */
-    html,body{overflow:hidden}
+    /* CRITICO: Impedisce scroll durante focus */
+    html,body{overflow:hidden; position:fixed; width:100%;}
 
     body{
       margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       color:var(--ink); background:var(--bg);
-      overscroll-behavior-y:contain; -webkit-tap-highlight-color:transparent;
+      overscroll-behavior:none; -webkit-tap-highlight-color:transparent;
+      /* Impedisce zoom su iOS */
+      -webkit-text-size-adjust:100%; -webkit-user-select:none;
     }
 
     header{
@@ -32,7 +34,7 @@
 
     .wrap{
       display:grid; grid-template-columns:320px 1fr;
-      height: min( calc(var(--vvh) - 52px), calc(100dvh - 52px) ); /* 52px ≈ header */
+      height: calc(var(--vvh) - 52px);
       transition:height .2s;
     }
     .sidebar{background:#fafafa; border-right:1px solid var(--line); overflow:auto}
@@ -41,6 +43,8 @@
     #messages{
       flex:1; overflow:auto; -webkit-overflow-scrolling:touch;
       padding:12px 12px 6px; background:linear-gradient(#dfe7ee,#eef3f8); min-height:0;
+      /* IMPORTANTE: Impedisce il bounce su iOS */
+      overscroll-behavior-y:contain;
     }
     .bubble{
       max-width:min(75%,700px); padding:8px 10px 6px; border-radius:16px; margin:6px 0;
@@ -58,15 +62,23 @@
       display:flex; gap:8px; padding:8px 10px; background:var(--card); border-top:1px solid var(--line);
       padding-bottom:max(8px, env(safe-area-inset-bottom));
       position:sticky; bottom:0; z-index:10;
+      /* CRITICO per evitare il salto */
+      touch-action:manipulation;
     }
     #input{
       min-height:40px; max-height:calc(1.4em*5);
       flex:1; resize:none; overflow:auto; border:1px solid #cfd8e3; border-radius:20px;
-      padding:10px 12px; outline:none; font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:#fff;
+      padding:10px 12px; outline:none; 
+      font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; 
+      background:#fff;
+      /* CRITICO: Impedisce zoom su iOS con font-size 16px+ */
+      -webkit-user-select:text;
     }
     #send{
       background:var(--brand); color:#fff; border:none; padding:10px 14px; border-radius:18px;
       min-width:64px; cursor:pointer; touch-action:manipulation;
+      /* Impedisce selezione accidentale */
+      -webkit-user-select:none; user-select:none;
     }
     #send:disabled{opacity:.6;cursor:not-allowed}
 
@@ -84,7 +96,7 @@
       .wrap{ grid-template-columns:1fr; height: calc(var(--vvh) - 52px) }
       .sidebar{
         position:fixed; top:52px; left:0; width:min(92vw,420px);
-        height: min( calc(var(--vvh) - 52px), calc(100dvh - 52px) ); transform:translateX(-100%);
+        height: calc(var(--vvh) - 52px); transform:translateX(-100%);
         box-shadow:6px 0 24px rgba(0,0,0,.15); background:#fff; z-index:30; transition: transform .25s ease;
       }
       .sidebar.open{ transform:translateX(0) }
@@ -107,7 +119,7 @@
     <aside id="sidebar" class="sidebar"><div class="item">Caricamento…</div></aside>
     <section class="chat">
       <div id="messages"></div>
-      <button id="toBottom" title="Vai all’ultimo messaggio">▼</button>
+      <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
       <div id="composer">
         <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
         <button id="send" type="button">Invia</button>
@@ -152,7 +164,7 @@
     let currentThreadId=null;
     let unsubMsgs=null;
     let isNearBottom=true;
-    let firstLoad=true; // <<< NEW: evita scroll automatico al primo caricamento
+    let firstLoad=true;
 
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
     const fmtDay = (d)=> d.toLocaleDateString();
@@ -171,29 +183,65 @@
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // Altezza viewport reale con tastiera
-    if (window.visualViewport){
-      const updateVH = () => {
-        const vh = window.visualViewport.height;
-        document.body.style.setProperty('--vvh', vh + "px");
-      };
+    // CRITICO: Gestione viewport dinamico per tastiera
+    let initialVH = window.innerHeight;
+    function updateVH() {
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      document.documentElement.style.setProperty('--vvh', vh + 'px');
+      // Mantieni scroll in fondo se eri già lì
+      if (isNearBottom) {
+        setTimeout(() => scrollBottom(false), 50);
+      }
+    }
+    
+    if (window.visualViewport) {
       visualViewport.addEventListener('resize', updateVH);
       visualViewport.addEventListener('scroll', updateVH);
-      updateVH();
+    } else {
+      window.addEventListener('resize', updateVH);
     }
+    updateVH();
 
-    // ===== iOS: niente salto, tastiera si apre SOLO quando tocchi =====
-    composer.addEventListener('touchstart', (e)=>{
-      const t = e.target;
-      if (t === input) return;                 // tocco diretto: nativo
-      e.preventDefault();                      // blocca scroll-into-view
-      input.focus({ preventScroll:true });     // focus sincrono → tastiera si apre
-      try { input.setSelectionRange(input.value.length, input.value.length); } catch {}
-    }, {passive:false});
-    composer.addEventListener('mousedown', (e)=>{
-      if (e.target === input) return;
-      e.preventDefault();
-      input.focus({ preventScroll:true });
+    // SOLUZIONE PRINCIPALE: Gestione touch senza salti
+    let isComposerActive = false;
+    
+    // Previeni il comportamento di default quando tocchi il composer
+    composer.addEventListener('touchstart', (e) => {
+      isComposerActive = true;
+      // Se non stai toccando direttamente l'input
+      if (e.target !== input) {
+        e.preventDefault(); // Impedisce scroll-into-view
+        // Focus manuale con preventScroll
+        input.focus({ preventScroll: true });
+        // Posiziona cursore alla fine
+        requestAnimationFrame(() => {
+          try {
+            input.setSelectionRange(input.value.length, input.value.length);
+          } catch(e) {}
+        });
+      }
+    }, { passive: false });
+
+    // Gestisci anche mouse per desktop
+    composer.addEventListener('mousedown', (e) => {
+      if (e.target !== input) {
+        e.preventDefault();
+        input.focus({ preventScroll: true });
+      }
+    });
+
+    // Quando l'input perde focus
+    input.addEventListener('blur', () => {
+      isComposerActive = false;
+    });
+
+    // Impedisci scroll quando l'input è attivo
+    input.addEventListener('focus', () => {
+      isComposerActive = true;
+      // Su iOS, aspetta che la tastiera si apra
+      setTimeout(() => {
+        if (isNearBottom) scrollBottom(false);
+      }, 300);
     });
 
     // Auto-grow textarea
@@ -201,11 +249,15 @@
       input.style.height = "auto";
       const lh = parseInt(getComputedStyle(input).lineHeight)||20;
       input.style.height = Math.min(input.scrollHeight, lh*5 + 18) + "px";
+      // Mantieni scroll se stavi scrivendo
+      if (isComposerActive && isNearBottom) {
+        setTimeout(() => scrollBottom(false), 10);
+      }
     }
     input.addEventListener("input", autoresize);
     autoresize();
 
-    // “Vai in fondo” solo quando serve
+    // Gestione scroll intelligente
     messages.addEventListener("scroll", () => {
       isNearBottom = atBottom();
       toBottom.style.display = isNearBottom ? "none" : "block";
@@ -243,7 +295,7 @@
 
     function openThread(driverUid){
       currentThreadId = driverUid;
-      firstLoad = true; // <<< NEW: reset ad ogni apertura chat
+      firstLoad = true;
 
       document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
       const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
@@ -273,12 +325,11 @@
           });
         }
 
-        // --- SCROLL LOGIC CORRETTA ---
+        // Scroll logic migliorata
         if (firstLoad){
-          // Primo caricamento: NON scorrere in fondo
           firstLoad = false;
-        } else if (atBottom()){
-          // Aggiornamenti successivi: scendi solo se eri già in fondo
+          // Non scorrere automaticamente al primo caricamento
+        } else if (isNearBottom){
           scrollBottom(false);
         }
       });
@@ -286,10 +337,11 @@
       closeSidebar();
     }
 
-    // Invio (tastiera resta aperta)
+    // Invio messaggi con gestione tastiera
     async function send(){
       const text = input.value.trim();
       if (!text || !currentThreadId) return;
+      
       const msgsRef = collection(db,"threads", currentThreadId, "messages");
       await addDoc(msgsRef,{
         text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy:[currentUser.uid]
@@ -297,28 +349,45 @@
       await updateDoc(doc(db,"threads",currentThreadId),{
         lastMessage:text, updatedAt: serverTimestamp()
       });
+      
       input.value="";
       autoresize();
-      // dopo invio: mantieni tastiera e vai in fondo
-      input.focus({ preventScroll:true });
+      
+      // Mantieni focus e vai in fondo
+      input.focus({ preventScroll: true });
       scrollBottom(false);
     }
 
-    // Invia con Enter e con tocco senza perdere focus
+    // Gestione invio - MIGLIORATA per mobile
     let touchSending=false;
+    
+    // Previeni perdita focus su mousedown
     sendBtn.addEventListener("mousedown", (e)=>{ e.preventDefault(); });
+    
+    // Touch handling migliorato
     sendBtn.addEventListener("touchstart", (e)=>{
-      touchSending=true; e.preventDefault(); send(); setTimeout(()=>{ touchSending=false; }, 0);
+      touchSending=true; 
+      e.preventDefault(); 
+      send(); 
+      setTimeout(()=>{ touchSending=false; }, 100);
     }, { passive:false });
-    sendBtn.addEventListener("click", ()=>{ if (!touchSending) send(); });
+    
+    sendBtn.addEventListener("click", ()=>{ 
+      if (!touchSending) send(); 
+    });
+    
+    // Enter per inviare
     input.addEventListener("keydown", (e)=>{
-      if (e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); }
+      if (e.key==="Enter" && !e.shiftKey){ 
+        e.preventDefault(); 
+        send(); 
+      }
     });
 
     // Header nav: admin/driver
     function setHeaderForRole(isAdmin){
       if (isAdmin){ navBtn.textContent="🏠 Home"; navBtn.href="home.html"; }
-      else { navBtn.textContent="⬅ Torna all’app"; navBtn.href="index.html"; }
+      else { navBtn.textContent="⬅ Torna all'app"; navBtn.href="index.html"; }
     }
 
     function addSidebarItem(uid, name){
@@ -367,7 +436,7 @@
           });
         }
       } else {
-        await ensureThread(user.uid,"",""); // crea sua chat
+        await ensureThread(user.uid,"","");
         sidebar.innerHTML = "";
         addSidebarItem(user.uid,"Chat con Admin");
         openThread(user.uid);
