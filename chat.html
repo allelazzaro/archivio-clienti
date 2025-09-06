@@ -3,49 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <title>Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <style>
     :root{
       --brand:#128c7e; --bg:#e8edf2; --card:#fff; --line:#dde3ea; --ink:#222;
-      --mine:#dcf8c6; --their:#fff; --vvh:100vh;
+      --mine:#dcf8c6; --their:#fff; --vh:100vh;
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
-    /* CRITICO: Impedisce scroll durante focus */
-    html,body{overflow:hidden; position:fixed; width:100%;}
+    
+    /* APPROCCIO MINIMALISTA per iOS */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Cruciale per evitare scroll */
+    }
 
     body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       color:var(--ink); background:var(--bg);
-      overscroll-behavior:none; -webkit-tap-highlight-color:transparent;
-      /* Impedisce zoom su iOS */
-      -webkit-text-size-adjust:100%; -webkit-user-select:none;
+      -webkit-tap-highlight-color:transparent;
+      -webkit-text-size-adjust:100%;
+      /* iOS: forza hardware acceleration */
+      transform: translateZ(0);
+    }
+
+    .app-container {
+      height: 100vh;
+      height: 100dvh; /* Supporto moderno per dynamic viewport */
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
     }
 
     header{
-      position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:8px;
-      padding:10px 12px env(safe-area-inset-right) 10px env(safe-area-inset-left);
-      background:var(--brand); color:#fff;
+      flex-shrink: 0;
+      display:flex; align-items:center; gap:8px;
+      padding:10px 12px; background:var(--brand); color:#fff;
+      z-index: 20;
     }
     .title{font-weight:700; flex:1}
     .btn-h{ color:#fff; background:transparent; border:1px solid #ffffff59;
       padding:6px 10px; border-radius:999px; text-decoration:none }
     #btnList{display:none}
 
-    .wrap{
-      display:grid; grid-template-columns:320px 1fr;
-      height: calc(var(--vvh) - 52px);
-      transition:height .2s;
+    .main-content {
+      flex: 1;
+      display: grid; 
+      grid-template-columns: 320px 1fr;
+      min-height: 0; /* Importante per grid overflow */
+      overflow: hidden;
     }
-    .sidebar{background:#fafafa; border-right:1px solid var(--line); overflow:auto}
-    .chat{display:flex; flex-direction:column; min-height:0}
+
+    .sidebar{
+      background:#fafafa; border-right:1px solid var(--line); 
+      overflow:auto; -webkit-overflow-scrolling: touch;
+    }
+    
+    .chat-area{
+      display:flex; flex-direction:column; 
+      min-height:0; overflow: hidden;
+    }
 
     #messages{
-      flex:1; overflow:auto; -webkit-overflow-scrolling:touch;
-      padding:12px 12px 6px; background:linear-gradient(#dfe7ee,#eef3f8); min-height:0;
-      /* IMPORTANTE: Impedisce il bounce su iOS */
-      overscroll-behavior-y:contain;
+      flex:1; 
+      overflow-y:auto; 
+      -webkit-overflow-scrolling:touch;
+      padding:12px;
+      background:linear-gradient(#dfe7ee,#eef3f8);
     }
+    
     .bubble{
       max-width:min(75%,700px); padding:8px 10px 6px; border-radius:16px; margin:6px 0;
       box-shadow:0 1px 1px rgba(0,0,0,.05); white-space:pre-wrap; word-wrap:break-word;
@@ -58,34 +86,36 @@
     .daysep:before,.daysep:after{ content:""; height:1px; background:var(--line); position:absolute; top:50%; width:35% }
     .daysep:before{left:0} .daysep:after{right:0}
 
+    /* COMPOSER: La parte cruciale per iOS */
     #composer{
-      display:flex; gap:8px; padding:8px 10px; background:var(--card); border-top:1px solid var(--line);
-      padding-bottom:max(8px, env(safe-area-inset-bottom));
-      position:sticky; bottom:0; z-index:10;
-      /* CRITICO per evitare il salto */
-      touch-action:manipulation;
+      flex-shrink: 0;
+      display:flex; gap:8px; padding:8px 10px; 
+      background:var(--card); border-top:1px solid var(--line);
+      /* iOS: posizionamento stabile */
+      position: relative;
+      z-index: 10;
     }
+
     #input{
-      min-height:40px; max-height:calc(1.4em*5);
-      flex:1; resize:none; overflow:auto; border:1px solid #cfd8e3; border-radius:20px;
+      flex:1; min-height:40px; max-height:120px;
+      resize:none; border:1px solid #cfd8e3; border-radius:20px;
       padding:10px 12px; outline:none; 
+      /* CRITICO: Font size 16px+ previene zoom iOS */
       font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; 
       background:#fff;
-      /* CRITICO: Impedisce zoom su iOS con font-size 16px+ */
-      -webkit-user-select:text;
+      overflow-y: auto;
     }
+    
     #send{
-      background:var(--brand); color:#fff; border:none; padding:10px 14px; border-radius:18px;
-      min-width:64px; cursor:pointer; touch-action:manipulation;
-      /* Impedisce selezione accidentale */
-      -webkit-user-select:none; user-select:none;
+      background:var(--brand); color:#fff; border:none; 
+      padding:10px 14px; border-radius:18px; min-width:64px;
+      cursor:pointer; flex-shrink: 0;
     }
-    #send:disabled{opacity:.6;cursor:not-allowed}
 
     #toBottom{
-      position:fixed; right:12px; bottom: calc(64px + env(safe-area-inset-bottom));
-      display:none; z-index:15; background:#fff; border:1px solid var(--line); border-radius:999px;
-      padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
+      position:fixed; right:12px; bottom:80px;
+      display:none; z-index:15; background:#fff; border:1px solid var(--line); 
+      border-radius:999px; padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
     }
 
     .item{padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer}
@@ -93,11 +123,11 @@
     .item.active{background:#e7f5ef}
 
     @media (max-width:900px){
-      .wrap{ grid-template-columns:1fr; height: calc(var(--vvh) - 52px) }
+      .main-content{ grid-template-columns:1fr; }
       .sidebar{
-        position:fixed; top:52px; left:0; width:min(92vw,420px);
-        height: calc(var(--vvh) - 52px); transform:translateX(-100%);
-        box-shadow:6px 0 24px rgba(0,0,0,.15); background:#fff; z-index:30; transition: transform .25s ease;
+        position:fixed; top:52px; left:0; width:min(92vw,420px); height:calc(100vh - 52px);
+        transform:translateX(-100%); box-shadow:6px 0 24px rgba(0,0,0,.15); 
+        background:#fff; z-index:30; transition: transform .25s ease;
       }
       .sidebar.open{ transform:translateX(0) }
       #btnList{display:inline-block}
@@ -107,24 +137,30 @@
   </style>
 </head>
 <body>
-  <header>
-    <button id="btnList" class="btn-h">☰ Chat</button>
-    <div class="title">💬 Chat</div>
-    <a id="navBtn" href="#" class="btn-h">.</a>
-  </header>
+  <div class="app-container">
+    <header>
+      <button id="btnList" class="btn-h">☰ Chat</button>
+      <div class="title">💬 Chat</div>
+      <a id="navBtn" href="#" class="btn-h">.</a>
+    </header>
 
-  <div id="overlay"></div>
+    <div id="overlay"></div>
 
-  <div class="wrap">
-    <aside id="sidebar" class="sidebar"><div class="item">Caricamento…</div></aside>
-    <section class="chat">
-      <div id="messages"></div>
-      <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
-      <div id="composer">
-        <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
-        <button id="send" type="button">Invia</button>
-      </div>
-    </section>
+    <div class="main-content">
+      <aside id="sidebar" class="sidebar">
+        <div class="item">Caricamento…</div>
+      </aside>
+      
+      <section class="chat-area">
+        <div id="messages"></div>
+        <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
+        <div id="composer">
+          <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" 
+                   autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
+          <button id="send" type="button">Invia</button>
+        </div>
+      </section>
+    </div>
   </div>
 
   <script type="module">
@@ -165,7 +201,6 @@
     let unsubMsgs=null;
     let isNearBottom=true;
     let firstLoad=true;
-    let keyboardOpen=false; // Definita qui all'inizio
 
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
     const fmtDay = (d)=> d.toLocaleDateString();
@@ -184,96 +219,54 @@
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // CRITICO: Gestione viewport dinamico per tastiera
-    let initialVH = window.innerHeight;
-    function updateVH() {
-      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      document.documentElement.style.setProperty('--vvh', vh + 'px');
-      // Mantieni scroll in fondo se eri già lì
-      if (isNearBottom) {
-        setTimeout(() => scrollBottom(false), 50);
-      }
-    }
+    // SOLUZIONE iOS SEMPLIFICATA
+    // Niente gestione viewport complessa, solo il minimo indispensabile
     
-    if (window.visualViewport) {
-      visualViewport.addEventListener('resize', updateVH);
-      visualViewport.addEventListener('scroll', updateVH);
-    } else {
-      window.addEventListener('resize', updateVH);
-    }
-    updateVH();
-
-    // SOLUZIONE PRINCIPALE: Gestione touch senza salti
-    let isComposerActive = false;
-    
-    // Previeni il comportamento di default quando tocchi il composer
-    composer.addEventListener('touchstart', (e) => {
-      isComposerActive = true;
-      // Se non stai toccando direttamente l'input
-      if (e.target !== input) {
-        e.preventDefault(); // Impedisce scroll-into-view
-        // Focus manuale con preventScroll
-        input.focus({ preventScroll: true });
-        // Posiziona cursore alla fine
-        requestAnimationFrame(() => {
-          try {
-            input.setSelectionRange(input.value.length, input.value.length);
-          } catch(e) {}
-        });
-      }
-    }, { passive: false });
-
-    // Gestisci anche mouse per desktop
-    composer.addEventListener('mousedown', (e) => {
-      if (e.target !== input) {
-        e.preventDefault();
-        input.focus({ preventScroll: true });
-      }
-    });
-
-    // Quando l'input perde focus
-    input.addEventListener('blur', () => {
-      isComposerActive = false;
-    });
-
-    // Impedisci scroll quando l'input è attivo
-    input.addEventListener('focus', () => {
-      isComposerActive = true;
-      // Su iOS, aspetta che la tastiera si apra
-      setTimeout(() => {
-        if (isNearBottom) scrollBottom(false);
-      }, 300);
-    });
-
-    // Auto-grow textarea con gestione iOS migliorata
+    // Auto-resize semplice
     function autoresize(){
       input.style.height = "auto";
-      const lh = parseInt(getComputedStyle(input).lineHeight)||20;
-      input.style.height = Math.min(input.scrollHeight, lh*5 + 18) + "px";
-      
-      // Su iOS, evita scroll durante il typing
-      if (keyboardOpen && isNearBottom) {
-        // Usa requestAnimationFrame per smooth update
-        requestAnimationFrame(() => scrollBottom(false));
-      }
+      const maxHeight = 120; // 5 righe circa
+      input.style.height = Math.min(input.scrollHeight, maxHeight) + "px";
     }
     input.addEventListener("input", autoresize);
-    autoresize();
 
-    // Gestione scroll intelligente
+    // Focus management essenziale
+    let inputHasFocus = false;
+    
+    input.addEventListener('focus', () => {
+      inputHasFocus = true;
+      // Piccolo delay per permettere alla UI di stabilizzarsi
+      setTimeout(() => {
+        if (isNearBottom) scrollBottom(false);
+      }, 150);
+    });
+    
+    input.addEventListener('blur', () => {
+      inputHasFocus = false;
+    });
+
+    // Touch sul composer area - versione semplificata
+    composer.addEventListener('click', (e) => {
+      if (e.target !== input && !inputHasFocus) {
+        input.focus();
+      }
+    });
+
+    // Scroll tracking
     messages.addEventListener("scroll", () => {
       isNearBottom = atBottom();
       toBottom.style.display = isNearBottom ? "none" : "block";
     });
     toBottom.addEventListener("click", ()=> scrollBottom(true));
 
-    // Render UI
+    // UI Render functions
     function renderDaySeparator(date){
       const sep = document.createElement("div");
       sep.className = "daysep";
       sep.textContent = fmtDay(date);
       messages.appendChild(sep);
     }
+    
     function renderMessage(m){
       const mine = m.sender === currentUser.uid;
       const wrap = document.createElement("div");
@@ -282,7 +275,7 @@
       messages.appendChild(wrap);
     }
 
-    // Data
+    // Firebase functions
     async function ensureThread(driverUid, driverName="", driverEmail=""){
       const tref = doc(db,"threads", driverUid);
       const snap = await getDoc(tref);
@@ -312,6 +305,7 @@
         messages.innerHTML = "";
         lastDay = "";
         const toMark=[];
+        
         snap.forEach(d=>{
           const m = d.data();
           const dt = fmtDT(m.createdAt) || new Date();
@@ -321,6 +315,8 @@
           const rb = Array.isArray(m.readBy)? m.readBy : [];
           if (!rb.includes(currentUser.uid)) toMark.push(d.id);
         });
+        
+        // Mark as read
         if (toMark.length) {
           toMark.forEach(id=>{
             const mref = doc(db,"threads",driverUid,"messages",id);
@@ -328,19 +324,19 @@
           });
         }
 
-        // Scroll logic migliorata
+        // Scroll logic - solo quando necessario
         if (firstLoad){
           firstLoad = false;
-          // Non scorrere automaticamente al primo caricamento
+          // Non scorrere al primo caricamento
         } else if (isNearBottom){
-          scrollBottom(false);
+          setTimeout(() => scrollBottom(false), 50);
         }
       });
 
       closeSidebar();
     }
 
-    // Invio messaggi con gestione tastiera
+    // Send message
     async function send(){
       const text = input.value.trim();
       if (!text || !currentThreadId) return;
@@ -355,31 +351,12 @@
       
       input.value="";
       autoresize();
-      
-      // Mantieni focus e vai in fondo
-      input.focus({ preventScroll: true });
+      input.focus(); // Mantieni focus dopo invio
       scrollBottom(false);
     }
 
-    // Gestione invio - MIGLIORATA per mobile
-    let touchSending=false;
-    
-    // Previeni perdita focus su mousedown
-    sendBtn.addEventListener("mousedown", (e)=>{ e.preventDefault(); });
-    
-    // Touch handling migliorato
-    sendBtn.addEventListener("touchstart", (e)=>{
-      touchSending=true; 
-      e.preventDefault(); 
-      send(); 
-      setTimeout(()=>{ touchSending=false; }, 100);
-    }, { passive:false });
-    
-    sendBtn.addEventListener("click", ()=>{ 
-      if (!touchSending) send(); 
-    });
-    
-    // Enter per inviare
+    // Send handlers
+    sendBtn.addEventListener("click", send);
     input.addEventListener("keydown", (e)=>{
       if (e.key==="Enter" && !e.shiftKey){ 
         e.preventDefault(); 
@@ -387,7 +364,7 @@
       }
     });
 
-    // Header nav: admin/driver
+    // Header nav
     function setHeaderForRole(isAdmin){
       if (isAdmin){ navBtn.textContent="🏠 Home"; navBtn.href="home.html"; }
       else { navBtn.textContent="⬅ Torna all'app"; navBtn.href="index.html"; }
@@ -402,7 +379,7 @@
       sidebar.appendChild(el);
     }
 
-    // AUTH
+    // Auth
     onAuthStateChanged(auth, async (user)=>{
       if (!user){ location.href="index.html"; return; }
       currentUser = user;
@@ -445,13 +422,6 @@
         openThread(user.uid);
       }
     });
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        .catch(err => console.warn('SW (FCM) registration failed', err));
-    }
   </script>
 </body>
 </html>
