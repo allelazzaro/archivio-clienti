@@ -244,14 +244,16 @@
       }, 300);
     });
 
-    // Auto-grow textarea
+    // Auto-grow textarea con gestione iOS migliorata
     function autoresize(){
       input.style.height = "auto";
       const lh = parseInt(getComputedStyle(input).lineHeight)||20;
       input.style.height = Math.min(input.scrollHeight, lh*5 + 18) + "px";
-      // Mantieni scroll se stavi scrivendo
-      if (isComposerActive && isNearBottom) {
-        setTimeout(() => scrollBottom(false), 10);
+      
+      // Su iOS, evita scroll durante il typing
+      if (keyboardOpen && isNearBottom) {
+        // Usa requestAnimationFrame per smooth update
+        requestAnimationFrame(() => scrollBottom(false));
       }
     }
     input.addEventListener("input", autoresize);
