@@ -17,6 +17,9 @@
       overflow: hidden;
       position: fixed;
       width: 100%;
+      /* iOS: Forza altezza minima per mantenere header visibile */
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
     }
 
     body {
@@ -25,18 +28,25 @@
       background: var(--bg);
       -webkit-tap-highlight-color: transparent;
       -webkit-text-size-adjust: 100%;
+      /* iOS: Blocca il ridimensionamento del viewport */
+      -webkit-overflow-scrolling: touch;
     }
 
-    /* CONTAINER PRINCIPALE - Layout a 3 sezioni fisse */
+    /* CONTAINER PRINCIPALE - Tecnica anti-viewport-shrink */
     .chat-app {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      height: 100dvh;
-      position: relative;
+      /* iOS: Impedisce il ridimensionamento quando tastiera si apre */
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
     }
 
-    /* HEADER - Sempre fisso in cima */
+    /* HEADER - Tecnica multi-layer per rimanere sempre visibile */
     .header {
       background: var(--brand);
       color: #fff;
@@ -45,9 +55,18 @@
       align-items: center;
       gap: 8px;
       min-height: 52px;
+      max-height: 52px;
       flex-shrink: 0;
-      position: relative;
-      z-index: 100;
+      /* iOS: Multiple positioning strategies */
+      position: sticky;
+      top: 0;
+      z-index: 9999;
+      /* Forza la visibilità */
+      transform: translateZ(0);
+      -webkit-transform: translateZ(0);
+      will-change: transform;
+      /* Backup positioning */
+      margin-bottom: 0;
     }
     
     .header .title { font-weight: 700; flex: 1; }
@@ -282,15 +301,72 @@
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // Auto-resize textarea
+    // Auto-resize textarea (DICHIARATA UNA SOLA VOLTA)
     function autoresize() {
       input.style.height = "auto";
       const maxHeight = 120;
       input.style.height = Math.min(input.scrollHeight, maxHeight) + "px";
     }
-    input.addEventListener("input", autoresize);
 
-    // Focus management semplificato
+    // iOS VIEWPORT FIX - Gestione specifica per Safari mobile
+    function setupIOSViewportFix() {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
+      
+      if (isIOS || isSafari) {
+        // Forza altezza iniziale
+        const initialHeight = window.innerHeight;
+        const chatApp = document.querySelector('.chat-app');
+        
+        // Imposta altezza fissa per iOS
+        chatApp.style.height = initialHeight + 'px';
+        chatApp.style.minHeight = initialHeight + 'px';
+        
+        // Gestisci cambiamenti viewport
+        let resizeTimer;
+        function handleResize() {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            const currentHeight = window.innerHeight;
+            const heightDiff = initialHeight - currentHeight;
+            
+            // Se la tastiera è aperta (altezza ridotta significativamente)
+            if (heightDiff > 100) {
+              // Mantieni l'altezza originale per non nascondere l'header
+              chatApp.style.height = initialHeight + 'px';
+              chatApp.style.transform = 'translateY(0)';
+              
+              // Aggiusta l'area messaggi per la tastiera
+              const messagesArea = document.querySelector('.messages-area');
+              if (messagesArea) {
+                messagesArea.style.maxHeight = (currentHeight - 120) + 'px'; // 120px per header+composer
+              }
+            } else {
+              // Tastiera chiusa - ripristina
+              chatApp.style.height = initialHeight + 'px';
+              const messagesArea = document.querySelector('.messages-area');
+              if (messagesArea) {
+                messagesArea.style.maxHeight = '';
+              }
+            }
+          }, 150);
+        }
+        
+        // Ascolta resize con throttling
+        window.addEventListener('resize', handleResize);
+        
+        // Visual Viewport API se disponibile (iOS 13+)
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', handleResize);
+        }
+      }
+    }
+    
+    // Esegui fix all'avvio
+    setupIOSViewportFix();
+
+    // Event listeners (TUTTI IN UNA SEZIONE)
+    input.addEventListener("input", autoresize);
     input.addEventListener('focus', () => {
       setTimeout(() => {
         if (isNearBottom) scrollBottom(false);
