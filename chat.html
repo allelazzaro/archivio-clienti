@@ -123,17 +123,18 @@ body {
   flex-direction: column;
   height: 100%;
   position: relative;
+  /* Spazio per composer fisso globale */
+  padding-bottom: 70px;
 }
 
-/* Messaggi con spazio per composer */
+/* Messaggi - area scrollabile pulita */
 #messages {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 12px;
   background: linear-gradient(#dfe7ee, #eef3f8);
-  /* Spazio per composer fisso in fondo */
-  padding-bottom: 80px;
+  min-height: 0; /* Importante per flex overflow */
 }
 
 /* Composer fisso in fondo - sempre visibile */
