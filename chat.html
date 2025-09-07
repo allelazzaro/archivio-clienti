@@ -251,6 +251,7 @@
       query, onSnapshot, orderBy, serverTimestamp, limit, arrayUnion
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -261,10 +262,12 @@
       appId: "1:773533170263:web:d05e2b00e991b0294c0112"
     };
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+    const VAPID_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const messaging = getMessaging(app);
 
     const $ = (id) => document.getElementById(id);
     const sidebar = $("sidebar");
@@ -286,6 +289,99 @@
     const fmtDT = (t) => t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
     const fmtDay = (d) => d.toLocaleDateString();
     const fmtTime = (d) => d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+
+    // NOTIFICHE PUSH - Setup e gestione
+    async function setupNotifications() {
+      try {
+        // Controlla supporto
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+          console.warn('Notifiche o Service Worker non supportati');
+          return;
+        }
+
+        // Richiedi permesso notifiche
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          console.warn('Permesso notifiche negato');
+          return;
+        }
+
+        // Ottieni token FCM
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        if (!token) {
+          console.warn('Token FCM non ricevuto');
+          return;
+        }
+
+        // Salva token per l'utente corrente
+        if (currentUser) {
+          await setDoc(doc(db, "users", currentUser.uid), {
+            fcmTokens: { [token]: true }
+          }, { merge: true });
+          console.log('Token FCM salvato per', currentUser.uid);
+        }
+
+      } catch (error) {
+        console.warn('Errore setup notifiche:', error);
+      }
+    }
+
+    // Gestione notifiche in foreground
+    onMessage(messaging, (payload) => {
+      console.log('Notifica ricevuta in foreground:', payload);
+      
+      // Mostra notifica toast in-app se la chat non è attiva
+      if (document.hidden || !document.hasFocus()) {
+        showInAppNotification(payload);
+      }
+    });
+
+    // Toast notifica in-app
+    function showInAppNotification(payload) {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position: fixed; top: 20px; right: 20px; z-index: 10000;
+        background: var(--brand); color: white; padding: 12px 16px;
+        border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        max-width: 300px; font-size: 14px; cursor: pointer;
+        animation: slideIn 0.3s ease;
+      `;
+      
+      const title = payload.notification?.title || 'Nuovo messaggio';
+      const body = payload.notification?.body || '';
+      
+      toast.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 4px;">${title}</div>
+        <div>${body}</div>
+      `;
+
+      // Rimuovi dopo 5 secondi
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }
+      }, 5000);
+
+      // Click per chiudere
+      toast.addEventListener('click', () => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      });
+
+      document.body.appendChild(toast);
+
+      // CSS animations
+      if (!document.getElementById('toast-animations')) {
+        const style = document.createElement('style');
+        style.id = 'toast-animations';
+        style.textContent = `
+          @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+          @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        `;
+        document.head.appendChild(style);
+      }
+    }
 
     function scrollBottom(smooth = false) {
       messages.scrollTo({top: messages.scrollHeight, behavior: smooth ? "smooth" : "auto"});
@@ -510,6 +606,9 @@
       if (!user) { location.href = "index.html"; return; }
       currentUser = user;
 
+      // Setup notifiche dopo login
+      await setupNotifications();
+
       const isAdmin = user.uid === ADMIN_UID;
       setHeaderForRole(isAdmin);
 
@@ -548,6 +647,19 @@
         openThread(user.uid);
       }
     });
+  </script>
+
+  <!-- Service Worker per notifiche push -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => {
+          console.log('Service Worker registrato:', registration);
+        })
+        .catch(err => {
+          console.warn('Errore registrazione Service Worker:', err);
+        });
+    }
   </script>
 </body>
 </html>
