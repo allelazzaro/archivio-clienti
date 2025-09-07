@@ -50,6 +50,47 @@ header{
   padding:6px 10px; border-radius:999px; text-decoration:none }
 #btnList{display:none}
 
+/* Chat header info stile WhatsApp */
+.chat-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.chat-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.chat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-name {
+  font-weight: 700;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-status {
+  font-size: 13px;
+  opacity: 0.8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .main-content {
   flex: 1;
   display: grid; 
@@ -170,12 +211,21 @@ header{
 <body>
   <div class="app-container">
     <header>
-      <button id="btnList" class="btn-h">☰ Chat</button>
-      <div class="title">💬 Chat</div>
-      <a id="navBtn" href="#" class="btn-h">.</a>
-    </header>
+      <button id="btnList" class="btn-h">☰</button>
 
 ```
+  <!-- Chat header stile WhatsApp -->
+  <div class="chat-header-info">
+    <div id="chatAvatar" class="chat-avatar">💬</div>
+    <div class="chat-info">
+      <div id="chatName" class="chat-name">Chat</div>
+      <div id="chatStatus" class="chat-status">Seleziona una conversazione</div>
+    </div>
+  </div>
+  
+  <a id="navBtn" href="#" class="btn-h">⬅</a>
+</header>
+
 <div id="overlay"></div>
 
 <div class="main-content">
@@ -232,6 +282,9 @@ header{
     const overlay = $("overlay");
     const navBtn = $("navBtn");
     const toBottom = $("toBottom");
+    const chatAvatar = $("chatAvatar");
+    const chatName = $("chatName");
+    const chatStatus = $("chatStatus");
 
     let currentUser=null;
     let currentThreadId=null;
@@ -302,18 +355,25 @@ header{
       });
     }
 
-    // Gestione notifiche in foreground
-    onMessage(messaging, (payload) => {
-      console.log('Notifica ricevuta:', payload);
-      
-      const title = payload.notification?.title || 'Nuovo messaggio';
-      const body = payload.notification?.body || '';
-      
-      // Mostra solo se la finestra non ha focus o è nascosta
-      if (document.hidden || !document.hasFocus()) {
-        showNotificationToast(title, body);
+    // Aggiorna header chat stile WhatsApp
+    function updateChatHeader(name, isAdmin = false) {
+      if (name && name !== "Chat con Admin") {
+        // Chat con un driver specifico
+        chatAvatar.textContent = name.substring(0, 2).toUpperCase();
+        chatName.textContent = name;
+        chatStatus.textContent = isAdmin ? "Driver" : "Amministratore";
+      } else if (name === "Chat con Admin") {
+        // Driver che parla con admin
+        chatAvatar.textContent = "👑";
+        chatName.textContent = "Amministratore";
+        chatStatus.textContent = "Support";
+      } else {
+        // Stato di default
+        chatAvatar.textContent = "💬";
+        chatName.textContent = "Chat";
+        chatStatus.textContent = "Seleziona una conversazione";
       }
-    });
+    }
 
     function scrollBottom(smooth=false){
       messages.scrollTo({top:messages.scrollHeight, behavior: smooth?"smooth":"auto"});
@@ -395,12 +455,31 @@ header{
       return tref;
     }
 
+    // Gestione notifiche in foreground
+    onMessage(messaging, (payload) => {
+      console.log('Notifica ricevuta:', payload);
+      
+      const title = payload.notification?.title || 'Nuovo messaggio';
+      const body = payload.notification?.body || '';
+      
+      // Mostra solo se la finestra non ha focus o è nascosta
+      if (document.hidden || !document.hasFocus()) {
+        showNotificationToast(title, body);
+      }
+    });
+
     function openThread(driverUid){
       currentThreadId = driverUid;
       firstLoad = true;
 
       document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
       const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
+      
+      // Aggiorna header con nome del contatto
+      const contactName = act ? act.textContent : driverUid;
+      const isAdmin = currentUser.uid === ADMIN_UID;
+      updateChatHeader(contactName, isAdmin);
+      
       if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
       messages.innerHTML = "";
       let lastDay = "";
