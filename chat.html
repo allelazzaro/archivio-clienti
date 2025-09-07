@@ -125,20 +125,20 @@ body {
   position: relative;
 }
 
-/* Messaggi con altezza calcolata */
+/* Messaggi con spazio per composer */
 #messages {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 12px;
   background: linear-gradient(#dfe7ee, #eef3f8);
-  /* iOS: altura specifica per evitare conflitti */
-  height: calc(100% - 70px);
+  /* Spazio per composer fisso in fondo */
+  padding-bottom: 80px;
 }
 
-/* Composer fisso in fondo */
+/* Composer fisso in fondo - sempre visibile */
 #composer {
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
@@ -149,7 +149,7 @@ body {
   gap: 8px;
   align-items: flex-end;
   min-height: 60px;
-  z-index: 100;
+  z-index: 1000;
   /* iOS safe area */
   padding-bottom: max(8px, env(safe-area-inset-bottom));
 }
