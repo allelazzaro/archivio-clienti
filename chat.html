@@ -74,12 +74,12 @@ body {
 }
 #btnList { display: none; }
 
-/* Area principale - calcolo preciso senza viewport units */
+/* Area principale - spazio per i messaggi */
 .main-area {
   flex: 1;
   display: grid;
   grid-template-columns: 320px 1fr;
-  height: calc(100% - 112px); /* Sottrae header (52px) + composer (60px) */
+  min-height: 0; /* Importante per permettere overflow */
   overflow: hidden;
 }
 
@@ -95,20 +95,22 @@ body {
   flex-direction: column;
   height: 100%;
   position: relative;
+  /* Spazio per composer fisso */
+  padding-bottom: 70px;
 }
 
-/* Area messaggi con altezza calcolata dinamicamente */
+/* Area messaggi con scroll completo */
 .messages-area {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 12px;
   background: linear-gradient(#dfe7ee, #eef3f8);
-  /* Impedisce che l'area si ridimensioni */
-  position: relative;
+  /* Assicura che possa scorrere completamente */
+  min-height: 0;
 }
 
-/* Composer sempre visibile in fondo - FUORI dal flex container */
+/* Composer sempre visibile - approccio padding */
 .composer {
   background: var(--card);
   border-top: 1px solid var(--line);
@@ -118,8 +120,7 @@ body {
   min-height: 60px;
   max-height: 160px;
   align-items: flex-end;
-  flex-shrink: 0;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
