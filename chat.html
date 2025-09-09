@@ -86,6 +86,18 @@ header{
   position: relative;
   overflow: hidden;
   height: 100%;
+  /* IMPORTANTE: Container deve gestire il resize */
+  min-height: 0;
+}
+
+/* Wrapper per messaggi e bottone */
+.messages-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 /* Messaggi - area scrollabile */
@@ -95,6 +107,7 @@ header{
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: 12px;
+  padding-bottom: 60px; /* Spazio per il bottone */
   background: linear-gradient(#dfe7ee,#eef3f8);
   /* iOS ottimizzazione */
   position: relative;
@@ -179,12 +192,29 @@ header{
   opacity: 0.5;
 }
 
-/* Bottone scroll */
+/* Bottone scroll - posizionato relativamente ai messaggi */
 #toBottom{
-  position:absolute; right:12px; bottom:70px;
-  display:none; z-index:15; background:#fff; border:1px solid var(--line); 
-  border-radius:999px; padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
-  transition: opacity 0.3s ease;
+  position: absolute; 
+  right: 20px; 
+  bottom: 20px;
+  display: none; 
+  z-index: 15; 
+  background: #fff; 
+  border: 1px solid var(--line); 
+  border-radius: 50%; 
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  transition: opacity 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+#toBottom:active {
+  transform: scale(0.95);
 }
 
 .item{
@@ -217,13 +247,24 @@ header{
   #overlay.show{display:block}
 }
 
-/* iOS keyboard handling */
+/* iOS keyboard handling - CSS aggiuntivo */
 @supports (-webkit-touch-callout: none) {
   /* Solo iOS Safari */
-  .keyboard-open #messages {
-    /* Riduci altezza quando tastiera aperta */
-    height: calc(100% - env(keyboard-inset-height, 0));
+  .keyboard-open .messages-wrapper {
+    /* Transizione smooth quando si apre/chiude tastiera */
+    transition: height 0.3s ease;
   }
+  
+  /* Fix per il posizionamento del bottone */
+  .messages-wrapper {
+    position: relative;
+  }
+}
+
+/* Previeni scroll body quando tastiera aperta */
+body.keyboard-open {
+  position: fixed;
+  width: 100%;
 }
 
 /* Indicatore di typing */
@@ -275,8 +316,10 @@ header{
   </aside>
   
   <section class="chat-area">
-    <div id="messages"></div>
-    <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
+    <div class="messages-wrapper">
+      <div id="messages"></div>
+      <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
+    </div>
     <div id="composer">
       <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" 
                autocorrect="off" autocomplete="off" autocapitalize="off"
@@ -329,34 +372,81 @@ header{
     let firstLoad=true;
     let isSending=false;
 
-    // iOS Keyboard handling - IMPORTANTE
+    // iOS Keyboard handling - SOLUZIONE MIGLIORATA
     let isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
     let keyboardHeight = 0;
     let lastScrollPosition = 0;
+    let messagesWrapper = document.querySelector('.messages-wrapper');
 
-    // Visual Viewport per gestire la tastiera
+    // Funzione per aggiustare l'altezza quando la tastiera è aperta
+    function adjustForKeyboard(keyboardOpen) {
+      if (keyboardOpen) {
+        // Calcola l'altezza disponibile
+        const windowHeight = window.innerHeight;
+        const headerHeight = document.querySelector('header').offsetHeight;
+        const composerHeight = composer.offsetHeight;
+        const availableHeight = windowHeight - headerHeight - composerHeight;
+        
+        // Imposta altezza fissa per i messaggi
+        messagesWrapper.style.height = `${availableHeight}px`;
+        
+        // Assicurati che rimanga in fondo se era in fondo
+        if (isNearBottom) {
+          setTimeout(() => scrollBottom(false), 100);
+        }
+      } else {
+        // Ripristina altezza flex quando tastiera chiusa
+        messagesWrapper.style.height = '';
+      }
+    }
+
+    // Visual Viewport per gestire la tastiera (MIGLIORATO)
     if (window.visualViewport) {
-      let initialHeight = window.visualViewport.height;
+      let initialHeight = window.innerHeight;
+      let resizeTimeout;
       
       window.visualViewport.addEventListener('resize', () => {
-        const currentHeight = window.visualViewport.height;
-        const heightDiff = initialHeight - currentHeight;
+        clearTimeout(resizeTimeout);
         
-        if (heightDiff > 100) {
-          // Tastiera probabilmente aperta
-          keyboardHeight = heightDiff;
-          document.body.classList.add('keyboard-open');
+        resizeTimeout = setTimeout(() => {
+          const currentHeight = window.visualViewport.height;
+          const heightDiff = initialHeight - currentHeight;
           
-          // Mantieni scroll position
-          if (isNearBottom) {
-            requestAnimationFrame(() => {
-              scrollBottom(false);
-            });
+          if (heightDiff > 50) {
+            // Tastiera aperta
+            keyboardHeight = heightDiff;
+            document.body.classList.add('keyboard-open');
+            adjustForKeyboard(true);
+          } else {
+            // Tastiera chiusa
+            keyboardHeight = 0;
+            document.body.classList.remove('keyboard-open');
+            adjustForKeyboard(false);
           }
+        }, 100);
+      });
+      
+      // Gestione scroll viewport
+      window.visualViewport.addEventListener('scroll', () => {
+        // Previeni scroll del viewport su iOS
+        if (keyboardHeight > 0) {
+          window.visualViewport.scrollTop = 0;
+        }
+      });
+    }
+
+    // Fallback per browser che non supportano visualViewport
+    if (!window.visualViewport && isIOS) {
+      let windowHeight = window.innerHeight;
+      
+      window.addEventListener('resize', () => {
+        const newHeight = window.innerHeight;
+        const diff = windowHeight - newHeight;
+        
+        if (diff > 50) {
+          adjustForKeyboard(true);
         } else {
-          // Tastiera probabilmente chiusa
-          keyboardHeight = 0;
-          document.body.classList.remove('keyboard-open');
+          adjustForKeyboard(false);
         }
       });
     }
@@ -440,12 +530,20 @@ header{
     btnList.addEventListener("click", openSidebar);
     overlay.addEventListener("click", closeSidebar);
 
-    // Scroll tracking
+    // Scroll tracking con gestione migliorata del bottone
     messages.addEventListener("scroll", () => {
       isNearBottom = atBottom();
-      toBottom.style.display = isNearBottom ? "none" : "block";
+      // Gestione display del bottone
+      if (isNearBottom) {
+        toBottom.style.display = "none";
+      } else {
+        toBottom.style.display = "flex"; // usa flex invece di block
+      }
     });
-    toBottom.addEventListener("click", ()=> scrollBottom(true));
+    toBottom.addEventListener("click", () => {
+      scrollBottom(true);
+      toBottom.style.display = "none"; // Nascondi immediatamente
+    });
 
     // UI Render functions
     function renderDaySeparator(date){
