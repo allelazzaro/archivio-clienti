@@ -1,57 +1,52 @@
-// sw.js - PWA cache aggiornato anti "salto" HTML
-const CACHE_NAME = "clienti-pwa-v2";
-const URLS_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./manifest.json",
-  "./icon192.png",
-  "./icon512.png",
-  "./chat.html",
-  "./admin.html",
-  "./console.html",
-  "./monitor_leaflet.html",
-  "./home.html"
-];
+// firebase-messaging-sw.js
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// Installa e precache
-self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(URLS_TO_CACHE)));
-  self.skipWaiting();
+firebase.initializeApp({
+  apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
+  authDomain: "archivio-clienti-trasporti.firebaseapp.com",
+  projectId: "archivio-clienti-trasporti",
+  storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
+  messagingSenderId: "773533170263",
+  appId: "1:773533170263:web:d05e2b00e991b0294c0112"
 });
 
-// Attiva e ripulisci cache vecchie
-self.addEventListener("activate", (event) => {
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Background message ricevuto:', payload);
+  
+  const notificationTitle = payload.notification?.title || "Nuovo messaggio";
+  const notificationOptions = {
+    body: payload.notification?.body || "",
+    icon: '/icon192.png',
+    badge: '/icon192.png',
+    data: { url: payload.data?.url || '/chat.html' },
+    tag: 'chat-message',
+    requireInteraction: false
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+self.addEventListener('notificationclick', (event) => {
+  console.log('[firebase-messaging-sw.js] Notification click ricevuto:', event);
+  
+  event.notification.close();
+  
+  const url = event.notification.data?.url || '/chat.html';
+  
   event.waitUntil(
-    (async () => {
-      const keys = await caches.keys();
-      await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
-      await self.clients.claim();
-    })()
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      // Cerca una finestra già aperta
+      const existingClient = clients.find(client => client.url.includes('chat.html'));
+      if (existingClient) {
+        existingClient.focus();
+        return;
+      }
+      
+      // Apri nuova finestra
+      return self.clients.openWindow(url);
+    })
   );
-});
-
-// Network-first per HTML, cache-first per il resto
-self.addEventListener("fetch", (event) => {
-  const req = event.request;
-  const isHTML = req.headers.get("accept")?.includes("text/html");
-
-  if (isHTML) {
-    event.respondWith(
-      (async () => {
-        try {
-          const fresh = await fetch(req, { cache: "no-store" });
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(req, fresh.clone());
-          return fresh;
-        } catch {
-          const cached = await caches.match(req);
-          return cached || caches.match("./index.html");
-        }
-      })()
-    );
-  } else {
-    event.respondWith(
-      caches.match(req).then((cached) => cached || fetch(req))
-    );
-  }
 });
