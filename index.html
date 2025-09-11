@@ -104,6 +104,107 @@
   </div>
 
   <script type="module">
+// AGGIUNGI QUESTO CODICE ALL'INIZIO DEL TUO <script type="module"> in index.html
+
+// Debug overlay per iOS (rimuovi dopo il debug)
+function createDebugOverlay() {
+  const overlay = document.createElement('div');
+  overlay.id = 'debug-overlay';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(0,0,0,0.9); color: white; 
+    padding: 20px; font-size: 12px; 
+    overflow-y: auto; z-index: 99999; 
+    font-family: monospace; line-height: 1.4;
+    display: none;
+  `;
+  
+  const header = document.createElement('div');
+  header.innerHTML = `
+    <button onclick="document.getElementById('debug-overlay').style.display='none'" 
+            style="float: right; background: red; color: white; border: none; padding: 5px 10px;">
+      CHIUDI
+    </button>
+    <h3 style="margin: 0 0 10px 0;">🔍 Debug Notifiche iOS</h3>
+    <button onclick="debugClearLog()" style="background: orange; color: white; border: none; padding: 5px 10px; margin-bottom: 10px;">
+      Pulisci Log
+    </button>
+    <hr>
+  `;
+  
+  const content = document.createElement('div');
+  content.id = 'debug-content';
+  
+  overlay.appendChild(header);
+  overlay.appendChild(content);
+  document.body.appendChild(overlay);
+  
+  return overlay;
+}
+
+// Crea overlay al caricamento
+const debugOverlay = createDebugOverlay();
+
+// Override console.log per mostrare nell'overlay
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
+function debugLog(message, type = 'log') {
+  const content = document.getElementById('debug-content');
+  if (content) {
+    const time = new Date().toLocaleTimeString();
+    const color = type === 'error' ? '#ff6b6b' : type === 'warn' ? '#ffa726' : '#4caf50';
+    const div = document.createElement('div');
+    div.style.cssText = `margin-bottom: 5px; color: ${color}; border-left: 3px solid ${color}; padding-left: 10px;`;
+    div.innerHTML = `<strong>[${time}]</strong> ${message}`;
+    content.appendChild(div);
+    content.scrollTop = content.scrollHeight;
+  }
+  
+  // Mantieni anche il log normale
+  if (type === 'error') originalError(message);
+  else if (type === 'warn') originalWarn(message);
+  else originalLog(message);
+}
+
+console.log = (msg) => debugLog(msg, 'log');
+console.error = (msg) => debugLog(msg, 'error');
+console.warn = (msg) => debugLog(msg, 'warn');
+
+// Funzione per pulire il log
+window.debugClearLog = function() {
+  document.getElementById('debug-content').innerHTML = '';
+};
+
+// Pulsante per aprire debug (aggiungi alla tua UI)
+function addDebugButton() {
+  const btn = document.createElement('button');
+  btn.textContent = '🔍 Debug';
+  btn.style.cssText = `
+    position: fixed; top: 10px; right: 10px; 
+    background: #007bff; color: white; border: none; 
+    padding: 10px; border-radius: 5px; z-index: 9999;
+    font-size: 12px;
+  `;
+  btn.onclick = () => {
+    document.getElementById('debug-overlay').style.display = 'block';
+  };
+  document.body.appendChild(btn);
+}
+
+// Aggiungi il pulsante debug quando la pagina è carica
+document.addEventListener('DOMContentLoaded', addDebugButton);
+
+// Test immediato dei requisiti iOS
+console.log('🍎 === DEBUG NOTIFICHE iOS ===');
+console.log('PWA standalone:', window.navigator.standalone);
+console.log('Supporto notifiche:', 'Notification' in window);
+console.log('Supporto Service Worker:', 'serviceWorker' in navigator);
+console.log('Permesso notifiche:', Notification.permission);
+console.log('User Agent:', navigator.userAgent);
+console.log('HTTPS:', location.protocol === 'https:');
+console.log('================================');
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
       authDomain: "archivio-clienti-trasporti.firebaseapp.com",

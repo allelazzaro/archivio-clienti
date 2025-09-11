@@ -1,173 +1,301 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <title>Chat</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <style>
     :root{
       --brand:#128c7e; --bg:#e8edf2; --card:#fff; --line:#dde3ea; --ink:#222;
-      --mine:#dcf8c6; --their:#fff; --vh:100vh;
+      --mine:#dcf8c6; --their:#fff;
+      --app-height: 100vh;
     }
-    *{box-sizing:border-box}
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    /* Stili base - Normale */
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      -webkit-overflow-scrolling: touch;
+      -webkit-text-size-adjust: 100%;
+    }
 
-```
-/* APPROCCIO MINIMALISTA per iOS */
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden; /* Cruciale per evitare scroll */
-}
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-tap-highlight-color: transparent;
+    }
 
-body{
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  color:var(--ink); background:var(--bg);
-  -webkit-tap-highlight-color:transparent;
-  -webkit-text-size-adjust:100%;
-  /* iOS: forza hardware acceleration */
-  transform: translateZ(0);
-}
+    /* Layout container normale */
+    .app-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--app-height);
+      overflow: hidden;
+    }
 
-.app-container {
-  height: 100vh;
-  height: 100dvh; /* Supporto moderno per dynamic viewport */
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-}
+    /* Stili quando in iframe */
+    body.in-iframe {
+      position: static !important;
+    }
 
-header{
-  flex-shrink: 0;
-  display:flex; align-items:center; gap:8px;
-  padding:10px 12px; background:var(--brand); color:#fff;
-  z-index: 20;
-}
-.title{font-weight:700; flex:1}
-.btn-h{ color:#fff; background:transparent; border:1px solid #ffffff59;
-  padding:6px 10px; border-radius:999px; text-decoration:none }
-#btnList{display:none}
+    body.in-iframe .app-wrapper {
+      position: relative;
+      height: 100vh;
+    }
 
-.main-content {
-  flex: 1;
-  display: grid; 
-  grid-template-columns: 320px 1fr;
-  min-height: 0; /* Importante per grid overflow */
-  overflow: hidden;
-}
+    body.in-iframe .chat-app {
+      height: 100vh;
+    }
 
-.sidebar{
-  background:#fafafa; border-right:1px solid var(--line); 
-  overflow:auto; -webkit-overflow-scrolling: touch;
-}
+    .chat-app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
 
-.chat-area{
-  display:flex; flex-direction:column; 
-  min-height:0; overflow: hidden;
-}
+    /* Header sempre visibile */
+    .header {
+      background: var(--brand);
+      color: #fff;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 52px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1000;
+      transform: translateZ(0);
+    }
+    
+    .header .title { font-weight: 700; flex: 1; }
+    .header .btn-h { 
+      color: #fff; background: transparent; border: 1px solid #ffffff59;
+      padding: 6px 10px; border-radius: 999px; text-decoration: none;
+    }
+    #btnList { display: none; }
 
-#messages{
-  flex:1; 
-  overflow-y:auto; 
-  -webkit-overflow-scrolling:touch;
-  padding:12px;
-  background:linear-gradient(#dfe7ee,#eef3f8);
-}
+    /* Area principale */
+    .main-area {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      height: calc(100% - 52px);
+      overflow: hidden;
+      min-height: 0; /* Importante per Firefox */
+    }
 
-.bubble{
-  max-width:min(75%,700px); padding:8px 10px 6px; border-radius:16px; margin:6px 0;
-  box-shadow:0 1px 1px rgba(0,0,0,.05); white-space:pre-wrap; word-wrap:break-word;
-}
-.mine{ background:var(--mine); margin-left:auto; border-top-right-radius:6px }
-.theirs{ background:var(--their); margin-right:auto; border-top-left-radius:6px }
-.meta{ font-size:12px; color:#6c6c6c; text-align:right; margin-top:2px }
+    /* Quando in iframe, nascondi la sidebar sempre */
+    body.in-iframe .main-area {
+      grid-template-columns: 1fr;
+    }
 
-.daysep{ text-align:center; margin:8px 0; color:#556; font-size:12px; position:relative }
-.daysep:before,.daysep:after{ content:""; height:1px; background:var(--line); position:absolute; top:50%; width:35% }
-.daysep:before{left:0} .daysep:after{right:0}
+    body.in-iframe .sidebar {
+      display: none;
+    }
 
-/* COMPOSER: La parte cruciale per iOS */
-#composer{
-  flex-shrink: 0;
-  display:flex; gap:8px; padding:8px 10px; 
-  background:var(--card); border-top:1px solid var(--line);
-  /* iOS: posizionamento stabile */
-  position: relative;
-  z-index: 10;
-}
+    .sidebar {
+      background: #fafafa;
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
 
-#input{
-  flex:1; min-height:40px; max-height:120px;
-  resize:none; border:1px solid #cfd8e3; border-radius:20px;
-  padding:10px 12px; outline:none; 
-  /* CRITICO: Font size 16px+ previene zoom iOS */
-  font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; 
-  background:#fff;
-  overflow-y: auto;
-}
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      min-height: 0; /* Importante */
+    }
 
-#send{
-  background:var(--brand); color:#fff; border:none; 
-  padding:10px 14px; border-radius:18px; min-width:64px;
-  cursor:pointer; flex-shrink: 0;
-}
+    /* Area messaggi */
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 12px;
+      background: linear-gradient(#dfe7ee, #eef3f8);
+      position: relative;
+      min-height: 0; /* Importante per Firefox */
+    }
 
-#toBottom{
-  position:fixed; right:12px; bottom:80px;
-  display:none; z-index:15; background:#fff; border:1px solid var(--line); 
-  border-radius:999px; padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
-}
+    /* Composer sempre visibile in fondo */
+    .composer {
+      background: var(--card);
+      border-top: 1px solid var(--line);
+      padding: 8px 10px;
+      display: flex;
+      gap: 8px;
+      min-height: 60px;
+      max-height: 160px;
+      align-items: flex-end;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 100;
+    }
 
-.item{padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer}
-.item:hover{background:#f5f7fb}
-.item.active{background:#e7f5ef}
+    .composer textarea {
+      flex: 1;
+      min-height: 40px;
+      max-height: 120px;
+      resize: none;
+      border: 1px solid #cfd8e3;
+      border-radius: 20px;
+      padding: 10px 12px;
+      outline: none;
+      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #fff;
+      overflow-y: auto;
+      transform: translateZ(0);
+    }
 
-@media (max-width:900px){
-  .main-content{ grid-template-columns:1fr; }
-  .sidebar{
-    position:fixed; top:52px; left:0; width:min(92vw,420px); height:calc(100vh - 52px);
-    transform:translateX(-100%); box-shadow:6px 0 24px rgba(0,0,0,.15); 
-    background:#fff; z-index:30; transition: transform .25s ease;
-  }
-  .sidebar.open{ transform:translateX(0) }
-  #btnList{display:inline-block}
-  #overlay{ position:fixed; inset:52px 0 0 0; background:rgba(0,0,0,.32); display:none; z-index:25 }
-  #overlay.show{display:block}
-}
-```
+    .composer button {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 18px;
+      min-width: 64px;
+      cursor: pointer;
+      flex-shrink: 0;
+      height: 40px;
+    }
 
+    /* Messaggi */
+    .bubble {
+      max-width: min(75%, 700px);
+      padding: 8px 10px 6px;
+      border-radius: 16px;
+      margin: 6px 0;
+      box-shadow: 0 1px 1px rgba(0,0,0,.05);
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .mine { background: var(--mine); margin-left: auto; border-top-right-radius: 6px; }
+    .theirs { background: var(--their); margin-right: auto; border-top-left-radius: 6px; }
+    .meta { font-size: 12px; color: #6c6c6c; text-align: right; margin-top: 2px; }
+
+    .daysep { 
+      text-align: center; margin: 8px 0; color: #556; font-size: 12px; position: relative;
+    }
+    .daysep:before, .daysep:after { 
+      content: ""; height: 1px; background: var(--line); position: absolute; top: 50%; width: 35%;
+    }
+    .daysep:before { left: 0; }
+    .daysep:after { right: 0; }
+
+    #toBottom {
+      position: absolute;
+      right: 12px;
+      bottom: 80px;
+      display: none;
+      z-index: 200;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    }
+
+    .item { padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
+    .item:hover { background: #f5f7fb; }
+    .item.active { background: #e7f5ef; }
+
+    /* Mobile - layout semplificato */
+    @media (max-width: 900px) {
+      .main-area { grid-template-columns: 1fr; }
+      .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: min(92vw, 420px);
+        height: 100%;
+        transform: translateX(-100%);
+        box-shadow: 6px 0 24px rgba(0,0,0,.15);
+        background: #fff;
+        z-index: 500;
+        transition: transform .25s ease;
+      }
+      .sidebar.open { transform: translateX(0); }
+      #btnList { display: inline-block; }
+      #overlay { 
+        position: absolute; inset: 0; background: rgba(0,0,0,.32); 
+        display: none; z-index: 400; 
+      }
+      #overlay.show { display: block; }
+    }
+
+    /* Toast notifiche */
+    .notification-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      background: var(--brand);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-width: 300px;
+      font-size: 14px;
+      cursor: pointer;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .notification-toast.show {
+      transform: translateX(0);
+    }
+    
+    .notification-toast .title {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
-  <div class="app-container">
-    <header>
-      <button id="btnList" class="btn-h">☰ Chat</button>
-      <div class="title">💬 Chat</div>
-      <a id="navBtn" href="#" class="btn-h">.</a>
-    </header>
+  <div class="app-wrapper">
+    <div class="chat-app">
+      <!-- HEADER FISSO -->
+      <header class="header">
+        <button id="btnList" class="btn-h">☰ Chat</button>
+        <div class="title">💬 Chat</div>
+        <a id="navBtn" href="#" class="btn-h">.</a>
+      </header>
 
-```
-<div id="overlay"></div>
+      <!-- OVERLAY MOBILE -->
+      <div id="overlay"></div>
 
-<div class="main-content">
-  <aside id="sidebar" class="sidebar">
-    <div class="item">Caricamento…</div>
-  </aside>
-  
-  <section class="chat-area">
-    <div id="messages"></div>
-    <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
-    <div id="composer">
-      <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" 
-               autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
-      <button id="send" type="button">Invia</button>
+      <!-- AREA PRINCIPALE -->
+      <div class="main-area">
+        <aside id="sidebar" class="sidebar">
+          <div class="item">Caricamento…</div>
+        </aside>
+        
+        <div class="chat-container">
+          <!-- MESSAGGI -->
+          <div id="messages" class="messages-area"></div>
+          
+          <!-- COMPOSER FISSO -->
+          <div id="composer" class="composer">
+            <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" 
+                     autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
+            <button id="send" type="button">Invia</button>
+          </div>
+        </div>
+      </div>
+
+      <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
     </div>
-  </section>
-</div>
-```
-
   </div>
 
   <script type="module">
@@ -177,6 +305,7 @@ header{
       query, onSnapshot, orderBy, serverTimestamp, limit, arrayUnion
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -187,12 +316,14 @@ header{
       appId: "1:773533170263:web:d05e2b00e991b0294c0112"
     };
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+    const VAPID_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
     const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    const db = getFirestore(app);
     const auth = getAuth(app);
+    const messaging = getMessaging(app);
 
-    const $ = (id)=>document.getElementById(id);
+    const $ = (id) => document.getElementById(id);
     const sidebar = $("sidebar");
     const messages = $("messages");
     const composer = $("composer");
@@ -203,58 +334,151 @@ header{
     const navBtn = $("navBtn");
     const toBottom = $("toBottom");
 
-    let currentUser=null;
-    let currentThreadId=null;
-    let unsubMsgs=null;
-    let isNearBottom=true;
-    let firstLoad=true;
+    let currentUser = null;
+    let currentThreadId = null;
+    let unsubMsgs = null;
+    let isNearBottom = true;
+    let firstLoad = true;
 
-    const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
-    const fmtDay = (d)=> d.toLocaleDateString();
-    const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-
-    function scrollBottom(smooth=false){
-      messages.scrollTo({top:messages.scrollHeight, behavior: smooth?"smooth":"auto"});
+    // Detect if in iframe
+    const params = new URLSearchParams(location.search);
+    const isInIframe = params.get("iframe") === "1" || window.parent !== window;
+    
+    if (isInIframe) {
+      document.body.classList.add("in-iframe");
+      // Nascondi elementi non necessari in iframe
+      navBtn.style.display = "none";
+      btnList.style.display = "none";
     }
-    function atBottom(){
+
+    const fmtDT = (t) => t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
+    const fmtDay = (d) => d.toLocaleDateString();
+    const fmtTime = (d) => d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+
+    // GESTIONE VIEWPORT STABILE PER IOS (solo se non in iframe)
+    function initStableViewport() {
+      if (isInIframe) return; // Skip se in iframe
+      
+      const initialHeight = window.innerHeight;
+      document.documentElement.style.setProperty('--app-height', initialHeight + 'px');
+
+      window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+          const newHeight = window.innerHeight;
+          document.documentElement.style.setProperty('--app-height', newHeight + 'px');
+        }, 500);
+      });
+
+      document.addEventListener('touchmove', (e) => {
+        if (e.target.closest('.messages-area') || e.target.closest('.sidebar')) {
+          return;
+        }
+        e.preventDefault();
+      }, { passive: false });
+    }
+
+    // NOTIFICHE PUSH
+    async function setupNotifications() {
+      try {
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+          console.warn('Notifiche non supportate');
+          return;
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          console.warn('Permesso notifiche negato');
+          return;
+        }
+
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        if (!token) {
+          console.warn('Token FCM non ricevuto');
+          return;
+        }
+
+        if (currentUser) {
+          await setDoc(doc(db, "users", currentUser.uid), {
+            fcmTokens: { [token]: true }
+          }, { merge: true });
+          console.log('Token FCM salvato per', currentUser.uid);
+        }
+
+      } catch (error) {
+        console.error('Errore setup notifiche:', error);
+      }
+    }
+
+    // Toast notifiche in-app
+    function showNotificationToast(title, body) {
+      const toast = document.createElement('div');
+      toast.className = 'notification-toast';
+      toast.innerHTML = `
+        <div class="title">${title}</div>
+        <div>${body}</div>
+      `;
+
+      document.body.appendChild(toast);
+      
+      setTimeout(() => toast.classList.add('show'), 100);
+
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+
+      toast.addEventListener('click', () => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+      });
+    }
+
+    // Gestione notifiche in foreground
+    onMessage(messaging, (payload) => {
+      console.log('Notifica ricevuta:', payload);
+      
+      const title = payload.notification?.title || 'Nuovo messaggio';
+      const body = payload.notification?.body || '';
+      
+      if (document.hidden || !document.hasFocus()) {
+        showNotificationToast(title, body);
+      }
+    });
+
+    function scrollBottom(smooth = false) {
+      messages.scrollTo({top: messages.scrollHeight, behavior: smooth ? "smooth" : "auto"});
+    }
+
+    function atBottom() {
       return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40;
     }
 
-    // Drawer mobile
-    const openSidebar=()=>{ sidebar.classList.add("open"); overlay.classList.add("show"); };
-    const closeSidebar=()=>{ sidebar.classList.remove("open"); overlay.classList.remove("show"); };
-    btnList.addEventListener("click", openSidebar);
-    overlay.addEventListener("click", closeSidebar);
+    // Mobile drawer (solo se non in iframe)
+    if (!isInIframe) {
+      const openSidebar = () => { sidebar.classList.add("open"); overlay.classList.add("show"); };
+      const closeSidebar = () => { sidebar.classList.remove("open"); overlay.classList.remove("show"); };
+      btnList.addEventListener("click", openSidebar);
+      overlay.addEventListener("click", closeSidebar);
+    }
 
-    // SOLUZIONE iOS SEMPLIFICATA
-    // Niente gestione viewport complessa, solo il minimo indispensabile
-    
-    // Auto-resize semplice
-    function autoresize(){
+    // Auto-resize textarea
+    function autoresize() {
       input.style.height = "auto";
-      const maxHeight = 120; // 5 righe circa
+      const maxHeight = 120;
       input.style.height = Math.min(input.scrollHeight, maxHeight) + "px";
     }
-    input.addEventListener("input", autoresize);
 
-    // Focus management essenziale
-    let inputHasFocus = false;
-    
+    // Event listeners
+    input.addEventListener("input", autoresize);
     input.addEventListener('focus', () => {
-      inputHasFocus = true;
-      // Piccolo delay per permettere alla UI di stabilizzarsi
       setTimeout(() => {
         if (isNearBottom) scrollBottom(false);
-      }, 150);
-    });
-    
-    input.addEventListener('blur', () => {
-      inputHasFocus = false;
+      }, 300);
     });
 
-    // Touch sul composer area - versione semplificata
+    // Click su composer per focus
     composer.addEventListener('click', (e) => {
-      if (e.target !== input && !inputHasFocus) {
+      if (e.target !== input) {
         input.focus();
       }
     });
@@ -264,17 +488,17 @@ header{
       isNearBottom = atBottom();
       toBottom.style.display = isNearBottom ? "none" : "block";
     });
-    toBottom.addEventListener("click", ()=> scrollBottom(true));
+    toBottom.addEventListener("click", () => scrollBottom(true));
 
-    // UI Render functions
-    function renderDaySeparator(date){
+    // UI Render
+    function renderDaySeparator(date) {
       const sep = document.createElement("div");
       sep.className = "daysep";
       sep.textContent = fmtDay(date);
       messages.appendChild(sep);
     }
     
-    function renderMessage(m){
+    function renderMessage(m) {
       const mine = m.sender === currentUser.uid;
       const wrap = document.createElement("div");
       wrap.className = "bubble " + (mine ? "mine" : "theirs");
@@ -282,154 +506,182 @@ header{
       messages.appendChild(wrap);
     }
 
-    // Firebase functions
-    async function ensureThread(driverUid, driverName="", driverEmail=""){
-      const tref = doc(db,"threads", driverUid);
+    // Firebase
+    async function ensureThread(driverUid, driverName = "", driverEmail = "") {
+      const tref = doc(db, "threads", driverUid);
       const snap = await getDoc(tref);
-      if (!snap.exists()){
-        await setDoc(tref,{
-          participants:[ADMIN_UID, driverUid],
+      if (!snap.exists()) {
+        await setDoc(tref, {
+          participants: [ADMIN_UID, driverUid],
           driverName, driverEmail,
-          lastMessage:"", updatedAt: serverTimestamp()
+          lastMessage: "", updatedAt: serverTimestamp()
         });
       }
       return tref;
     }
 
-    function openThread(driverUid){
+    function openThread(driverUid) {
       currentThreadId = driverUid;
       firstLoad = true;
 
-      document.querySelectorAll(".item").forEach(n=>n.classList.remove("active"));
-      const act = document.getElementById("it-"+driverUid); if (act) act.classList.add("active");
-      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
+      document.querySelectorAll(".item").forEach(n => n.classList.remove("active"));
+      const act = document.getElementById("it-" + driverUid); 
+      if (act) act.classList.add("active");
+      
+      if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
       messages.innerHTML = "";
       let lastDay = "";
 
-      const msgsRef = collection(db,"threads",driverUid,"messages");
-      const qMsgs = query(msgsRef, orderBy("createdAt","asc"));
-      unsubMsgs = onSnapshot(qMsgs, snap=>{
+      const msgsRef = collection(db, "threads", driverUid, "messages");
+      const qMsgs = query(msgsRef, orderBy("createdAt", "asc"));
+      
+      unsubMsgs = onSnapshot(qMsgs, snap => {
         messages.innerHTML = "";
         lastDay = "";
-        const toMark=[];
+        const toMark = [];
         
-        snap.forEach(d=>{
+        snap.forEach(d => {
           const m = d.data();
           const dt = fmtDT(m.createdAt) || new Date();
           const day = dt.toDateString();
-          if (day !== lastDay){ renderDaySeparator(dt); lastDay = day; }
+          if (day !== lastDay) { renderDaySeparator(dt); lastDay = day; }
           renderMessage(m);
-          const rb = Array.isArray(m.readBy)? m.readBy : [];
+          const rb = Array.isArray(m.readBy) ? m.readBy : [];
           if (!rb.includes(currentUser.uid)) toMark.push(d.id);
         });
         
-        // Mark as read
         if (toMark.length) {
-          toMark.forEach(id=>{
-            const mref = doc(db,"threads",driverUid,"messages",id);
-            updateDoc(mref,{ readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
+          toMark.forEach(id => {
+            const mref = doc(db, "threads", driverUid, "messages", id);
+            updateDoc(mref, { readBy: arrayUnion(currentUser.uid) }).catch(() => {});
           });
         }
 
-        // Scroll logic - solo quando necessario
-        if (firstLoad){
+        if (firstLoad) {
+          scrollBottom(false);
           firstLoad = false;
-          // Non scorrere al primo caricamento
-        } else if (isNearBottom){
+        } else if (isNearBottom) {
           setTimeout(() => scrollBottom(false), 50);
         }
       });
 
-      closeSidebar();
+      if (!isInIframe) {
+        const closeSidebar = () => { sidebar.classList.remove("open"); overlay.classList.remove("show"); };
+        closeSidebar();
+      }
     }
 
     // Send message
-    async function send(){
+    async function send() {
       const text = input.value.trim();
       if (!text || !currentThreadId) return;
       
-      const msgsRef = collection(db,"threads", currentThreadId, "messages");
-      await addDoc(msgsRef,{
-        text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy:[currentUser.uid]
+      const msgsRef = collection(db, "threads", currentThreadId, "messages");
+      await addDoc(msgsRef, {
+        text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy: [currentUser.uid]
       });
-      await updateDoc(doc(db,"threads",currentThreadId),{
-        lastMessage:text, updatedAt: serverTimestamp()
+      await updateDoc(doc(db, "threads", currentThreadId), {
+        lastMessage: text, updatedAt: serverTimestamp()
       });
       
-      input.value="";
+      input.value = "";
       autoresize();
-      input.focus(); // Mantieni focus dopo invio
+      input.focus();
       scrollBottom(false);
     }
 
-    // Send handlers
     sendBtn.addEventListener("click", send);
-    input.addEventListener("keydown", (e)=>{
-      if (e.key==="Enter" && !e.shiftKey){ 
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { 
         e.preventDefault(); 
         send(); 
       }
     });
 
-    // Header nav
-    function setHeaderForRole(isAdmin){
-      if (isAdmin){ navBtn.textContent="🏠 Home"; navBtn.href="home.html"; }
-      else { navBtn.textContent="⬅ Torna all'app"; navBtn.href="index.html"; }
+    function setHeaderForRole(isAdmin) {
+      if (!isInIframe) {
+        if (isAdmin) { navBtn.textContent = "🏠 Home"; navBtn.href = "home.html"; }
+        else { navBtn.textContent = "⬅ Torna all'app"; navBtn.href = "index.html"; }
+      }
     }
 
-    function addSidebarItem(uid, name){
+    function addSidebarItem(uid, name) {
       const el = document.createElement("div");
-      el.id = "it-"+uid;
+      el.id = "it-" + uid;
       el.className = "item";
       el.textContent = name || uid;
-      el.addEventListener("click", ()=> openThread(uid));
+      el.addEventListener("click", () => openThread(uid));
       sidebar.appendChild(el);
     }
 
+    // Inizializzazione
+    if (!isInIframe) {
+      initStableViewport();
+    }
+
     // Auth
-    onAuthStateChanged(auth, async (user)=>{
-      if (!user){ location.href="index.html"; return; }
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { 
+        if (!isInIframe) {
+          location.href = "index.html"; 
+        }
+        return; 
+      }
       currentUser = user;
+
+      // Setup notifiche dopo login
+      await setupNotifications();
 
       const isAdmin = user.uid === ADMIN_UID;
       setHeaderForRole(isAdmin);
 
-      const params = new URLSearchParams(location.search);
       const target = params.get("uid");
       const driverUid = (target && target !== ADMIN_UID) ? target : null;
 
-      if (isAdmin){
-        if (driverUid){
-          const u = await getDoc(doc(db,"users",driverUid));
-          const d = u.exists()? u.data() : {};
-          await ensureThread(driverUid, d.name||"", d.email||"");
+      if (isAdmin) {
+        if (driverUid) {
+          const u = await getDoc(doc(db, "users", driverUid));
+          const d = u.exists() ? u.data() : {};
+          await ensureThread(driverUid, d.name || "", d.email || "");
           sidebar.innerHTML = "";
           addSidebarItem(driverUid, d.name || driverUid);
           openThread(driverUid);
         } else {
           sidebar.innerHTML = "";
-          const qThreads = query(collection(db,"threads"), orderBy("updatedAt","desc"));
-          onSnapshot(qThreads, snap=>{
-            sidebar.innerHTML="";
-            if (snap.empty){ sidebar.innerHTML = "<div class='item'>Nessuna chat</div>"; return; }
-            snap.forEach(t=>{
-              const d=t.data();
+          const qThreads = query(collection(db, "threads"), orderBy("updatedAt", "desc"));
+          onSnapshot(qThreads, snap => {
+            sidebar.innerHTML = "";
+            if (snap.empty) { sidebar.innerHTML = "<div class='item'>Nessuna chat</div>"; return; }
+            snap.forEach(t => {
+              const d = t.data();
               addSidebarItem(t.id, d.driverName || t.id);
             });
-            if (!currentThreadId && !snap.empty){
-              const first=snap.docs[0];
+            if (!currentThreadId && !snap.empty) {
+              const first = snap.docs[0];
               openThread(first.id);
             }
           });
         }
       } else {
-        await ensureThread(user.uid,"","");
+        await ensureThread(user.uid, "", "");
         sidebar.innerHTML = "";
-        addSidebarItem(user.uid,"Chat con Admin");
+        addSidebarItem(user.uid, "Chat con Admin");
         openThread(user.uid);
       }
     });
   </script>
 
+  <!-- Service Worker per notifiche push -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then(registration => {
+          console.log('Service Worker registrato:', registration);
+        })
+        .catch(err => {
+          console.warn('Errore registrazione Service Worker:', err);
+        });
+    }
+  </script>
 </body>
 </html>
