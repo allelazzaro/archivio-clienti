@@ -676,12 +676,12 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./firebase-messaging-sw.js')
         .then(registration => {
-          console.log('Service Worker registrato:', registration);
+          console.log('✅ Service Worker registrato:', registration.scope);
         })
         .catch(err => {
-          console.warn('Errore registrazione Service Worker:', err);
+          console.error('❌ Errore registrazione Service Worker:', err);
         });
     }
-  </script>
+</script>
 </body>
 </html>
