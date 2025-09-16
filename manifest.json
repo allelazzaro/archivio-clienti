@@ -1,50 +1,23 @@
 {
   "name": "Archivio Clienti - Trasporti",
-  "short_name": "Trasporti",
+  "short_name": "Clienti",
   "description": "Archivio e monitoraggio clienti e mezzi per trasportatori.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
-  "categories": ["business", "productivity"],
-  "lang": "it",
   "icons": [
     {
       "src": "./icon192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "./icon512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ],
-  "screenshots": [
-    {
-      "src": "./screenshot1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Chat Admin",
-      "short_name": "Chat",
-      "description": "Apri chat con amministratore",
-      "url": "./chat.html",
-      "icons": [
-        {
-          "src": "./icon192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ],
-  "prefer_related_applications": false
+  ]
 }

@@ -275,6 +275,13 @@
       <!-- OVERLAY MOBILE -->
       <div id="overlay"></div>
 
+      <!-- Sezione per attivare le notifiche push. Viene mostrata solo se il permesso non è ancora stato concesso. -->
+      <div id="push-activation-wrapper" style="padding: 8px; text-align:center; display:none;">
+        <button id="btn-enable-notifications" style="background: var(--brand); color:#fff; border:none; border-radius:8px; padding:8px 12px; font-size:14px; cursor:pointer;">
+          🔔 Attiva notifiche push
+        </button>
+      </div>
+
       <!-- AREA PRINCIPALE -->
       <div class="main-area">
         <aside id="sidebar" class="sidebar">
@@ -378,34 +385,66 @@
     }
 
     // NOTIFICHE PUSH
-    async function setupNotifications() {
+    /**
+     * Abilita le notifiche push per l'utente corrente della chat.
+     * Richiede i permessi (se necessario), registra il Service Worker e salva il token FCM.
+     * Nasconde il pulsante di attivazione dopo il successo.
+     */
+    async function enablePushForCurrentUser() {
       try {
+        if (!currentUser) return;
         if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-          console.warn('Notifiche non supportate');
+          console.warn('Notifiche o Service Worker non supportati');
           return;
         }
-
-        const permission = await Notification.requestPermission();
+        let permission = Notification.permission;
         if (permission !== 'granted') {
-          console.warn('Permesso notifiche negato');
+          permission = await Notification.requestPermission();
+        }
+        if (permission !== 'granted') {
+          console.warn('Permesso notifiche negato o non concesso');
           return;
         }
-
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+        console.log('Service Worker per notifiche registrato:', registration.scope);
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
         if (!token) {
           console.warn('Token FCM non ricevuto');
           return;
         }
+        await setDoc(doc(db, 'users', currentUser.uid), { fcmTokens: { [token]: true } }, { merge: true });
+        console.log('Token FCM salvato per', currentUser.uid);
+        // nascondi pulsante
+        const btn = document.getElementById('btn-enable-notifications');
+        const wrapper = document.getElementById('push-activation-wrapper');
+        if (btn) btn.style.display = 'none';
+        if (wrapper) wrapper.style.display = 'none';
+      } catch (err) {
+        console.error('Errore durante l\'attivazione delle notifiche:', err);
+      }
+    }
 
-        if (currentUser) {
-          await setDoc(doc(db, "users", currentUser.uid), {
-            fcmTokens: { [token]: true }
-          }, { merge: true });
-          console.log('Token FCM salvato per', currentUser.uid);
+    /**
+     * Mostra il pulsante di attivazione notifiche solo se necessario.
+     * Se i permessi sono già concessi, attiva subito il push.
+     */
+    async function handlePushPermission() {
+      try {
+        const wrapper = document.getElementById('push-activation-wrapper');
+        const btn = document.getElementById('btn-enable-notifications');
+        if (!wrapper || !btn || !currentUser) return;
+        if (Notification.permission === 'granted') {
+          wrapper.style.display = 'none';
+          await enablePushForCurrentUser();
+        } else if (Notification.permission === 'default') {
+          wrapper.style.display = 'block';
+          btn.style.display = 'inline-block';
+          btn.onclick = () => enablePushForCurrentUser();
+        } else {
+          wrapper.style.display = 'none';
         }
-
-      } catch (error) {
-        console.error('Errore setup notifiche:', error);
+      } catch (err) {
+        console.error('Errore gestione permessi notifiche:', err);
       }
     }
 
@@ -629,8 +668,8 @@
       }
       currentUser = user;
 
-      // Setup notifiche dopo login
-      await setupNotifications();
+      // Setup notifiche dopo login (mostra pulsante o salva token se già consentito)
+      await handlePushPermission();
 
       const isAdmin = user.uid === ADMIN_UID;
       setHeaderForRole(isAdmin);

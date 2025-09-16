@@ -68,6 +68,87 @@
     .chat-counter.new-message {
       animation: bounce 1s ease-in-out;
     }
+    
+    /* Toast popup per messaggi */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 10000;
+      max-width: 320px;
+    }
+    
+    .toast {
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      padding: 16px;
+      margin-bottom: 12px;
+      transform: translateX(100%);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .toast.show {
+      transform: translateX(0);
+    }
+    
+    .toast.hide {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    
+    .toast::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--brand);
+    }
+    
+    .toast-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--brand);
+    }
+    
+    .toast-body {
+      color: #333;
+      font-size: 14px;
+      line-height: 1.4;
+      margin-left: 24px;
+    }
+    
+    .toast-close {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: #999;
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+    
+    .toast-close:hover {
+      background-color: #f0f0f0;
+    }
   </style>
 </head>
 <body>
@@ -109,6 +190,12 @@
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
+    <!-- Bottone per abilitare le notifiche push su dispositivi mobili -->
+    <div id="push-activation-wrapper" style="margin:8px 0; display:none;">
+      <button id="btn-enable-notifications" style="background:#007bff; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:14px; cursor:pointer;">
+        🔔 Attiva notifiche push
+      </button>
+    </div>
 
     <div class="avviso">
       ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
@@ -141,6 +228,9 @@
     <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
     <div id="status"></div>
   </div>
+
+  <!-- 🍞 Container per toast messaggi -->
+  <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
 // AGGIUNGI QUESTO CODICE ALL'INIZIO DEL TUO <script type="module"> in index.html
@@ -281,6 +371,67 @@ console.log('================================');
     // 🔔 Variabili per il contatore chat
     let chatUnsub = null;
     let currentUserId = null;
+    let lastMessageCount = 0; // Per tracciare nuovi messaggi
+
+    // 🍞 Sistema Toast per messaggi
+    function createToast(title, message, onClick) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <div class="toast-header">
+          <span>💬</span>
+          ${title}
+        </div>
+        <div class="toast-body">${message}</div>
+      `;
+
+      // Click per aprire chat
+      if (onClick) {
+        toast.addEventListener('click', (e) => {
+          if (e.target.classList.contains('toast-close')) return;
+          onClick();
+          hideToast(toast);
+        });
+      }
+
+      container.appendChild(toast);
+      
+      // Anima l'entrata
+      setTimeout(() => toast.classList.add('show'), 100);
+      
+      // Auto-hide dopo 6 secondi
+      setTimeout(() => hideToast(toast), 6000);
+      
+      return toast;
+    }
+
+    function hideToast(toast) {
+      toast.classList.add('hide');
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.remove();
+        }
+      }, 300);
+    }
+
+    function showMessageToast(senderName, messageText) {
+      const truncatedMessage = messageText.length > 80 
+        ? messageText.substring(0, 80) + '...' 
+        : messageText;
+        
+      createToast(
+        `Nuovo messaggio da ${senderName}`,
+        truncatedMessage,
+        () => {
+          // Apri la chat quando clicchi sul toast
+          window.location.href = 'chat.html';
+        }
+      );
+    }
 
     let clientiUnsub = null;
     function startClientiListener() {
@@ -300,20 +451,38 @@ console.log('================================');
       
       chatUnsub = onSnapshot(q, (snapshot) => {
         let unreadCount = 0;
+        let latestUnreadMessage = null;
+        const currentTime = Date.now();
         
         snapshot.forEach(doc => {
           const msg = doc.data();
           // Conta solo i messaggi ricevuti (non inviati dall'utente corrente)
-          // e che non sono ancora stati letti
           if (msg.sender !== userId) {
-            // readBy è un ARRAY: controlla se userId è nell'array
             const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
             if (!readBy.includes(userId)) {
               unreadCount++;
+              
+              // Trova il messaggio non letto più recente per il toast
+              if (!latestUnreadMessage) {
+                const msgTime = msg.createdAt?.toDate?.()?.getTime() || 0;
+                // Mostra toast solo per messaggi degli ultimi 30 secondi
+                if (currentTime - msgTime < 30000) {
+                  latestUnreadMessage = msg;
+                }
+              }
             }
           }
         });
         
+        // Mostra toast solo se ci sono nuovi messaggi (non al caricamento iniziale)
+        if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0) {
+          // Solo se la pagina è visibile e attiva
+          if (!document.hidden && document.hasFocus()) {
+            showMessageToast('Admin', latestUnreadMessage.text || 'Nuovo messaggio');
+          }
+        }
+        
+        lastMessageCount = unreadCount;
         updateChatCounter(unreadCount);
         console.log(`🔔 Messaggi non letti: ${unreadCount}`);
       }, (err) => console.error("Errore listener chat:", err));
@@ -323,6 +492,7 @@ console.log('================================');
       if (chatUnsub) {
         chatUnsub();
         chatUnsub = null;
+        lastMessageCount = 0; // Reset contatore messaggi
       }
     }
 
@@ -476,26 +646,88 @@ console.log('================================');
     const messaging = getMessaging(app);
     const VAPID_PUBLIC_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
+    /**
+     * Abilita le notifiche push per l'utente corrente.
+     * La richiesta di permesso viene effettuata solo quando invocata da un gesto dell'utente.
+     * Registra il service worker e salva il token FCM su Firestore.
+     * @param {any} user L'utente autenticato
+     */
     async function enablePushForUser(user){
       try {
+        if (!user) return;
         if (!('Notification' in window) || !('serviceWorker' in navigator)) {
           console.warn('Notifiche o Service Worker non supportati');
           return;
         }
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') { console.warn('Permesso notifiche negato'); return; }
-        const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY });
-        if (!token) { console.warn('Nessun token FCM ricevuto (controlla HTTPS e /firebase-messaging-sw.js)'); return; }
-        await setDoc(doc(db, "users", user.uid), { fcmTokens: { [token]: true } }, { merge: true });
+        let permission = Notification.permission;
+        if (permission !== 'granted') {
+          permission = await Notification.requestPermission();
+        }
+        if (permission !== 'granted') {
+          console.warn('Permesso notifiche negato o non concesso');
+          return;
+        }
+        // Registra il service worker (usa percorso relativo alla pagina)
+        const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+        console.log('Service Worker registrato per notifiche:', registration.scope);
+        // Ottieni il token FCM utilizzando il service worker
+        const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: registration });
+        if (!token) {
+          console.warn('Nessun token FCM ricevuto (controlla HTTPS e firebase-messaging-sw.js)');
+          return;
+        }
+        await setDoc(doc(db, 'users', user.uid), { fcmTokens: { [token]: true } }, { merge: true });
         console.log('✅ FCM token salvato per', user.uid);
+        // Nascondi il pulsante dopo l'attivazione
+        const btn = document.getElementById('btn-enable-notifications');
+        const wrapper = document.getElementById('push-activation-wrapper');
+        if (btn) btn.style.display = 'none';
+        if (wrapper) wrapper.style.display = 'none';
       } catch (e) {
-        console.warn('Errore permission/token', e);
+        console.warn('Errore durante l\'attivazione delle notifiche', e);
+      }
+    }
+
+    /**
+     * Gestisce la visualizzazione del pulsante di attivazione delle notifiche e,
+     * se i permessi sono già concessi, attiva subito il salvataggio del token.
+     * @param {any} user
+     */
+    async function handlePushPermission(user){
+      try {
+        const btnWrapper = document.getElementById('push-activation-wrapper');
+        const btn = document.getElementById('btn-enable-notifications');
+        if (!user || !btnWrapper || !btn) return;
+        if (Notification.permission === 'granted') {
+          btnWrapper.style.display = 'none';
+          await enablePushForUser(user);
+        } else if (Notification.permission === 'default') {
+          // Mostra il pulsante per richiedere i permessi
+          btnWrapper.style.display = 'block';
+          btn.style.display = 'inline-block';
+          btn.onclick = () => enablePushForUser(user);
+        } else {
+          // Permesso negato: nascondi
+          btnWrapper.style.display = 'none';
+        }
+      } catch (err) {
+        console.warn('Errore durante la gestione dei permessi push', err);
       }
     }
 
     onMessage(messaging, (payload) => {
       console.log('📨 Push in foreground:', payload);
-      // TODO: mostrare un toast in pagina se vuoi
+      
+      // Mostra toast per notifiche push in foreground
+      if (payload.notification) {
+        const title = payload.notification.title || 'Nuovo messaggio';
+        const body = payload.notification.body || '';
+        
+        createToast(title, body, () => {
+          // Apri la chat quando clicchi sul toast
+          window.location.href = 'chat.html';
+        });
+      }
     });
 
     onAuthStateChanged(auth, async (user) => {
@@ -544,8 +776,8 @@ console.log('================================');
           enableAppUI(); 
           startClientiListener();
           startChatListener(user.uid); // 🔔 Start chat listener
-          // 🔔 abilita push per driver approvato
-          enablePushForUser(user);
+          // 🔔 verifica permesso e mostra pulsante per abilitare le notifiche push
+          handlePushPermission(user);
         } else if (data.role === "admin") {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
@@ -553,8 +785,8 @@ console.log('================================');
           document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
           stopClientiListener();
           stopChatListener(); // 🔔 Stop chat listener for admin
-          // (opzionale) abilita push anche per admin
-          enablePushForUser(user);
+          // (opzionale) mostra il pulsante di notifica anche per admin
+          handlePushPermission(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
