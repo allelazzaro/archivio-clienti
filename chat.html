@@ -266,21 +266,19 @@
   <div class="app-wrapper">
     <div class="chat-app">
       <!-- HEADER FISSO -->
-      <header class="header">
+          <header class="header">
         <button id="btnList" class="btn-h">☰ Chat</button>
         <div class="title">💬 Chat</div>
         <a id="navBtn" href="#" class="btn-h">.</a>
       </header>
 
+          <!-- 🔔 Wrapper per pulsante di attivazione delle notifiche push in chat (mostrato solo se necessario) -->
+          <div id="push-activation-wrapper" style="display:none; text-align:center; padding:8px;">
+            <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">🔔 Attiva notifiche push</button>
+          </div>
+
       <!-- OVERLAY MOBILE -->
       <div id="overlay"></div>
-
-      <!-- Sezione per attivare le notifiche push. Viene mostrata solo se il permesso non è ancora stato concesso. -->
-      <div id="push-activation-wrapper" style="padding: 8px; text-align:center; display:none;">
-        <button id="btn-enable-notifications" style="background: var(--brand); color:#fff; border:none; border-radius:8px; padding:8px 12px; font-size:14px; cursor:pointer;">
-          🔔 Attiva notifiche push
-        </button>
-      </div>
 
       <!-- AREA PRINCIPALE -->
       <div class="main-area">
@@ -385,66 +383,94 @@
     }
 
     // NOTIFICHE PUSH
-    /**
-     * Abilita le notifiche push per l'utente corrente della chat.
-     * Richiede i permessi (se necessario), registra il Service Worker e salva il token FCM.
-     * Nasconde il pulsante di attivazione dopo il successo.
-     */
-    async function enablePushForCurrentUser() {
+    async function setupNotifications() {
       try {
-        if (!currentUser) return;
         if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-          console.warn('Notifiche o Service Worker non supportati');
+          console.warn('Notifiche non supportate');
           return;
         }
-        let permission = Notification.permission;
+
+        const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-          permission = await Notification.requestPermission();
-        }
-        if (permission !== 'granted') {
-          console.warn('Permesso notifiche negato o non concesso');
+          console.warn('Permesso notifiche negato');
           return;
         }
-        const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
-        console.log('Service Worker per notifiche registrato:', registration.scope);
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: registration });
+
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
         if (!token) {
           console.warn('Token FCM non ricevuto');
           return;
         }
-        await setDoc(doc(db, 'users', currentUser.uid), { fcmTokens: { [token]: true } }, { merge: true });
-        console.log('Token FCM salvato per', currentUser.uid);
-        // nascondi pulsante
-        const btn = document.getElementById('btn-enable-notifications');
-        const wrapper = document.getElementById('push-activation-wrapper');
-        if (btn) btn.style.display = 'none';
-        if (wrapper) wrapper.style.display = 'none';
-      } catch (err) {
-        console.error('Errore durante l\'attivazione delle notifiche:', err);
+
+        if (currentUser) {
+          await setDoc(doc(db, "users", currentUser.uid), {
+            fcmTokens: { [token]: true }
+          }, { merge: true });
+          console.log('Token FCM salvato per', currentUser.uid);
+        }
+
+      } catch (error) {
+        console.error('Errore setup notifiche:', error);
       }
     }
 
-    /**
-     * Mostra il pulsante di attivazione notifiche solo se necessario.
-     * Se i permessi sono già concessi, attiva subito il push.
-     */
-    async function handlePushPermission() {
+    // Registra il Service Worker e salva il token FCM per l'utente loggato
+    async function enablePushForCurrentUser(user) {
       try {
-        const wrapper = document.getElementById('push-activation-wrapper');
-        const btn = document.getElementById('btn-enable-notifications');
-        if (!wrapper || !btn || !currentUser) return;
-        if (Notification.permission === 'granted') {
-          wrapper.style.display = 'none';
-          await enablePushForCurrentUser();
-        } else if (Notification.permission === 'default') {
-          wrapper.style.display = 'block';
-          btn.style.display = 'inline-block';
-          btn.onclick = () => enablePushForCurrentUser();
-        } else {
-          wrapper.style.display = 'none';
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+          console.warn('Notifiche o Service Worker non supportati');
+          return;
         }
-      } catch (err) {
-        console.error('Errore gestione permessi notifiche:', err);
+        // Registra il service worker con percorso relativo corretto
+        const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js').catch((err) => {
+          console.warn('Registrazione service worker FCM fallita:', err);
+          throw err;
+        });
+        // Richiedi permesso notifiche
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') {
+          console.warn('Permesso notifiche negato');
+          return;
+        }
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+        if (!token) {
+          console.warn('Token FCM non ricevuto (controlla HTTPS e firebase-messaging-sw.js)');
+          return;
+        }
+        if (user) {
+          await setDoc(doc(db, 'users', user.uid), {
+            fcmTokens: { [token]: true }
+          }, { merge: true });
+          console.log('✅ FCM token salvato per', user.uid);
+        }
+      } catch (e) {
+        console.warn('Errore durante enablePushForCurrentUser', e);
+      }
+    }
+
+    // Gestisce la richiesta di permesso e la visualizzazione del pulsante per le notifiche push
+    async function handlePushPermission(user) {
+      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+        return;
+      }
+      const wrapper = document.getElementById('push-activation-wrapper');
+      const btn = document.getElementById('btn-enable-push');
+      if (Notification.permission === 'granted') {
+        if (wrapper) wrapper.style.display = 'none';
+        await enablePushForCurrentUser(user);
+      } else {
+        if (wrapper) wrapper.style.display = 'block';
+        if (btn) {
+          btn.onclick = async () => {
+            btn.disabled = true;
+            try {
+              await enablePushForCurrentUser(user);
+            } finally {
+              if (wrapper) wrapper.style.display = 'none';
+              btn.disabled = false;
+            }
+          };
+        }
       }
     }
 
@@ -668,8 +694,8 @@
       }
       currentUser = user;
 
-      // Setup notifiche dopo login (mostra pulsante o salva token se già consentito)
-      await handlePushPermission();
+      // Gestisci permessi notifiche push dopo login
+      await handlePushPermission(user);
 
       const isAdmin = user.uid === ADMIN_UID;
       setHeaderForRole(isAdmin);
@@ -713,7 +739,8 @@
   <!-- Service Worker per notifiche push -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./firebase-messaging-sw.js')
+      // Registra il Service Worker con percorso relativo corretto
+      navigator.serviceWorker.register('firebase-messaging-sw.js')
         .then(registration => {
           console.log('✅ Service Worker registrato:', registration.scope);
         })
