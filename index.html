@@ -32,7 +32,42 @@
     button:disabled { opacity:.6; cursor:not-allowed; }
     .userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
     .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
-    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; }
+    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; position: relative; }
+    
+    /* 🔔 Stili per il contatore messaggi */
+    .chat-counter {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: #f44336;
+      color: white;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: bold;
+      min-width: 20px;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .chat-counter.hidden {
+      display: none;
+    }
+    
+    /* Animazione per nuovi messaggi */
+    @keyframes bounce {
+      0%, 20%, 60%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      80% { transform: translateY(-5px); }
+    }
+    
+    .chat-counter.new-message {
+      animation: bounce 1s ease-in-out;
+    }
   </style>
 </head>
 <body>
@@ -58,7 +93,7 @@
         <input id="reg-email" placeholder="Email">
         <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password">
         <button id="btn-register">Crea account</button>
-        <div class="muted" style="margin-top:8px;">Dopo la registrazione l’account deve essere approvato dall’amministratore.</div>
+        <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
       </div>
     </div>
   </div>
@@ -66,7 +101,7 @@
   <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
   <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
     <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
-    <div>Sei registrato ma non ancora approvato. Quando l’amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
+    <div>Sei registrato ma non ancora approvato. Quando l'amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
     <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
   </div>
 
@@ -80,7 +115,11 @@
     </div>
 
     <div class="row" style="align-items:center;">
-      <a class="link-pill" href="chat.html">💬 Chat con Admin</a>
+      <!-- 🔔 Chat con contatore messaggi -->
+      <a class="link-pill" href="chat.html" id="chat-link">
+        💬 Chat con Admin
+        <span class="chat-counter hidden" id="chat-counter">0</span>
+      </a>
       <button id="btn-logout" style="max-width:160px;">Esci</button>
     </div>
 
@@ -201,7 +240,6 @@ console.log('🍎 === DEBUG NOTIFICHE iOS ===');
 console.log('PWA standalone:', window.navigator.standalone);
 console.log('Supporto notifiche:', 'Notification' in window);
 console.log('Supporto Service Worker:', 'serviceWorker' in navigator);
-console.log('Permesso notifiche:', Notification.permission);
 console.log('User Agent:', navigator.userAgent);
 console.log('HTTPS:', location.protocol === 'https:');
 console.log('================================');
@@ -217,7 +255,7 @@ console.log('================================');
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
-      onSnapshot, query, getDocs, getDoc, where, orderBy, serverTimestamp
+      onSnapshot, query, getDocs, getDoc, where, orderBy, serverTimestamp, limit
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
@@ -225,6 +263,7 @@ console.log('================================');
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     // 🔔 IMPORT MESSAGING (nuovo)
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+    import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
@@ -239,6 +278,10 @@ console.log('================================');
     let clienteDaModificare = null;
     let watchId = null;
 
+    // 🔔 Variabili per il contatore chat
+    let chatUnsub = null;
+    let currentUserId = null;
+
     let clientiUnsub = null;
     function startClientiListener() {
       if (clientiUnsub) return;
@@ -246,6 +289,97 @@ console.log('================================');
       clientiUnsub = onSnapshot(q, mostraClienti, (err) => console.error(err));
     }
     function stopClientiListener() { if (clientiUnsub) { clientiUnsub(); clientiUnsub = null; } }
+
+    // 🔔 Funzioni per gestire il contatore chat - CORRETTE per readBy come ARRAY
+    function startChatListener(userId) {
+      if (chatUnsub) return;
+      
+      // Query per messaggi nel thread dell'utente (ultimi 50 per performance)
+      const threadMessagesRef = collection(db, "threads", userId, "messages");
+      const q = query(threadMessagesRef, orderBy("createdAt", "desc"), limit(50));
+      
+      chatUnsub = onSnapshot(q, (snapshot) => {
+        let unreadCount = 0;
+        
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          // Conta solo i messaggi ricevuti (non inviati dall'utente corrente)
+          // e che non sono ancora stati letti
+          if (msg.sender !== userId) {
+            // readBy è un ARRAY: controlla se userId è nell'array
+            const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
+            if (!readBy.includes(userId)) {
+              unreadCount++;
+            }
+          }
+        });
+        
+        updateChatCounter(unreadCount);
+        console.log(`🔔 Messaggi non letti: ${unreadCount}`);
+      }, (err) => console.error("Errore listener chat:", err));
+    }
+
+    function stopChatListener() {
+      if (chatUnsub) {
+        chatUnsub();
+        chatUnsub = null;
+      }
+    }
+
+    function updateChatCounter(count) {
+      const counter = document.getElementById('chat-counter');
+      
+      if (count > 0) {
+        counter.textContent = count > 99 ? '99+' : count;
+        counter.classList.remove('hidden');
+        
+        // Aggiungi animazione per nuovi messaggi
+        counter.classList.add('new-message');
+        setTimeout(() => counter.classList.remove('new-message'), 1000);
+        
+        // Cambia il titolo della pagina per notificare
+        document.title = `(${count}) Archivio Clienti - Trasporti`;
+      } else {
+        counter.classList.add('hidden');
+        document.title = 'Archivio Clienti - Trasporti';
+      }
+    }
+
+    // 🔔 Segna messaggi come letti quando si clicca sulla chat - CORRETTO per ARRAY
+    document.getElementById('chat-link').addEventListener('click', async (e) => {
+      if (currentUserId) {
+        try {
+          // Riferimento ai messaggi del thread dell'utente
+          const threadMessagesRef = collection(db, "threads", currentUserId, "messages");
+          const q = query(threadMessagesRef);
+          
+          const snapshot = await getDocs(q);
+          
+          // Segna tutti i messaggi ricevuti come letti
+          const batch = [];
+          snapshot.forEach((doc) => {
+            const msg = doc.data();
+            // Solo messaggi ricevuti (non inviati dall'utente corrente)
+            if (msg.sender !== currentUserId) {
+              const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
+              // Se l'utente non è già nell'array readBy, aggiungilo
+              if (!readBy.includes(currentUserId)) {
+                batch.push(updateDoc(doc.ref, { 
+                  readBy: arrayUnion(currentUserId) 
+                }));
+              }
+            }
+          });
+          
+          if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log('✅ Messaggi segnati come letti');
+          }
+        } catch (error) {
+          console.error('Errore nel segnare messaggi come letti:', error);
+        }
+      }
+    });
 
     let userUnsub = null;
     const el = (id) => document.getElementById(id);
@@ -368,10 +502,15 @@ console.log('================================');
       if (!user) {
         showAuth("login");
         stopClientiListener();
+        stopChatListener(); // 🔔 Stop chat listener
+        currentUserId = null; // 🔔 Reset current user
+        updateChatCounter(0); // 🔔 Reset counter
         if (userUnsub) { userUnsub(); userUnsub = null; }
         const ub = document.getElementById("userbar"); if (ub) ub.innerHTML = "";
         return;
       }
+
+      currentUserId = user.uid; // 🔔 Set current user ID
 
       const uref = doc(db, "users", user.uid);
       const snap = await getDoc(uref);
@@ -402,21 +541,25 @@ console.log('================================');
         renderUserBar(user, data);
 
         if (data.role === "driver" && data.approved === true) {
-          enableAppUI(); startClientiListener();
+          enableAppUI(); 
+          startClientiListener();
+          startChatListener(user.uid); // 🔔 Start chat listener
           // 🔔 abilita push per driver approvato
           enablePushForUser(user);
         } else if (data.role === "admin") {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
-            "<h3>👑 Sei loggato come admin</h3><div>L’app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
+            "<h3>👑 Sei loggato come admin</h3><div>L'app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
           document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
           stopClientiListener();
+          stopChatListener(); // 🔔 Stop chat listener for admin
           // (opzionale) abilita push anche per admin
           enablePushForUser(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
           stopClientiListener();
+          stopChatListener(); // 🔔 Stop chat listener for unapproved users
         }
       });
     });
