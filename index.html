@@ -32,123 +32,7 @@
     button:disabled { opacity:.6; cursor:not-allowed; }
     .userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
     .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
-    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; position: relative; }
-    
-    /* 🔔 Stili per il contatore messaggi */
-    .chat-counter {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background-color: #f44336;
-      color: white;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: bold;
-      min-width: 20px;
-      border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    
-    .chat-counter.hidden {
-      display: none;
-    }
-    
-    /* Animazione per nuovi messaggi */
-    @keyframes bounce {
-      0%, 20%, 60%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-10px); }
-      80% { transform: translateY(-5px); }
-    }
-    
-    .chat-counter.new-message {
-      animation: bounce 1s ease-in-out;
-    }
-    
-    /* Toast popup per messaggi */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      max-width: 320px;
-    }
-    
-    .toast {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      padding: 16px;
-      margin-bottom: 12px;
-      transform: translateX(100%);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .toast.show {
-      transform: translateX(0);
-    }
-    
-    .toast.hide {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    
-    .toast::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--brand);
-    }
-    
-    .toast-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--brand);
-    }
-    
-    .toast-body {
-      color: #333;
-      font-size: 14px;
-      line-height: 1.4;
-      margin-left: 24px;
-    }
-    
-    .toast-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: none;
-      border: none;
-      font-size: 18px;
-      color: #999;
-      cursor: pointer;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: background-color 0.2s;
-    }
-    
-    .toast-close:hover {
-      background-color: #f0f0f0;
-    }
+    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; }
   </style>
 </head>
 <body>
@@ -174,7 +58,7 @@
         <input id="reg-email" placeholder="Email">
         <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password">
         <button id="btn-register">Crea account</button>
-        <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
+        <div class="muted" style="margin-top:8px;">Dopo la registrazione l’account deve essere approvato dall’amministratore.</div>
       </div>
     </div>
   </div>
@@ -182,7 +66,7 @@
   <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
   <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
     <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
-    <div>Sei registrato ma non ancora approvato. Quando l'amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
+    <div>Sei registrato ma non ancora approvato. Quando l’amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
     <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
   </div>
 
@@ -191,21 +75,12 @@
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-    <!-- 🔔 Wrapper per pulsante di attivazione delle notifiche push (mostrato solo se necessario) -->
-    <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
-      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">🔔 Attiva notifiche push</button>
-    </div>
-
     <div class="avviso">
       ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
     </div>
 
     <div class="row" style="align-items:center;">
-      <!-- 🔔 Chat con contatore messaggi -->
-      <a class="link-pill" href="chat.html" id="chat-link">
-        💬 Chat con Admin
-        <span class="chat-counter hidden" id="chat-counter">0</span>
-      </a>
+      <a class="link-pill" href="chat.html">💬 Chat con Admin</a>
       <button id="btn-logout" style="max-width:160px;">Esci</button>
     </div>
 
@@ -228,9 +103,6 @@
     <div id="status"></div>
   </div>
 
-  <!-- 🍞 Container per toast messaggi -->
-  <div id="toast-container" class="toast-container"></div>
-
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -244,15 +116,13 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
-      onSnapshot, query, getDocs, getDoc, where, orderBy, serverTimestamp, limit
+      onSnapshot, query, getDocs, getDoc, where, orderBy, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
       onAuthStateChanged, signOut, updateProfile
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    // 🔔 IMPORT MESSAGING (nuovo)
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
-    import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
@@ -265,63 +135,6 @@
 
     let nomeUtente = ""; // letto da Firestore o email
     let clienteDaModificare = null;
-    let watchId = null;
-
-    // 🔔 Variabili per il contatore chat
-    let chatUnsub = null;
-    let currentUserId = null;
-    let lastMessageCount = 0; // Per tracciare nuovi messaggi
-
-    // 🍞 Sistema Toast per messaggi
-    function createToast(title, message, onClick) {
-      const container = document.getElementById('toast-container');
-      if (!container) return;
-
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.innerHTML = `
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-        <div class="toast-header">
-          <span>💬</span>
-          ${title}
-        </div>
-        <div class="toast-body">${message}</div>
-      `;
-
-      if (onClick) {
-        toast.addEventListener('click', (e) => {
-          if (e.target.classList.contains('toast-close')) return;
-          onClick();
-          hideToast(toast);
-        });
-      }
-
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 100);
-      setTimeout(() => hideToast(toast), 6000);
-      return toast;
-    }
-
-    function hideToast(toast) {
-      toast.classList.add('hide');
-      setTimeout(() => {
-        if (toast.parentElement) {
-          toast.remove();
-        }
-      }, 300);
-    }
-
-    function showMessageToast(senderName, messageText) {
-      const truncatedMessage = messageText.length > 80 
-        ? messageText.substring(0, 80) + '...' 
-        : messageText;
-        
-      createToast(
-        `Nuovo messaggio da ${senderName}`,
-        truncatedMessage,
-        () => { window.location.href = 'chat.html'; }
-      );
-    }
 
     let clientiUnsub = null;
     function startClientiListener() {
@@ -330,89 +143,6 @@
       clientiUnsub = onSnapshot(q, mostraClienti, (err) => console.error(err));
     }
     function stopClientiListener() { if (clientiUnsub) { clientiUnsub(); clientiUnsub = null; } }
-
-    // 🔔 Funzioni per gestire il contatore chat - CORRETTE per readBy come ARRAY
-    function startChatListener(userId) {
-      if (chatUnsub) return;
-      const threadMessagesRef = collection(db, "threads", userId, "messages");
-      const q = query(threadMessagesRef, orderBy("createdAt", "desc"), limit(50));
-      
-      chatUnsub = onSnapshot(q, (snapshot) => {
-        let unreadCount = 0;
-        let latestUnreadMessage = null;
-        const currentTime = Date.now();
-        
-        snapshot.forEach(doc => {
-          const msg = doc.data();
-          if (msg.sender !== userId) {
-            const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
-            if (!readBy.includes(userId)) {
-              unreadCount++;
-              if (!latestUnreadMessage) {
-                const msgTime = msg.createdAt?.toDate?.()?.getTime() || 0;
-                if (currentTime - msgTime < 30000) {
-                  latestUnreadMessage = msg;
-                }
-              }
-            }
-          }
-        });
-        
-        if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0) {
-          if (!document.hidden && document.hasFocus()) {
-            showMessageToast('Admin', latestUnreadMessage.text || 'Nuovo messaggio');
-          }
-        }
-        
-        lastMessageCount = unreadCount;
-        updateChatCounter(unreadCount);
-      }, (err) => console.error("Errore listener chat:", err));
-    }
-
-    function stopChatListener() {
-      if (chatUnsub) {
-        chatUnsub();
-        chatUnsub = null;
-        lastMessageCount = 0;
-      }
-    }
-
-    function updateChatCounter(count) {
-      const counter = document.getElementById('chat-counter');
-      if (count > 0) {
-        counter.textContent = count > 99 ? '99+' : count;
-        counter.classList.remove('hidden');
-        counter.classList.add('new-message');
-        setTimeout(() => counter.classList.remove('new-message'), 1000);
-        document.title = `(${count}) Archivio Clienti - Trasporti`;
-      } else {
-        counter.classList.add('hidden');
-        document.title = 'Archivio Clienti - Trasporti';
-      }
-    }
-
-    document.getElementById('chat-link').addEventListener('click', async (e) => {
-      if (currentUserId) {
-        try {
-          const threadMessagesRef = collection(db, "threads", currentUserId, "messages");
-          const q = query(threadMessagesRef);
-          const snapshot = await getDocs(q);
-          const batch = [];
-          snapshot.forEach((doc) => {
-            const msg = doc.data();
-            if (msg.sender !== currentUserId) {
-              const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
-              if (!readBy.includes(currentUserId)) {
-                batch.push(updateDoc(doc.ref, { readBy: arrayUnion(currentUserId) }));
-              }
-            }
-          });
-          if (batch.length > 0) { await Promise.all(batch); }
-        } catch (error) {
-          console.error('Errore nel segnare messaggi come letti:', error);
-        }
-      }
-    });
 
     let userUnsub = null;
     const el = (id) => document.getElementById(id);
@@ -438,6 +168,7 @@
       const name  = (uData?.name || uAuth?.displayName || (uAuth?.email ? uAuth.email.split("@")[0] : "")).trim();
       const email = uAuth?.email || "";
       const role  = (uData?.role) || (uAuth?.uid === ADMIN_UID ? "admin" : "driver");
+      nomeUtente = name;
       box.innerHTML = `👤 <strong>${name || "(senza nome)"}</strong>
                        <span class="pill">${email}</span>
                        <span class="pill">${role}</span>`;
@@ -511,73 +242,29 @@
 
     async function enablePushForUser(user){
       try {
-        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-          return;
-        }
-        const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js').catch((err) => {
-          console.warn('Registrazione service worker FCM fallita:', err);
-          throw err;
-        });
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
         const perm = await Notification.requestPermission();
-        if (perm !== 'granted') {
-          return;
-        }
-        const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: swReg });
-        if (!token) {
-          return;
-        }
+        if (perm !== 'granted') return;
+        const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY });
+        if (!token) return;
         await setDoc(doc(db, "users", user.uid), { fcmTokens: { [token]: true } }, { merge: true });
       } catch (e) {
-        console.warn('Errore during enablePushForUser', e);
-      }
-    }
-
-    async function handlePushPermission(user) {
-      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-        return;
-      }
-      const wrapper = document.getElementById('push-activation-wrapper');
-      const btn = document.getElementById('btn-enable-push');
-      if (Notification.permission === 'granted') {
-        if (wrapper) wrapper.style.display = 'none';
-        await enablePushForUser(user);
-      } else {
-        if (wrapper) wrapper.style.display = 'block';
-        if (btn) {
-          btn.onclick = async () => {
-            btn.disabled = true;
-            try {
-              await enablePushForUser(user);
-            } finally {
-              if (wrapper) wrapper.style.display = 'none';
-              btn.disabled = false;
-            }
-          };
-        }
+        console.warn('Errore permission/token', e);
       }
     }
 
     onMessage(messaging, (payload) => {
-      if (payload.notification) {
-        const title = payload.notification.title || 'Nuovo messaggio';
-        const body = payload.notification.body || '';
-        createToast(title, body, () => { window.location.href = 'chat.html'; });
-      }
+      console.log('Push in foreground:', payload);
     });
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         showAuth("login");
         stopClientiListener();
-        stopChatListener();
-        currentUserId = null;
-        updateChatCounter(0);
         if (userUnsub) { userUnsub(); userUnsub = null; }
         const ub = document.getElementById("userbar"); if (ub) ub.innerHTML = "";
         return;
       }
-
-      currentUserId = user.uid;
 
       const uref = doc(db, "users", user.uid);
       const snap = await getDoc(uref);
@@ -604,27 +291,22 @@
       if (userUnsub) { userUnsub(); userUnsub = null; }
       userUnsub = onSnapshot(uref, (usnap) => {
         const data = usnap.data() || {};
-        nomeUtente = (data.name || (user.email ? user.email.split("@")[0] : "")).trim();
         renderUserBar(user, data);
 
         if (data.role === "driver" && data.approved === true) {
-          enableAppUI(); 
-          startClientiListener();
-          startChatListener(user.uid);
-          handlePushPermission(user);
+          enableAppUI(); startClientiListener();
+          enablePushForUser(user);
         } else if (data.role === "admin") {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
-            "<h3>👑 Sei loggato come admin</h3><div>L'app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
+            "<h3>👑 Sei loggato come admin</h3><div>L’app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
           document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
           stopClientiListener();
-          stopChatListener();
-          handlePushPermission(user);
+          enablePushForUser(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
           stopClientiListener();
-          stopChatListener();
         }
       });
     });
@@ -697,55 +379,117 @@
     el("btn-annulla").addEventListener("click", annullaModifica);
     el("cerca").addEventListener("input", filtraClienti);
 
+    // ================== GEO ==================
+
+    // Bottone "Usa la mia posizione attuale" -> aggiorna campo e salva ultimo fix in posizioniMezzo/{uid}
     el("btn-gps").addEventListener("click", () => {
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async position => {
-            const coords = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
-            el("coordinate").value = coords;
-            if (nomeUtente) {
-              await addDoc(posizioniRef, {
-                uid: auth.currentUser?.uid || null,
-                mezzo: nomeUtente,
-                latitudine: position.coords.latitude,
-                longitudine: position.coords.longitude,
-                timestamp: serverTimestamp()
-              });
-            }
-          },
-          error => { alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo."); console.error(error); }
-        );
-      } else { alert("Geolocalizzazione non supportata su questo dispositivo."); }
+      if (!("geolocation" in navigator)) { alert("Geolocalizzazione non supportata."); return; }
+      navigator.geolocation.getCurrentPosition(
+        async position => {
+          const { latitude, longitude, accuracy } = position.coords;
+          const coords = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+          el("coordinate").value = coords;
+
+          if (auth.currentUser) {
+            const posRef = doc(db, "posizioniMezzo", auth.currentUser.uid);
+            await setDoc(posRef, {
+              uid: auth.currentUser.uid,
+              mezzo: nomeUtente || (auth.currentUser.email || auth.currentUser.uid),
+              latitudine: latitude,
+              longitudine: longitude,
+              accuracy: accuracy ?? null,
+              timestamp: serverTimestamp()
+            }, { merge: true });
+
+            await setDoc(doc(db, "users", auth.currentUser.uid), {
+              lastSeen: serverTimestamp(),
+              lastPos: { lat: latitude, lng: longitude, accuracy: accuracy ?? null }
+            }, { merge: true });
+          }
+        },
+        error => {
+          alert("Impossibile ottenere la posizione. Controlla i permessi GPS.");
+          console.error(error);
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
     });
+
+    // Tracciamento automatico: un solo doc per mezzo, + flag users/{uid}.tracking
+    let trackingWatchId = null;
+    const GEO = { accuracyMaxM: 150, minIntervalMs: 30000 };
+    let lastSaveTs = 0;
+
+    async function setTrackingState(on) {
+      if (!auth.currentUser) return;
+      await setDoc(doc(db, "users", auth.currentUser.uid), { tracking: !!on }, { merge: true });
+    }
 
     window.avviaTracciamento = function(){
       const status = document.getElementById('status');
-      if (!('geolocation' in navigator)) { status.textContent = 'Geolocalizzazione non supportata.'; return; }
-      if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; status.textContent = 'Tracciamento disattivato.'; return; }
-      watchId = navigator.geolocation.watchPosition(async pos => {
-        const { latitude, longitude } = pos.coords;
-        status.textContent = `Ultima posizione: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-        if (nomeUtente) {
-          await addDoc(posizioniRef, {
-            uid: auth.currentUser?.uid || null,
-            mezzo: nomeUtente,
+
+      if (!('geolocation' in navigator)) {
+        status.textContent = 'Geolocalizzazione non supportata.';
+        return;
+      }
+
+      // Spegni se già attivo
+      if (trackingWatchId) {
+        navigator.geolocation.clearWatch(trackingWatchId);
+        trackingWatchId = null;
+        status.textContent = 'Tracciamento disattivato.';
+        setTrackingState(false);
+        return;
+      }
+
+      // Accendi
+      status.textContent = 'Tracciamento attivo. Tieni la pagina in primo piano.';
+      setTrackingState(true);
+
+      trackingWatchId = navigator.geolocation.watchPosition(async pos => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        const now = Date.now();
+
+        if ((accuracy ?? Infinity) > GEO.accuracyMaxM) {
+          status.textContent = `Fix impreciso (±${Math.round(accuracy)} m). Attendo…`;
+          return;
+        }
+        if ((now - lastSaveTs) < GEO.minIntervalMs) {
+          status.textContent = 'In attesa (rate limit)…';
+          return;
+        }
+
+        if (auth.currentUser) {
+          const posRef = doc(db, "posizioniMezzo", auth.currentUser.uid);
+          await setDoc(posRef, {
+            uid: auth.currentUser.uid,
+            mezzo: nomeUtente || (auth.currentUser.email || auth.currentUser.uid),
             latitudine: latitude,
             longitudine: longitude,
+            accuracy: accuracy ?? null,
             timestamp: serverTimestamp()
-          });
-        }
-      }, err => { status.textContent = 'Errore GPS: ' + err.message; }, { enableHighAccuracy:true, maximumAge:5000 });
-    }
+          }, { merge: true });
 
-    window.eliminaCliente = eliminaCliente;
-    window.preparaModificaCliente = preparaModificaCliente;
+          await setDoc(doc(db, "users", auth.currentUser.uid), {
+            tracking: true,
+            lastSeen: serverTimestamp(),
+            lastPos: { lat: latitude, lng: longitude, accuracy: accuracy ?? null }
+          }, { merge: true });
+        }
+
+        lastSaveTs = now;
+        status.textContent = `Ultimo ping: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (±${Math.round(accuracy)} m)`;
+      }, err => {
+        status.textContent = 'Errore GPS: ' + err.message;
+      }, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
+    }
 
   </script>
 
-  <!-- 🔔 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
+  <!-- Service Worker FCM -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('firebase-messaging-sw.js')
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
         .catch(err => console.warn('SW (FCM) registration failed', err));
     }
   </script>
