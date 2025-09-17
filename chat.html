@@ -8,100 +8,90 @@
     :root{
       --brand:#128c7e; --bg:#ece5dd; --line:#d9d9d9; --ink:#222;
       --mine:#dcf8c6; --their:#fff;
-      --app-h: 100svh;      /* altezza viewport “piccola” (iOS friendly) */
-      --kb: 0px;            /* offset tastiera dinamico */
+      --app-h: 100svh;   /* altezza viewport iOS-friendly */
+      --kb: 0px;         /* offset tastiera calcolato da JS */
+      --header-h: 52px;
+      --composer-h: 56px;
     }
 
     *{ box-sizing:border-box; margin:0; padding:0; }
-
     html, body{ height:100%; overflow:hidden; -webkit-text-size-adjust:100%; }
-    body{
-      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      color:var(--ink); background:var(--bg);
-      overscroll-behavior-y: contain;
-    }
+    body{ font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; color:var(--ink); background:var(--bg); overscroll-behavior-y:contain; }
 
-    /* Contenitore app a tutta altezza */
-    .app{
-      height:var(--app-h);
-      display:flex; flex-direction:column;
-    }
+    /* App full height */
+    .app{ height:var(--app-h); display:flex; flex-direction:column; }
 
-    /* Header */
+    /* Header compatto */
     .header{
-      background:#075e54; color:#fff; height:52px; flex-shrink:0;
-      display:flex; align-items:center; gap:8px; padding:0 12px; font-weight:700;
+      height:var(--header-h); flex-shrink:0;
+      background:#075e54; color:#fff; display:flex; align-items:center; gap:8px; padding:0 10px;
     }
-    .header .right{ margin-left:auto; }
-    .btn{ border:1px solid #ffffff40; color:#fff; background:transparent; padding:6px 10px; border-radius:999px; text-decoration:none; }
+    .back{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:16px; border:1px solid #ffffff33; color:#fff; text-decoration:none; font-size:14px;
+    }
+    .title{ font-weight:700; margin-left:6px; }
 
-    /* Area centrale: lista messaggi scorrevole */
+    /* Lista messaggi scorrevole */
     .messages{
-      flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
-      display:flex; flex-direction:column;
-      padding:10px 10px calc(80px + env(safe-area-inset-bottom) + var(--kb)); /* spazio per composer + tastiera */
+      flex:1; display:flex; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch;
+      padding:10px 12px calc(var(--composer-h) + 16px + env(safe-area-inset-bottom) + var(--kb));
       background:var(--bg);
-      overflow-anchor: none; /* evita “salti” su iOS */
+      overflow-anchor: none; /* evita salti iOS */
     }
 
     /* Composer fisso in basso */
     .composer{
       position:fixed; left:0; right:0;
       bottom:calc(env(safe-area-inset-bottom) + var(--kb));
-      background:#f0f0f0; border-top:1px solid var(--line); flex-shrink:0;
-      display:flex; gap:8px; padding:8px; align-items:flex-end; z-index:10;
+      height:calc(var(--composer-h) + 8px);
+      background:#f0f0f0; border-top:1px solid var(--line);
+      display:flex; align-items:center; gap:8px; padding:8px 10px; z-index:10;
     }
     .composer textarea{
       flex:1; min-height:40px; max-height:120px; resize:none;
-      border:1px solid #ccc; border-radius:20px; padding:10px 12px; outline:none;
+      border:1px solid #ccc; border-radius:22px; padding:10px 14px; outline:none; background:#fff;
       font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
-      background:#fff; overflow-y:auto;
     }
     .composer button{
-      background:var(--brand); color:#fff; border:none; border-radius:20px;
-      padding:10px 16px; height:40px; min-width:64px; font-weight:600; cursor:pointer;
+      background:var(--brand); color:#fff; border:none; border-radius:22px; height:40px; padding:0 16px; font-weight:600; cursor:pointer;
     }
-    .composer button:disabled{ opacity:.6; cursor:not-allowed; }
 
-    /* Bolle messaggi */
+    /* Bolle */
     .bubble{
-      max-width:75%; margin:4px 0; padding:8px 12px; border-radius:12px;
-      box-shadow:0 1px 1px rgba(0,0,0,.05); white-space:pre-wrap; word-wrap:break-word;
+      max-width:82%; margin:6px 0; padding:10px 14px; border-radius:18px;
+      box-shadow:0 1px 1px rgba(0,0,0,.05); white-space:pre-wrap; word-wrap:break-word; line-height:1.35; font-size:15px;
     }
-    .sent{ background:var(--mine); align-self:flex-end; border-top-right-radius:6px; }
-    .recv{ background:var(--their); align-self:flex-start; border-top-left-radius:6px; }
-    .meta{ font-size:12px; color:#666; text-align:right; margin-top:2px; }
+    .sent{ background:var(--mine); align-self:flex-end; border-top-right-radius:8px; }
+    .recv{ background:var(--their); align-self:flex-start; border-top-left-radius:8px; }
+    .meta{ font-size:12px; color:#666; text-align:right; margin-top:4px; }
 
     /* Separatore giorno */
-    .day{
-      align-self:center; font-size:12px; color:#556; margin:8px 0; position:relative; padding:0 8px;
-    }
-    .day::before,.day::after{
-      content:""; position:absolute; top:50%; width:34vw; max-width:180px; height:1px; background:#cfd8dc;
-    }
+    .day{ align-self:center; font-size:12px; color:#556; margin:10px 0; position:relative; padding:0 8px; }
+    .day::before,.day::after{ content:""; position:absolute; top:50%; width:30vw; max-width:160px; height:1px; background:#cfd8dc; }
     .day::before{ right:100%; margin-right:8px; }
     .day::after{ left:100%; margin-left:8px; }
 
-    /* Pulsante “vai in basso” */
+    /* Vai giù */
     #toBottom{
-      position:fixed; right:12px; bottom:calc(76px + env(safe-area-inset-bottom) + var(--kb));
-      display:none; z-index:20; background:#fff; border:1px solid #ddd; border-radius:999px;
-      padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
+      position:fixed; right:12px;
+      bottom:calc(var(--composer-h) + 20px + env(safe-area-inset-bottom) + var(--kb));
+      display:none; z-index:20;
+      background:#fff; border:1px solid #ddd; border-radius:999px; padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
     }
 
     /* Banner push opzionale */
-    #push-activation-wrapper{ display:none; text-align:center; padding:8px; background:#fff; border-bottom:1px solid #eee; }
+    #push-activation-wrapper{ display:none; text-align:center; padding:6px; background:#fff; border-bottom:1px solid #eee; }
     #btn-enable-push{ background:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px; }
   </style>
 </head>
 <body>
   <div class="app">
     <header class="header">
-      <div>💬 Chat</div>
-      <a class="btn right" id="navBtn" href="index.html">⬅ Indietro</a>
+      <a class="back" id="navBtn" href="index.html">⬅ Torna</a>
+      <div class="title">💬 Chat</div>
     </header>
 
-    <!-- Attivazione push (solo se necessario) -->
     <div id="push-activation-wrapper">
       <button id="btn-enable-push">🔔 Attiva notifiche push</button>
     </div>
@@ -117,7 +107,7 @@
   <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
 
   <script type="module">
-    /* ====================== Firebase core ====================== */
+    /* ===== Firebase core (identico alla tua app) ===== */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
@@ -142,7 +132,7 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
-    /* ====================== UI refs ====================== */
+    /* ===== UI refs ===== */
     const $ = id => document.getElementById(id);
     const messagesEl = $("messages");
     const input = $("input");
@@ -155,7 +145,7 @@
     let isNearBottom = true;
     let firstLoad = true;
 
-    /* ====================== iOS/viewport & tastiera ====================== */
+    /* ===== iOS viewport & tastiera ===== */
     function applyViewportHeight(){
       const vh = (window.visualViewport?.height ?? window.innerHeight);
       document.documentElement.style.setProperty('--app-h', `${vh}px`);
@@ -165,8 +155,7 @@
       if (!vv) return;
       const kb = Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
       document.documentElement.style.setProperty('--kb', kb + 'px');
-      // resta ancorato al fondo solo se l'utente era già vicino al fondo
-      const near = (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight) < 40;
+      const near = (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight) < 50;
       if (near) setTimeout(()=> messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior:'auto' }), 0);
     }
     applyViewportHeight();
@@ -176,24 +165,15 @@
     window.addEventListener('orientationchange', ()=> setTimeout(()=>{ applyViewportHeight(); applyKeyboardInset(); }, 300));
     applyKeyboardInset();
 
-    /* ====================== Helpers ====================== */
+    /* ===== Helpers ===== */
     const toDate = t => t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : new Date());
     const dayKey = d => d.toDateString();
     const hhmm = d => d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    function scrollBottom(smooth=false){ messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: smooth ? 'smooth' : 'auto' }); }
+    function atBottom(){ return messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 40; }
+    function autoresize(){ input.style.height="auto"; input.style.height = Math.min(input.scrollHeight, 120) + "px"; }
 
-    function scrollBottom(smooth=false){
-      messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
-    }
-    function atBottom(){
-      return messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 40;
-    }
-
-    function autoresize(){
-      input.style.height = "auto";
-      input.style.height = Math.min(input.scrollHeight, 120) + "px";
-    }
-
-    /* ====================== Render ====================== */
+    /* ===== Render ===== */
     function renderDaySeparator(date){
       const div = document.createElement('div');
       div.className = 'day';
@@ -209,20 +189,15 @@
       messagesEl.appendChild(div);
     }
 
-    /* ====================== Threads ====================== */
+    /* ===== Threads ===== */
     async function ensureThread(driverUid, driverName="", driverEmail=""){
       const tref = doc(db, "threads", driverUid);
       const s = await getDoc(tref);
       if (!s.exists()){
-        await setDoc(tref, {
-          participants:[ADMIN_UID, driverUid],
-          driverName, driverEmail,
-          lastMessage:"", updatedAt: serverTimestamp()
-        });
+        await setDoc(tref, { participants:[ADMIN_UID, driverUid], driverName, driverEmail, lastMessage:"", updatedAt: serverTimestamp() });
       }
       return tref;
     }
-
     function openThread(driverUid){
       currentThreadId = driverUid;
       firstLoad = true;
@@ -237,62 +212,41 @@
         messagesEl.innerHTML = "";
         lastDay = "";
         const toMark = [];
-
         snap.forEach(d=>{
           const m = d.data();
           const dt = toDate(m.createdAt);
           const dk = dayKey(dt);
           if (dk !== lastDay){ renderDaySeparator(dt); lastDay = dk; }
           renderMessage(m);
-
           const rb = Array.isArray(m.readBy) ? m.readBy : [];
           if (!rb.includes(currentUser.uid)) toMark.push(d.id);
         });
-
-        // marca come letti
         toMark.forEach(id=>{
           updateDoc(doc(db,"threads",driverUid,"messages",id), { readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
         });
-
         if (firstLoad){ scrollBottom(false); firstLoad = false; }
         else if (isNearBottom){ setTimeout(()=>scrollBottom(false), 50); }
       });
     }
 
-    /* ====================== Send ====================== */
+    /* ===== Send ===== */
     async function send(){
       const text = input.value.trim();
       if (!text || !currentThreadId) return;
-
       const msgsRef = collection(db, "threads", currentThreadId, "messages");
-      await addDoc(msgsRef, {
-        text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy:[currentUser.uid]
-      });
-      await updateDoc(doc(db,"threads",currentThreadId), {
-        lastMessage: text, updatedAt: serverTimestamp()
-      });
-
+      await addDoc(msgsRef, { text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy:[currentUser.uid] });
+      await updateDoc(doc(db,"threads",currentThreadId), { lastMessage: text, updatedAt: serverTimestamp() });
       input.value = ""; autoresize(); input.focus(); scrollBottom(false);
     }
-
     sendBtn.addEventListener('click', send);
-    input.addEventListener('keydown', e=>{
-      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
-    });
+    input.addEventListener('keydown', e=>{ if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }});
     input.addEventListener('input', autoresize);
-    input.addEventListener('focus', ()=>{
-      setTimeout(()=>{
-        if (atBottom()) messagesEl.scrollTop = messagesEl.scrollHeight;
-      }, 250);
-    });
-    messagesEl.addEventListener('scroll', ()=>{
-      isNearBottom = atBottom();
-      toBottom.style.display = isNearBottom ? 'none' : 'block';
-    });
+    input.addEventListener('focus', ()=> setTimeout(()=>{ if (atBottom()) messagesEl.scrollTop = messagesEl.scrollHeight; }, 250));
+    messagesEl.addEventListener('scroll', ()=>{ isNearBottom = atBottom(); toBottom.style.display = isNearBottom ? 'none' : 'block'; });
     toBottom.addEventListener('click', ()=> scrollBottom(true));
     document.querySelector('.composer').addEventListener('click', e=>{ if (e.target.tagName!=='TEXTAREA') input.focus(); });
 
-    /* ====================== Push (opzionale) ====================== */
+    /* ===== Push (opzionale) ===== */
     async function enablePushForUser(user){
       try{
         if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
@@ -309,15 +263,10 @@
       const wrap = document.getElementById('push-activation-wrapper');
       const btn = document.getElementById('btn-enable-push');
       if (Notification.permission==='granted'){
-        wrap.style.display='none';
-        await enablePushForUser(user);
+        wrap.style.display='none'; await enablePushForUser(user);
       } else {
         wrap.style.display='block';
-        btn.onclick = async ()=>{
-          btn.disabled = true;
-          try{ await enablePushForUser(user); }
-          finally{ wrap.style.display='none'; btn.disabled=false; }
-        };
+        btn.onclick = async ()=>{ btn.disabled=true; try{ await enablePushForUser(user);} finally{ wrap.style.display='none'; btn.disabled=false; } };
       }
     }
     onMessage(messaging, payload=>{
@@ -328,45 +277,37 @@
       }
     });
 
-    /* ====================== Auth & boot ====================== */
+    /* ===== Auth & boot ===== */
     onAuthStateChanged(auth, async user=>{
       if (!user){ location.href='index.html'; return; }
       currentUser = user;
-
       await handlePushPermission(user);
 
       const params = new URLSearchParams(location.search);
       const target = params.get('uid');
       const isAdmin = user.uid === ADMIN_UID;
-      document.getElementById('navBtn').textContent = isAdmin ? '🏠 Admin' : '⬅ Torna';
-      document.getElementById('navBtn').href = isAdmin ? 'admin.html' : 'index.html';
+      const navBtn = document.getElementById('navBtn');
+      navBtn.textContent = isAdmin ? '🏠 Admin' : '⬅ Torna';
+      navBtn.href = isAdmin ? 'admin.html' : 'index.html';
 
       if (isAdmin){
         if (target){
           const us = await getDoc(doc(db,'users',target));
           const d  = us.exists() ? us.data() : {};
-          await ensureThread(target, d.name||'', d.email||'');
-          openThread(target);
+          await ensureThread(target, d.name||'', d.email||''); openThread(target);
         } else {
           const q = query(collection(db,'threads'), orderBy('updatedAt','desc'));
-          onSnapshot(q, snap=>{
-            if (!currentThreadId && !snap.empty){
-              openThread(snap.docs[0].id);
-            }
-          });
+          onSnapshot(q, snap=>{ if (!currentThreadId && !snap.empty){ openThread(snap.docs[0].id); } });
         }
       } else {
-        await ensureThread(user.uid, '', '');
-        openThread(user.uid);
+        await ensureThread(user.uid, '', ''); openThread(user.uid);
       }
     });
   </script>
 
-  <!-- Service Worker FCM in root -->
+  <!-- Service Worker FCM -->
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('firebase-messaging-sw.js').catch(()=>{});
-    }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('firebase-messaging-sw.js').catch(()=>{}); }
   </script>
 </body>
 </html>
