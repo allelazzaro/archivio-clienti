@@ -6,308 +6,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <style>
     :root{
-      --brand:#128c7e; --bg:#e8edf2; --card:#fff; --line:#dde3ea; --ink:#222;
+      --brand:#128c7e; --bg:#ece5dd; --line:#d9d9d9; --ink:#222;
       --mine:#dcf8c6; --their:#fff;
-      --app-height: 100vh;
-    }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    /* Stili base - Normale */
-    html, body {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      -webkit-overflow-scrolling: touch;
-      -webkit-text-size-adjust: 100%;
+      --app-h: 100svh; /* usa small viewport unit (iOS friendly) */
     }
 
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--ink);
-      background: var(--bg);
-      -webkit-tap-highlight-color: transparent;
+    *{ box-sizing:border-box; margin:0; padding:0; }
+
+    html, body{ height:100%; overflow:hidden; -webkit-text-size-adjust:100%; }
+    body{
+      font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--ink); background:var(--bg);
     }
 
-    /* Layout container normale */
-    .app-wrapper {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: var(--app-height);
-      overflow: hidden;
+    /* Contenitore app a tutta altezza */
+    .app{
+      height:var(--app-h);
+      display:flex; flex-direction:column;
     }
 
-    /* Stili quando in iframe */
-    body.in-iframe {
-      position: static !important;
+    /* Header */
+    .header{
+      background:#075e54; color:#fff; height:52px; flex-shrink:0;
+      display:flex; align-items:center; gap:8px; padding:0 12px; font-weight:700;
+    }
+    .header .right{ margin-left:auto; }
+    .btn{ border:1px solid #ffffff40; color:#fff; background:transparent; padding:6px 10px; border-radius:999px; text-decoration:none; }
+
+    /* Area centrale: solo lista messaggi scorrevole */
+    .messages{
+      flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
+      display:flex; flex-direction:column;
+      padding:10px 10px 12px;
+      background:var(--bg);
     }
 
-    body.in-iframe .app-wrapper {
-      position: relative;
-      height: 100vh;
+    /* Composer fisso in basso */
+    .composer{
+      background:#f0f0f0; border-top:1px solid var(--line); flex-shrink:0;
+      display:flex; gap:8px; padding:8px; align-items:flex-end;
+      padding-bottom:calc(8px + env(safe-area-inset-bottom));
+    }
+    .composer textarea{
+      flex:1; min-height:40px; max-height:120px; resize:none;
+      border:1px solid #ccc; border-radius:20px; padding:10px 12px; outline:none;
+      font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+      background:#fff; overflow-y:auto;
+    }
+    .composer button{
+      background:var(--brand); color:#fff; border:none; border-radius:20px;
+      padding:10px 16px; height:40px; min-width:64px; font-weight:600; cursor:pointer;
+    }
+    .composer button:disabled{ opacity:.6; cursor:not-allowed; }
+
+    /* Bolle messaggi */
+    .bubble{
+      max-width:75%; margin:4px 0; padding:8px 12px; border-radius:12px;
+      box-shadow:0 1px 1px rgba(0,0,0,.05); white-space:pre-wrap; word-wrap:break-word;
+    }
+    .sent{ background:var(--mine); align-self:flex-end; border-top-right-radius:6px; }
+    .recv{ background:var(--their); align-self:flex-start; border-top-left-radius:6px; }
+    .meta{ font-size:12px; color:#666; text-align:right; margin-top:2px; }
+
+    /* Separatore giorno */
+    .day{
+      align-self:center; font-size:12px; color:#556; margin:8px 0; position:relative; padding:0 8px;
+    }
+    .day::before,.day::after{
+      content:""; position:absolute; top:50%; width:34vw; max-width:180px; height:1px; background:#cfd8dc;
+    }
+    .day::before{ right:100%; margin-right:8px; }
+    .day::after{ left:100%; margin-left:8px; }
+
+    /* Pulsante “vai in basso” */
+    #toBottom{
+      position:fixed; right:12px; bottom:calc(76px + env(safe-area-inset-bottom));
+      display:none; z-index:10; background:#fff; border:1px solid #ddd; border-radius:999px;
+      padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
     }
 
-    body.in-iframe .chat-app {
-      height: 100vh;
-    }
-
-    .chat-app {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      position: relative;
-    }
-
-    /* Header sempre visibile */
-    .header {
-      background: var(--brand);
-      color: #fff;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      height: 52px;
-      flex-shrink: 0;
-      position: relative;
-      z-index: 1000;
-      transform: translateZ(0);
-    }
-    
-    .header .title { font-weight: 700; flex: 1; }
-    .header .btn-h { 
-      color: #fff; background: transparent; border: 1px solid #ffffff59;
-      padding: 6px 10px; border-radius: 999px; text-decoration: none;
-    }
-    #btnList { display: none; }
-
-    /* Area principale */
-    .main-area {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      height: calc(100% - 52px);
-      overflow: hidden;
-      min-height: 0; /* Importante per Firefox */
-    }
-
-    /* Quando in iframe, nascondi la sidebar sempre */
-    body.in-iframe .main-area {
-      grid-template-columns: 1fr;
-    }
-
-    body.in-iframe .sidebar {
-      display: none;
-    }
-
-    .sidebar {
-      background: #fafafa;
-      border-right: 1px solid var(--line);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .chat-container {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      position: relative;
-      min-height: 0; /* Importante */
-    }
-
-    /* Area messaggi */
-    .messages-area {
-      flex: 1;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 12px;
-      background: linear-gradient(#dfe7ee, #eef3f8);
-      position: relative;
-      min-height: 0; /* Importante per Firefox */
-    }
-
-    /* Composer sempre visibile in fondo */
-    .composer {
-      background: var(--card);
-      border-top: 1px solid var(--line);
-      padding: 8px 10px;
-      display: flex;
-      gap: 8px;
-      min-height: 60px;
-      max-height: 160px;
-      align-items: flex-end;
-      flex-shrink: 0;
-      position: relative;
-      z-index: 100;
-    }
-
-    .composer textarea {
-      flex: 1;
-      min-height: 40px;
-      max-height: 120px;
-      resize: none;
-      border: 1px solid #cfd8e3;
-      border-radius: 20px;
-      padding: 10px 12px;
-      outline: none;
-      font: 16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #fff;
-      overflow-y: auto;
-      transform: translateZ(0);
-    }
-
-    .composer button {
-      background: var(--brand);
-      color: #fff;
-      border: none;
-      padding: 10px 14px;
-      border-radius: 18px;
-      min-width: 64px;
-      cursor: pointer;
-      flex-shrink: 0;
-      height: 40px;
-    }
-
-    /* Messaggi */
-    .bubble {
-      max-width: min(75%, 700px);
-      padding: 8px 10px 6px;
-      border-radius: 16px;
-      margin: 6px 0;
-      box-shadow: 0 1px 1px rgba(0,0,0,.05);
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-    .mine { background: var(--mine); margin-left: auto; border-top-right-radius: 6px; }
-    .theirs { background: var(--their); margin-right: auto; border-top-left-radius: 6px; }
-    .meta { font-size: 12px; color: #6c6c6c; text-align: right; margin-top: 2px; }
-
-    .daysep { 
-      text-align: center; margin: 8px 0; color: #556; font-size: 12px; position: relative;
-    }
-    .daysep:before, .daysep:after { 
-      content: ""; height: 1px; background: var(--line); position: absolute; top: 50%; width: 35%;
-    }
-    .daysep:before { left: 0; }
-    .daysep:after { right: 0; }
-
-    #toBottom {
-      position: absolute;
-      right: 12px;
-      bottom: 80px;
-      display: none;
-      z-index: 200;
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 8px 10px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.12);
-    }
-
-    .item { padding: 12px 14px; border-bottom: 1px solid var(--line); cursor: pointer; }
-    .item:hover { background: #f5f7fb; }
-    .item.active { background: #e7f5ef; }
-
-    /* Mobile - layout semplificato */
-    @media (max-width: 900px) {
-      .main-area { grid-template-columns: 1fr; }
-      .sidebar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: min(92vw, 420px);
-        height: 100%;
-        transform: translateX(-100%);
-        box-shadow: 6px 0 24px rgba(0,0,0,.15);
-        background: #fff;
-        z-index: 500;
-        transition: transform .25s ease;
-      }
-      .sidebar.open { transform: translateX(0); }
-      #btnList { display: inline-block; }
-      #overlay { 
-        position: absolute; inset: 0; background: rgba(0,0,0,.32); 
-        display: none; z-index: 400; 
-      }
-      #overlay.show { display: block; }
-    }
-
-    /* Toast notifiche */
-    .notification-toast {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      background: var(--brand);
-      color: white;
-      padding: 12px 16px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      max-width: 300px;
-      font-size: 14px;
-      cursor: pointer;
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-    }
-    
-    .notification-toast.show {
-      transform: translateX(0);
-    }
-    
-    .notification-toast .title {
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
+    /* Banner push opzionale */
+    #push-activation-wrapper{ display:none; text-align:center; padding:8px; background:#fff; border-bottom:1px solid #eee; }
+    #btn-enable-push{ background:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px; }
   </style>
 </head>
 <body>
-  <div class="app-wrapper">
-    <div class="chat-app">
-      <!-- HEADER FISSO -->
-          <header class="header">
-        <button id="btnList" class="btn-h">☰ Chat</button>
-        <div class="title">💬 Chat</div>
-        <a id="navBtn" href="#" class="btn-h">.</a>
-      </header>
+  <div class="app">
+    <header class="header">
+      <div>💬 Chat</div>
+      <a class="btn right" id="navBtn" href="index.html">⬅ Indietro</a>
+    </header>
 
-          <!-- 🔔 Wrapper per pulsante di attivazione delle notifiche push in chat (mostrato solo se necessario) -->
-          <div id="push-activation-wrapper" style="display:none; text-align:center; padding:8px;">
-            <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">🔔 Attiva notifiche push</button>
-          </div>
-
-      <!-- OVERLAY MOBILE -->
-      <div id="overlay"></div>
-
-      <!-- AREA PRINCIPALE -->
-      <div class="main-area">
-        <aside id="sidebar" class="sidebar">
-          <div class="item">Caricamento…</div>
-        </aside>
-        
-        <div class="chat-container">
-          <!-- MESSAGGI -->
-          <div id="messages" class="messages-area"></div>
-          
-          <!-- COMPOSER FISSO -->
-          <div id="composer" class="composer">
-            <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" 
-                     autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
-            <button id="send" type="button">Invia</button>
-          </div>
-        </div>
-      </div>
-
-      <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
+    <!-- Attivazione push (solo se necessario) -->
+    <div id="push-activation-wrapper">
+      <button id="btn-enable-push">🔔 Attiva notifiche push</button>
     </div>
+
+    <main id="messages" class="messages"></main>
+
+    <footer class="composer">
+      <textarea id="input" rows="1" placeholder="Scrivi un messaggio…" autocorrect="off" autocomplete="off" autocapitalize="off"></textarea>
+      <button id="send" type="button">Invia</button>
+    </footer>
   </div>
 
+  <button id="toBottom" title="Vai all'ultimo messaggio">▼</button>
+
   <script type="module">
+    /* ====================== Firebase core ====================== */
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, doc, setDoc, getDoc, updateDoc, collection, addDoc,
-      query, onSnapshot, orderBy, serverTimestamp, limit, arrayUnion
+      query, onSnapshot, orderBy, serverTimestamp, arrayUnion
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
@@ -324,19 +134,15 @@
     const VAPID_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db  = getFirestore(app);
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
-    const $ = (id) => document.getElementById(id);
-    const sidebar = $("sidebar");
-    const messages = $("messages");
-    const composer = $("composer");
+    /* ====================== UI refs ====================== */
+    const $ = id => document.getElementById(id);
+    const messagesEl = $("messages");
     const input = $("input");
     const sendBtn = $("send");
-    const btnList = $("btnList");
-    const overlay = $("overlay");
-    const navBtn = $("navBtn");
     const toBottom = $("toBottom");
 
     let currentUser = null;
@@ -345,409 +151,211 @@
     let isNearBottom = true;
     let firstLoad = true;
 
-    // Detect if in iframe
-    const params = new URLSearchParams(location.search);
-    const isInIframe = params.get("iframe") === "1" || window.parent !== window;
-    
-    if (isInIframe) {
-      document.body.classList.add("in-iframe");
-      // Nascondi elementi non necessari in iframe
-      navBtn.style.display = "none";
-      btnList.style.display = "none";
+    /* ====================== iOS/keyboard safe height ====================== */
+    function applyViewportHeight(){
+      const vh = (window.visualViewport?.height ?? window.innerHeight);
+      document.documentElement.style.setProperty('--app-h', `${vh}px`);
+    }
+    applyViewportHeight();
+    window.addEventListener('resize', applyViewportHeight);
+    window.visualViewport?.addEventListener('resize', applyViewportHeight);
+
+    /* ====================== Helpers ====================== */
+    const toDate = t => t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : new Date());
+    const dayKey = d => d.toDateString();
+    const hhmm = d => d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+
+    function scrollBottom(smooth=false){
+      messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    }
+    function atBottom(){
+      return messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 40;
     }
 
-    const fmtDT = (t) => t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : null);
-    const fmtDay = (d) => d.toLocaleDateString();
-    const fmtTime = (d) => d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-
-    // GESTIONE VIEWPORT STABILE PER IOS (solo se non in iframe)
-    function initStableViewport() {
-      if (isInIframe) return; // Skip se in iframe
-      
-      const initialHeight = window.innerHeight;
-      document.documentElement.style.setProperty('--app-height', initialHeight + 'px');
-
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-          const newHeight = window.innerHeight;
-          document.documentElement.style.setProperty('--app-height', newHeight + 'px');
-        }, 500);
-      });
-
-      document.addEventListener('touchmove', (e) => {
-        if (e.target.closest('.messages-area') || e.target.closest('.sidebar')) {
-          return;
-        }
-        e.preventDefault();
-      }, { passive: false });
-    }
-
-    // NOTIFICHE PUSH
-    async function setupNotifications() {
-      try {
-        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-          console.warn('Notifiche non supportate');
-          return;
-        }
-
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          console.warn('Permesso notifiche negato');
-          return;
-        }
-
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-        if (!token) {
-          console.warn('Token FCM non ricevuto');
-          return;
-        }
-
-        if (currentUser) {
-          await setDoc(doc(db, "users", currentUser.uid), {
-            fcmTokens: { [token]: true }
-          }, { merge: true });
-          console.log('Token FCM salvato per', currentUser.uid);
-        }
-
-      } catch (error) {
-        console.error('Errore setup notifiche:', error);
-      }
-    }
-
-    // Registra il Service Worker e salva il token FCM per l'utente loggato
-    async function enablePushForCurrentUser(user) {
-      try {
-        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-          console.warn('Notifiche o Service Worker non supportati');
-          return;
-        }
-        // Registra il service worker con percorso relativo corretto
-        const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js').catch((err) => {
-          console.warn('Registrazione service worker FCM fallita:', err);
-          throw err;
-        });
-        // Richiedi permesso notifiche
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') {
-          console.warn('Permesso notifiche negato');
-          return;
-        }
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
-        if (!token) {
-          console.warn('Token FCM non ricevuto (controlla HTTPS e firebase-messaging-sw.js)');
-          return;
-        }
-        if (user) {
-          await setDoc(doc(db, 'users', user.uid), {
-            fcmTokens: { [token]: true }
-          }, { merge: true });
-          console.log('✅ FCM token salvato per', user.uid);
-        }
-      } catch (e) {
-        console.warn('Errore durante enablePushForCurrentUser', e);
-      }
-    }
-
-    // Gestisce la richiesta di permesso e la visualizzazione del pulsante per le notifiche push
-    async function handlePushPermission(user) {
-      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-        return;
-      }
-      const wrapper = document.getElementById('push-activation-wrapper');
-      const btn = document.getElementById('btn-enable-push');
-      if (Notification.permission === 'granted') {
-        if (wrapper) wrapper.style.display = 'none';
-        await enablePushForCurrentUser(user);
-      } else {
-        if (wrapper) wrapper.style.display = 'block';
-        if (btn) {
-          btn.onclick = async () => {
-            btn.disabled = true;
-            try {
-              await enablePushForCurrentUser(user);
-            } finally {
-              if (wrapper) wrapper.style.display = 'none';
-              btn.disabled = false;
-            }
-          };
-        }
-      }
-    }
-
-    // Toast notifiche in-app
-    function showNotificationToast(title, body) {
-      const toast = document.createElement('div');
-      toast.className = 'notification-toast';
-      toast.innerHTML = `
-        <div class="title">${title}</div>
-        <div>${body}</div>
-      `;
-
-      document.body.appendChild(toast);
-      
-      setTimeout(() => toast.classList.add('show'), 100);
-
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 5000);
-
-      toast.addEventListener('click', () => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      });
-    }
-
-    // Gestione notifiche in foreground
-    onMessage(messaging, (payload) => {
-      console.log('Notifica ricevuta:', payload);
-      
-      const title = payload.notification?.title || 'Nuovo messaggio';
-      const body = payload.notification?.body || '';
-      
-      if (document.hidden || !document.hasFocus()) {
-        showNotificationToast(title, body);
-      }
-    });
-
-    function scrollBottom(smooth = false) {
-      messages.scrollTo({top: messages.scrollHeight, behavior: smooth ? "smooth" : "auto"});
-    }
-
-    function atBottom() {
-      return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40;
-    }
-
-    // Mobile drawer (solo se non in iframe)
-    if (!isInIframe) {
-      const openSidebar = () => { sidebar.classList.add("open"); overlay.classList.add("show"); };
-      const closeSidebar = () => { sidebar.classList.remove("open"); overlay.classList.remove("show"); };
-      btnList.addEventListener("click", openSidebar);
-      overlay.addEventListener("click", closeSidebar);
-    }
-
-    // Auto-resize textarea
-    function autoresize() {
+    function autoresize(){
       input.style.height = "auto";
-      const maxHeight = 120;
-      input.style.height = Math.min(input.scrollHeight, maxHeight) + "px";
+      input.style.height = Math.min(input.scrollHeight, 120) + "px";
     }
 
-    // Event listeners
-    input.addEventListener("input", autoresize);
-    input.addEventListener('focus', () => {
-      setTimeout(() => {
-        if (isNearBottom) scrollBottom(false);
-      }, 300);
-    });
-
-    // Click su composer per focus
-    composer.addEventListener('click', (e) => {
-      if (e.target !== input) {
-        input.focus();
-      }
-    });
-
-    // Scroll tracking
-    messages.addEventListener("scroll", () => {
-      isNearBottom = atBottom();
-      toBottom.style.display = isNearBottom ? "none" : "block";
-    });
-    toBottom.addEventListener("click", () => scrollBottom(true));
-
-    // UI Render
-    function renderDaySeparator(date) {
-      const sep = document.createElement("div");
-      sep.className = "daysep";
-      sep.textContent = fmtDay(date);
-      messages.appendChild(sep);
+    /* ====================== Render ====================== */
+    function renderDaySeparator(date){
+      const div = document.createElement('div');
+      div.className = 'day';
+      div.textContent = date.toLocaleDateString();
+      messagesEl.appendChild(div);
     }
-    
-    function renderMessage(m) {
+
+    function escapeHTML(s){ return (s||"").replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    function renderMessage(m){
       const mine = m.sender === currentUser.uid;
-      const wrap = document.createElement("div");
-      wrap.className = "bubble " + (mine ? "mine" : "theirs");
-      wrap.innerHTML = `${(m.text||"").replace(/</g,"&lt;")}<div class="meta">${fmtTime(fmtDT(m.createdAt)||new Date())}</div>`;
-      messages.appendChild(wrap);
+      const div = document.createElement('div');
+      div.className = `bubble ${mine ? 'sent' : 'recv'}`;
+      div.innerHTML = `${escapeHTML(m.text)}<div class="meta">${hhmm(toDate(m.createdAt))}</div>`;
+      messagesEl.appendChild(div);
     }
 
-    // Firebase
-    async function ensureThread(driverUid, driverName = "", driverEmail = "") {
+    /* ====================== Threads ====================== */
+    async function ensureThread(driverUid, driverName="", driverEmail=""){
       const tref = doc(db, "threads", driverUid);
-      const snap = await getDoc(tref);
-      if (!snap.exists()) {
+      const s = await getDoc(tref);
+      if (!s.exists()){
         await setDoc(tref, {
-          participants: [ADMIN_UID, driverUid],
+          participants:[ADMIN_UID, driverUid],
           driverName, driverEmail,
-          lastMessage: "", updatedAt: serverTimestamp()
+          lastMessage:"", updatedAt: serverTimestamp()
         });
       }
       return tref;
     }
 
-    function openThread(driverUid) {
+    function openThread(driverUid){
       currentThreadId = driverUid;
       firstLoad = true;
-
-      document.querySelectorAll(".item").forEach(n => n.classList.remove("active"));
-      const act = document.getElementById("it-" + driverUid); 
-      if (act) act.classList.add("active");
-      
-      if (unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
-      messages.innerHTML = "";
-      let lastDay = "";
+      messagesEl.innerHTML = "";
+      if (unsubMsgs){ unsubMsgs(); unsubMsgs = null; }
 
       const msgsRef = collection(db, "threads", driverUid, "messages");
-      const qMsgs = query(msgsRef, orderBy("createdAt", "asc"));
-      
-      unsubMsgs = onSnapshot(qMsgs, snap => {
-        messages.innerHTML = "";
+      const qMsgs = query(msgsRef, orderBy("createdAt","asc"));
+
+      let lastDay = "";
+      unsubMsgs = onSnapshot(qMsgs, snap=>{
+        messagesEl.innerHTML = "";
         lastDay = "";
         const toMark = [];
-        
-        snap.forEach(d => {
+
+        snap.forEach(d=>{
           const m = d.data();
-          const dt = fmtDT(m.createdAt) || new Date();
-          const day = dt.toDateString();
-          if (day !== lastDay) { renderDaySeparator(dt); lastDay = day; }
+          const dt = toDate(m.createdAt);
+          const dk = dayKey(dt);
+          if (dk !== lastDay){ renderDaySeparator(dt); lastDay = dk; }
           renderMessage(m);
+
           const rb = Array.isArray(m.readBy) ? m.readBy : [];
           if (!rb.includes(currentUser.uid)) toMark.push(d.id);
         });
-        
-        if (toMark.length) {
-          toMark.forEach(id => {
-            const mref = doc(db, "threads", driverUid, "messages", id);
-            updateDoc(mref, { readBy: arrayUnion(currentUser.uid) }).catch(() => {});
-          });
-        }
 
-        if (firstLoad) {
-          scrollBottom(false);
-          firstLoad = false;
-        } else if (isNearBottom) {
-          setTimeout(() => scrollBottom(false), 50);
-        }
+        // marca come letti
+        toMark.forEach(id=>{
+          updateDoc(doc(db,"threads",driverUid,"messages",id), { readBy: arrayUnion(currentUser.uid) }).catch(()=>{});
+        });
+
+        if (firstLoad){ scrollBottom(false); firstLoad = false; }
+        else if (isNearBottom){ setTimeout(()=>scrollBottom(false), 50); }
+      });
+    }
+
+    /* ====================== Send ====================== */
+    async function send(){
+      const text = input.value.trim();
+      if (!text || !currentThreadId) return;
+
+      const msgsRef = collection(db, "threads", currentThreadId, "messages");
+      await addDoc(msgsRef, {
+        text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy:[currentUser.uid]
+      });
+      await updateDoc(doc(db,"threads",currentThreadId), {
+        lastMessage: text, updatedAt: serverTimestamp()
       });
 
-      if (!isInIframe) {
-        const closeSidebar = () => { sidebar.classList.remove("open"); overlay.classList.remove("show"); };
-        closeSidebar();
+      input.value = ""; autoresize(); input.focus(); scrollBottom(false);
+    }
+
+    sendBtn.addEventListener('click', send);
+    input.addEventListener('keydown', e=>{
+      if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
+    });
+    input.addEventListener('input', autoresize);
+    input.addEventListener('focus', ()=> setTimeout(()=> isNearBottom && scrollBottom(false), 250));
+    messagesEl.addEventListener('scroll', ()=>{
+      isNearBottom = atBottom();
+      toBottom.style.display = isNearBottom ? 'none' : 'block';
+    });
+    toBottom.addEventListener('click', ()=> scrollBottom(true));
+    // focus rapido toccando l’area composer
+    document.querySelector('.composer').addEventListener('click', e=>{ if (e.target.tagName!=='TEXTAREA') input.focus(); });
+
+    /* ====================== Push (opzionale) ====================== */
+    async function enablePushForUser(user){
+      try{
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+        const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+        const perm = await Notification.requestPermission();
+        if (perm!=='granted') return;
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+        if (!token) return;
+        await setDoc(doc(db,'users',user.uid), { fcmTokens:{ [token]: true } }, { merge:true });
+      }catch(e){ console.warn('Push setup error', e); }
+    }
+
+    async function handlePushPermission(user){
+      if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+      const wrap = document.getElementById('push-activation-wrapper');
+      const btn = document.getElementById('btn-enable-push');
+      if (Notification.permission==='granted'){
+        wrap.style.display='none';
+        await enablePushForUser(user);
+      } else {
+        wrap.style.display='block';
+        btn.onclick = async ()=>{
+          btn.disabled = true;
+          try{ await enablePushForUser(user); }
+          finally{ wrap.style.display='none'; btn.disabled=false; }
+        };
       }
     }
 
-    // Send message
-    async function send() {
-      const text = input.value.trim();
-      if (!text || !currentThreadId) return;
-      
-      const msgsRef = collection(db, "threads", currentThreadId, "messages");
-      await addDoc(msgsRef, {
-        text, sender: currentUser.uid, createdAt: serverTimestamp(), readBy: [currentUser.uid]
-      });
-      await updateDoc(doc(db, "threads", currentThreadId), {
-        lastMessage: text, updatedAt: serverTimestamp()
-      });
-      
-      input.value = "";
-      autoresize();
-      input.focus();
-      scrollBottom(false);
-    }
-
-    sendBtn.addEventListener("click", send);
-    input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) { 
-        e.preventDefault(); 
-        send(); 
+    onMessage(messaging, payload=>{
+      // toast in-Page solo se pagina non a fuoco
+      if (document.hidden || !document.hasFocus()){
+        const title = payload.notification?.title || 'Nuovo messaggio';
+        const body  = payload.notification?.body  || '';
+        alert(`${title}\n${body}`); // minimal, sostituibile con un toast custom
       }
     });
 
-    function setHeaderForRole(isAdmin) {
-      if (!isInIframe) {
-        if (isAdmin) { navBtn.textContent = "🏠 Home"; navBtn.href = "home.html"; }
-        else { navBtn.textContent = "⬅ Torna all'app"; navBtn.href = "index.html"; }
-      }
-    }
-
-    function addSidebarItem(uid, name) {
-      const el = document.createElement("div");
-      el.id = "it-" + uid;
-      el.className = "item";
-      el.textContent = name || uid;
-      el.addEventListener("click", () => openThread(uid));
-      sidebar.appendChild(el);
-    }
-
-    // Inizializzazione
-    if (!isInIframe) {
-      initStableViewport();
-    }
-
-    // Auth
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) { 
-        if (!isInIframe) {
-          location.href = "index.html"; 
-        }
-        return; 
-      }
+    /* ====================== Auth & boot ====================== */
+    onAuthStateChanged(auth, async user=>{
+      if (!user){ location.href='index.html'; return; }
       currentUser = user;
 
-      // Gestisci permessi notifiche push dopo login
+      // push
       await handlePushPermission(user);
 
+      // routing: se admin può passare uid=? per aprire un driver specifico
+      const params = new URLSearchParams(location.search);
+      const target = params.get('uid');
       const isAdmin = user.uid === ADMIN_UID;
-      setHeaderForRole(isAdmin);
+      document.getElementById('navBtn').textContent = isAdmin ? '🏠 Admin' : '⬅ Torna';
+      document.getElementById('navBtn').href = isAdmin ? 'admin.html' : 'index.html';
 
-      const target = params.get("uid");
-      const driverUid = (target && target !== ADMIN_UID) ? target : null;
-
-      if (isAdmin) {
-        if (driverUid) {
-          const u = await getDoc(doc(db, "users", driverUid));
-          const d = u.exists() ? u.data() : {};
-          await ensureThread(driverUid, d.name || "", d.email || "");
-          sidebar.innerHTML = "";
-          addSidebarItem(driverUid, d.name || driverUid);
-          openThread(driverUid);
+      if (isAdmin){
+        if (target){
+          const us = await getDoc(doc(db,'users',target));
+          const d  = us.exists() ? us.data() : {};
+          await ensureThread(target, d.name||'', d.email||'');
+          openThread(target);
         } else {
-          sidebar.innerHTML = "";
-          const qThreads = query(collection(db, "threads"), orderBy("updatedAt", "desc"));
-          onSnapshot(qThreads, snap => {
-            sidebar.innerHTML = "";
-            if (snap.empty) { sidebar.innerHTML = "<div class='item'>Nessuna chat</div>"; return; }
-            snap.forEach(t => {
-              const d = t.data();
-              addSidebarItem(t.id, d.driverName || t.id);
-            });
-            if (!currentThreadId && !snap.empty) {
-              const first = snap.docs[0];
-              openThread(first.id);
+          // se nessun target, apri la prima chat attiva
+          const q = query(collection(db,'threads'), orderBy('updatedAt','desc'));
+          onSnapshot(q, snap=>{
+            if (!currentThreadId && !snap.empty){
+              openThread(snap.docs[0].id);
             }
           });
         }
       } else {
-        await ensureThread(user.uid, "", "");
-        sidebar.innerHTML = "";
-        addSidebarItem(user.uid, "Chat con Admin");
+        await ensureThread(user.uid, '', '');
         openThread(user.uid);
       }
     });
   </script>
 
-  <!-- Service Worker per notifiche push -->
+  <!-- Service Worker FCM in root -->
   <script>
     if ('serviceWorker' in navigator) {
-      // Registra il Service Worker con percorso relativo corretto
-      navigator.serviceWorker.register('firebase-messaging-sw.js')
-        .then(registration => {
-          console.log('✅ Service Worker registrato:', registration.scope);
-        })
-        .catch(err => {
-          console.error('❌ Errore registrazione Service Worker:', err);
-        });
+      navigator.serviceWorker.register('firebase-messaging-sw.js').catch(()=>{});
     }
-</script>
+  </script>
 </body>
 </html>
