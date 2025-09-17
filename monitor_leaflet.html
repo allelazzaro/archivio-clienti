@@ -6,13 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
     <style>
-      body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-      #map { height: 70vh; width: 100%; display:none; }
-      #log { padding: 10px; font-size: 14px; }
-      .entry { border-bottom: 1px solid #ccc; padding: 6px 0; }
+      :root{ --ink:#222; --muted:#666; }
+      body { font-family: Arial, sans-serif; margin: 0; padding: 0; color:var(--ink); }
       h2 { background: #007bff; color: white; padding: 10px; margin: 0; }
       #gate { padding:16px; }
+      #map { height: 90vh; width: 100%; display:none; }
       .muted{ color:#666; font-size:13px; padding:10px; }
+      .custom-marker-bullet {
+        width:16px; height:16px; border-radius:50%;
+        border:2px solid #fff; box-shadow:0 0 6px rgba(0,0,0,.35);
+      }
     </style>
   </head>
   <body>
@@ -20,13 +23,12 @@
     <div id="gate">Controllo accesso in corso...</div>
     <div id="map"></div>
     <div class="muted">Mostro solo i mezzi con tracciamento attivo e un aggiornamento negli ultimi 5 minuti.</div>
-    <div id="log"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-      import { getFirestore, collection, query, orderBy, limit, onSnapshot, doc, getDoc, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+      import { getFirestore, collection, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
       import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
       const firebaseConfig = {
@@ -39,84 +41,123 @@
       };
 
       const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+      const db   = getFirestore(app);
       const auth = getAuth(app);
+      const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
-      const posizioniRef = collection(db, "posizioniMezzo");
+      const posRef = collection(db, "posizioniMezzo");
 
-      const gate = document.getElementById("gate");
+      const gate   = document.getElementById("gate");
       const mapDiv = document.getElementById("map");
-      const logDiv = document.getElementById("log");
 
-      function addLog(msg){
-        const d = document.createElement("div");
-        d.className = "entry";
-        d.textContent = msg;
-        logDiv.prepend(d);
+      // Stato mappa/marker
+      let map = null;
+      const markers = new Map();
+
+      function statusColor(online, updatedAtMs){
+        if (!online) return "#e74c3c";
+        const age = Date.now() - updatedAtMs;
+        if (age <= 2*60*1000) return "#2ecc71"; // verde
+        if (age <= 5*60*1000) return "#f39c12"; // arancio
+        return "#e74c3c";
       }
 
+      function bulletIcon(color){
+        return L.divIcon({
+          className: "",
+          html: `<div class="custom-marker-bullet" style="background:${color}"></div>`,
+          iconSize: [16,16],
+          iconAnchor: [8,8]
+        });
+      }
+
+      function upsertMarker(uid, data){
+        const lat = Number(data.lat);
+        const lng = Number(data.lng);
+        if (Number.isNaN(lat) || Number.isNaN(lng)) { removeMarker(uid); return; }
+
+        const ts = data.updatedAt?.toDate?.()?.getTime?.() || 0;
+        const online = data.online === true;
+        const age = Date.now() - ts;
+
+        // Solo online entro 5 minuti
+        if (!(online && age <= 5*60*1000)) { removeMarker(uid); return; }
+
+        const color = statusColor(online, ts);
+        const mezzo = data.mezzo || uid;
+        const acc   = data.accuracy!=null ? ` (±${Math.round(Number(data.accuracy))} m)` : "";
+        const time  = ts ? new Date(ts).toLocaleString() : "—";
+        const html  = `<b>${mezzo}</b><br>${lat.toFixed(5)}, ${lng.toFixed(5)}${acc}<br>Agg.: ${time}`;
+
+        if (!markers.has(uid)){
+          const m = L.marker([lat,lng], { icon: bulletIcon(color) }).addTo(map).bindPopup(html);
+          markers.set(uid, { marker: m, lastTs: ts });
+        } else {
+          const obj = markers.get(uid);
+          obj.marker.setLatLng([lat,lng]);
+          obj.marker.setIcon(bulletIcon(color));
+          obj.marker.setPopupContent(html);
+          obj.lastTs = ts;
+        }
+      }
+
+      function removeMarker(uid){
+        const obj = markers.get(uid);
+        if (obj){ map.removeLayer(obj.marker); markers.delete(uid); }
+      }
+
+      function initMapOnce(){
+        if (map) return;
+        mapDiv.style.display = "block";
+        map = L.map("map");
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap"
+        }).addTo(map);
+        map.setView([42.0, 12.5], 6);
+        setTimeout(()=> map.invalidateSize(), 0);
+        window.addEventListener('resize', () => map.invalidateSize());
+      }
+
+      let initialFitDone = false;
+      function fitToMarkersIfNeeded(){
+        if (initialFitDone || !map) return;
+        const ll = [];
+        markers.forEach(m => ll.push(m.marker.getLatLng()));
+        if (ll.length){
+          map.fitBounds(L.latLngBounds(ll), { padding:[40,40] });
+          initialFitDone = true;
+        }
+      }
+
+      // 🔐 Gate di accesso
       onAuthStateChanged(auth, async (user) => {
         if (!user) { gate.innerHTML = `Non sei autenticato. <a href="index.html">Vai al login</a>`; return; }
-        const prof = await getDoc(doc(db, "users", user.uid));
-        const p = prof.exists() ? prof.data() : {};
-        const approved = p.approved === true;
-        const isAdmin  = user.uid === "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
-        if (!approved && !isAdmin) { gate.innerHTML = `Il tuo account non è approvato. <a href="index.html">Torna all'app</a>`; return; }
 
-        gate.remove(); mapDiv.style.display = 'block';
-        const map = L.map("map").setView([44.8, 10.3], 7);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+        const udoc = await getDoc(doc(db,"users",user.uid));
+        const u    = udoc.exists() ? udoc.data() : {};
+        const isAdmin  = user.uid === ADMIN_UID;
+        const approved = u.approved === true;
 
-        const markers = new Map(); // uid -> marker
-        const activeDrivers = new Set(); // uid con tracking == true
+        if (!approved && !isAdmin) {
+          gate.innerHTML = `Il tuo account non è approvato. <a href="index.html">Torna all'app</a>`;
+          return;
+        }
 
-        // 1) Tieni aggiornata la lista di driver con tracking attivo
-        const usersRef = collection(db, "users");
-        const qActive = query(usersRef, where("tracking", "==", true));
-        onSnapshot(qActive, (snap)=>{
-          activeDrivers.clear();
-          snap.forEach(d => activeDrivers.add(d.id));
-        });
+        gate.remove();
+        initMapOnce();
 
-        // 2) Ascolta le ultime posizioni (ordine decrescente, limito per performance)
-        const qPos = query(posizioniRef, orderBy("timestamp","desc"), limit(500));
-        onSnapshot(qPos, (snap)=>{
-          const latestByUid = new Map();
-          snap.forEach(docSnap => {
-            const data = docSnap.data();
-            const uid = data.uid;
-            const tsDate = data.timestamp?.toDate?.() ? data.timestamp.toDate() : null;
-            if (!uid || !activeDrivers.has(uid)) return; // mostra solo chi ha tracking attivo
-            if (!latestByUid.has(uid)) latestByUid.set(uid, {data, tsDate}); // primo = più recente grazie all'orderBy desc
-          });
-
-          // Aggiorna marker solo se posizione recente (<= 5 minuti)
-          latestByUid.forEach(({data, tsDate}, uid) => {
-            const when = tsDate || new Date(0);
-            const ageMs = Date.now() - when.getTime();
-            if (ageMs > 5*60*1000) {
-              if (markers.has(uid)) { map.removeLayer(markers.get(uid)); markers.delete(uid); }
-              return;
-            }
-            const lat = data.latitudine, lng = data.longitudine;
-            const label = data.mezzo || uid;
-            if (!markers.has(uid)) {
-              const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${label}</b><br>${when.toLocaleString()}`);
-              markers.set(uid, m);
+        onSnapshot(posRef, (snap)=>{
+          snap.docChanges().forEach(ch => {
+            const uid = ch.doc.id;
+            const data = ch.doc.data() || {};
+            if (ch.type === "removed") {
+              removeMarker(uid);
             } else {
-              markers.get(uid).setLatLng([lat, lng]).setPopupContent(`<b>${label}</b><br>${when.toLocaleString()}`);
+              upsertMarker(uid, data);
             }
           });
-
-          // Rimuovi marker di chi non è più attivo o non ha update recente
-          [...markers.keys()].forEach(uid => {
-            if (!latestByUid.has(uid)) {
-              map.removeLayer(markers.get(uid));
-              markers.delete(uid);
-            }
-          });
+          fitToMarkersIfNeeded();
         });
       });
     </script>

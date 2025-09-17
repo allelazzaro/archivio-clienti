@@ -27,128 +27,48 @@
     .muted { color: var(--muted); font-size: 13px; }
     .row { display:flex; gap:8px; }
     .row > * { flex:1; }
+
     #status { margin-top: 10px; font-size: 14px; font-style: italic; }
     button { cursor:pointer; }
     button:disabled { opacity:.6; cursor:not-allowed; }
+
     .userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
     .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
     .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; position: relative; }
     
-    /* 🔔 Stili per il contatore messaggi */
+    /* 🔔 Contatore messaggi */
     .chat-counter {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background-color: #f44336;
-      color: white;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: bold;
-      min-width: 20px;
-      border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      position: absolute; top: -8px; right: -8px;
+      background-color: #f44336; color: #fff; border-radius: 50%;
+      width: 20px; height: 20px; min-width:20px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.2);
     }
-    
-    .chat-counter.hidden {
-      display: none;
-    }
-    
-    /* Animazione per nuovi messaggi */
-    @keyframes bounce {
-      0%, 20%, 60%, 100% { transform: translateY(0); }
-      40% { transform: translateY(-10px); }
-      80% { transform: translateY(-5px); }
-    }
-    
-    .chat-counter.new-message {
-      animation: bounce 1s ease-in-out;
-    }
-    
-    /* Toast popup per messaggi */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      max-width: 320px;
-    }
-    
+    .chat-counter.hidden { display:none; }
+    @keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
+    .chat-counter.new-message { animation: bounce 1s ease-in-out; }
+
+    /* 🍞 Toast popup */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
     .toast {
-      background: white;
-      border: 1px solid #e0e0e0;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      padding: 16px;
-      margin-bottom: 12px;
-      transform: translateX(100%);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
+      background:#fff; border:1px solid #e0e0e0; border-radius:12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.15);
+      padding:16px; margin-bottom:12px;
+      transform:translateX(100%); transition:all .3s cubic-bezier(.4,0,.2,1);
+      cursor:pointer; position:relative; overflow:hidden;
     }
-    
-    .toast.show {
-      transform: translateX(0);
-    }
-    
-    .toast.hide {
-      transform: translateX(100%);
-      opacity: 0;
-    }
-    
-    .toast::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: var(--brand);
-    }
-    
-    .toast-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--brand);
-    }
-    
-    .toast-body {
-      color: #333;
-      font-size: 14px;
-      line-height: 1.4;
-      margin-left: 24px;
-    }
-    
+    .toast.show { transform:translateX(0); }
+    .toast.hide { transform:translateX(100%); opacity:0; }
+    .toast::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--brand); }
+    .toast-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:600; font-size:14px; color:var(--brand); }
+    .toast-body { color:#333; font-size:14px; line-height:1.4; margin-left:24px; }
     .toast-close {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: none;
-      border: none;
-      font-size: 18px;
-      color: #999;
-      cursor: pointer;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: background-color 0.2s;
+      position:absolute; top:8px; right:8px; width:24px; height:24px;
+      background:none; border:none; font-size:18px; color:#999; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; border-radius:50%;
+      transition: background-color .2s;
     }
-    
-    .toast-close:hover {
-      background-color: #f0f0f0;
-    }
+    .toast-close:hover { background-color:#f0f0f0; }
   </style>
 </head>
 <body>
@@ -191,7 +111,7 @@
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-    <!-- 🔔 Wrapper per pulsante di attivazione delle notifiche push (mostrato solo se necessario) -->
+    <!-- 🔔 Attivazione push (solo se necessario) -->
     <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
       <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">🔔 Attiva notifiche push</button>
     </div>
@@ -201,7 +121,6 @@
     </div>
 
     <div class="row" style="align-items:center;">
-      <!-- 🔔 Chat con contatore messaggi -->
       <a class="link-pill" href="chat.html" id="chat-link">
         💬 Chat con Admin
         <span class="chat-counter hidden" id="chat-counter">0</span>
@@ -232,8 +151,6 @@
   <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
-// AGGIUNGI QUESTO CODICE ALL'INIZIO DEL TUO <script type="module"> in index.html
-
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
       authDomain: "archivio-clienti-trasporti.firebaseapp.com",
@@ -252,7 +169,6 @@
       getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
       onAuthStateChanged, signOut, updateProfile
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    // 🔔 IMPORT MESSAGING (nuovo)
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
     import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -263,203 +179,123 @@
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
     const clientiRef   = collection(db, "clienti");
-    const posizioniRef = collection(db, "posizioniMezzo");
 
     let nomeUtente = ""; // letto da Firestore o email
     let clienteDaModificare = null;
-    let watchId = null;
 
     // 🔔 Variabili per il contatore chat
     let chatUnsub = null;
     let currentUserId = null;
-    let lastMessageCount = 0; // Per tracciare nuovi messaggi
+    let lastMessageCount = 0;
 
-    // 🍞 Sistema Toast per messaggi
+    // 🍞 Toast
     function createToast(title, message, onClick) {
       const container = document.getElementById('toast-container');
       if (!container) return;
-
       const toast = document.createElement('div');
       toast.className = 'toast';
       toast.innerHTML = `
         <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-        <div class="toast-header">
-          <span>💬</span>
-          ${title}
-        </div>
+        <div class="toast-header"><span>💬</span>${title}</div>
         <div class="toast-body">${message}</div>
       `;
-
-      // Click per aprire chat
       if (onClick) {
         toast.addEventListener('click', (e) => {
           if (e.target.classList.contains('toast-close')) return;
-          onClick();
-          hideToast(toast);
+          onClick(); hideToast(toast);
         });
       }
-
       container.appendChild(toast);
-      
-      // Anima l'entrata
       setTimeout(() => toast.classList.add('show'), 100);
-      
-      // Auto-hide dopo 6 secondi
       setTimeout(() => hideToast(toast), 6000);
-      
       return toast;
     }
-
-    function hideToast(toast) {
-      toast.classList.add('hide');
-      setTimeout(() => {
-        if (toast.parentElement) {
-          toast.remove();
-        }
-      }, 300);
-    }
-
-    function showMessageToast(senderName, messageText) {
-      const truncatedMessage = messageText.length > 80 
-        ? messageText.substring(0, 80) + '...' 
-        : messageText;
-        
-      createToast(
-        `Nuovo messaggio da ${senderName}`,
-        truncatedMessage,
-        () => {
-          // Apri la chat quando clicchi sul toast
-          window.location.href = 'chat.html';
-        }
-      );
+    function hideToast(toast){ toast.classList.add('hide'); setTimeout(()=>{ if(toast.parentElement) toast.remove(); },300); }
+    function showMessageToast(senderName, messageText){
+      const truncated = messageText.length>80 ? messageText.substring(0,80)+'…' : messageText;
+      createToast(`Nuovo messaggio da ${senderName}`, truncated, ()=>{ window.location.href='chat.html'; });
     }
 
     let clientiUnsub = null;
-    function startClientiListener() {
+    function startClientiListener(){
       if (clientiUnsub) return;
       const q = query(clientiRef);
-      clientiUnsub = onSnapshot(q, mostraClienti, (err) => console.error(err));
+      clientiUnsub = onSnapshot(q, mostraClienti, (err)=>console.error(err));
     }
-    function stopClientiListener() { if (clientiUnsub) { clientiUnsub(); clientiUnsub = null; } }
+    function stopClientiListener(){ if (clientiUnsub){ clientiUnsub(); clientiUnsub=null; } }
 
-    // 🔔 Funzioni per gestire il contatore chat - CORRETTE per readBy come ARRAY
-    function startChatListener(userId) {
+    // 🔔 Chat unread counter
+    function startChatListener(userId){
       if (chatUnsub) return;
-      
-      // Query per messaggi nel thread dell'utente (ultimi 50 per performance)
       const threadMessagesRef = collection(db, "threads", userId, "messages");
-      const q = query(threadMessagesRef, orderBy("createdAt", "desc"), limit(50));
-      
-      chatUnsub = onSnapshot(q, (snapshot) => {
-        let unreadCount = 0;
-        let latestUnreadMessage = null;
-        const currentTime = Date.now();
-        
-        snapshot.forEach(doc => {
+      const q = query(threadMessagesRef, orderBy("createdAt","desc"), limit(50));
+      chatUnsub = onSnapshot(q, (snapshot)=>{
+        let unreadCount=0; let latestUnreadMessage=null; const now=Date.now();
+        snapshot.forEach(doc=>{
           const msg = doc.data();
-          // Conta solo i messaggi ricevuti (non inviati dall'utente corrente)
-          if (msg.sender !== userId) {
+          if (msg.sender !== userId){
             const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
-            if (!readBy.includes(userId)) {
+            if (!readBy.includes(userId)){
               unreadCount++;
-              
-              // Trova il messaggio non letto più recente per il toast
-              if (!latestUnreadMessage) {
-                const msgTime = msg.createdAt?.toDate?.()?.getTime() || 0;
-                // Mostra toast solo per messaggi degli ultimi 30 secondi
-                if (currentTime - msgTime < 30000) {
-                  latestUnreadMessage = msg;
-                }
+              if (!latestUnreadMessage){
+                const t = msg.createdAt?.toDate?.()?.getTime() || 0;
+                if (now - t < 30000) latestUnreadMessage = msg;
               }
             }
           }
         });
-        
-        // Mostra toast solo se ci sono nuovi messaggi (non al caricamento iniziale)
-        if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0) {
-          // Solo se la pagina è visibile e attiva
-          if (!document.hidden && document.hasFocus()) {
+        if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0){
+          if (!document.hidden && document.hasFocus()){
             showMessageToast('Admin', latestUnreadMessage.text || 'Nuovo messaggio');
           }
         }
-        
         lastMessageCount = unreadCount;
         updateChatCounter(unreadCount);
         console.log(`🔔 Messaggi non letti: ${unreadCount}`);
-      }, (err) => console.error("Errore listener chat:", err));
+      }, (err)=>console.error("Errore listener chat:", err));
     }
-
-    function stopChatListener() {
-      if (chatUnsub) {
-        chatUnsub();
-        chatUnsub = null;
-        lastMessageCount = 0; // Reset contatore messaggi
-      }
-    }
-
-    function updateChatCounter(count) {
+    function stopChatListener(){ if (chatUnsub){ chatUnsub(); chatUnsub=null; lastMessageCount=0; } }
+    function updateChatCounter(count){
       const counter = document.getElementById('chat-counter');
-      
-      if (count > 0) {
-        counter.textContent = count > 99 ? '99+' : count;
+      if (count>0){
+        counter.textContent = count>99 ? '99+' : count;
         counter.classList.remove('hidden');
-        
-        // Aggiungi animazione per nuovi messaggi
-        counter.classList.add('new-message');
-        setTimeout(() => counter.classList.remove('new-message'), 1000);
-        
-        // Cambia il titolo della pagina per notificare
+        counter.classList.add('new-message'); setTimeout(()=>counter.classList.remove('new-message'),1000);
         document.title = `(${count}) Archivio Clienti - Trasporti`;
       } else {
-        counter.classList.add('hidden');
-        document.title = 'Archivio Clienti - Trasporti';
+        counter.classList.add('hidden'); document.title='Archivio Clienti - Trasporti';
       }
     }
 
-    // 🔔 Segna messaggi come letti quando si clicca sulla chat - CORRETTO per ARRAY
-    document.getElementById('chat-link').addEventListener('click', async (e) => {
-      if (currentUserId) {
-        try {
-          // Riferimento ai messaggi del thread dell'utente
-          const threadMessagesRef = collection(db, "threads", currentUserId, "messages");
-          const q = query(threadMessagesRef);
-          
-          const snapshot = await getDocs(q);
-          
-          // Segna tutti i messaggi ricevuti come letti
-          const batch = [];
-          snapshot.forEach((doc) => {
-            const msg = doc.data();
-            // Solo messaggi ricevuti (non inviati dall'utente corrente)
-            if (msg.sender !== currentUserId) {
-              const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
-              // Se l'utente non è già nell'array readBy, aggiungilo
-              if (!readBy.includes(currentUserId)) {
-                batch.push(updateDoc(doc.ref, { 
-                  readBy: arrayUnion(currentUserId) 
-                }));
-              }
+    // segna letti quando si apre la chat
+    document.getElementById('chat-link').addEventListener('click', async ()=>{
+      if (!currentUserId) return;
+      try{
+        const threadMessagesRef = collection(db, "threads", currentUserId, "messages");
+        const q = query(threadMessagesRef);
+        const snapshot = await getDocs(q);
+        const batch = [];
+        snapshot.forEach((d)=>{
+          const msg = d.data();
+          if (msg.sender !== currentUserId){
+            const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
+            if (!readBy.includes(currentUserId)){
+              batch.push(updateDoc(d.ref, { readBy: arrayUnion(currentUserId) }));
             }
-          });
-          
-          if (batch.length > 0) {
-            await Promise.all(batch);
-            console.log('✅ Messaggi segnati come letti');
           }
-        } catch (error) {
-          console.error('Errore nel segnare messaggi come letti:', error);
-        }
-      }
+        });
+        if (batch.length>0){ await Promise.all(batch); console.log('✅ Messaggi segnati come letti'); }
+      }catch(e){ console.error('Errore nel segnare messaggi come letti:', e); }
     });
 
     let userUnsub = null;
-    const el = (id) => document.getElementById(id);
-    const show = (node) => { node.style.display = (node.id === 'auth-overlay' || node.id === 'awaiting-approval') ? 'flex' : 'block'; };
-    const hide = (node) => node.style.display = 'none';
-    function enableAppUI() { show(el("app-wrapper")); hide(el("auth-overlay")); hide(el("awaiting-approval")); }
-    function disableAppUI() { hide(el("app-wrapper")); }
-    function authErrorMsg(e) {
-      switch (e?.code) {
+    const el = (id)=>document.getElementById(id);
+    const show = (node)=>{ node.style.display = (node.id==='auth-overlay' || node.id==='awaiting-approval') ? 'flex' : 'block'; };
+    const hide = (node)=> node.style.display = 'none';
+    function enableAppUI(){ show(el("app-wrapper")); hide(el("auth-overlay")); hide(el("awaiting-approval")); }
+    function disableAppUI(){ hide(el("app-wrapper")); }
+    function authErrorMsg(e){
+      switch(e?.code){
         case 'auth/weak-password': return 'La password deve avere almeno 6 caratteri.';
         case 'auth/email-already-in-use': return 'Questa email è già registrata. Prova ad accedere.';
         case 'auth/invalid-email': return 'Email non valida.';
@@ -468,11 +304,10 @@
         default: return e?.message || 'Errore imprevisto.';
       }
     }
-    const disableBtn = (btn, on) => btn.disabled = !!on;
+    const disableBtn = (btn,on)=> btn.disabled=!!on;
 
-    function renderUserBar(uAuth, uData) {
-      const box = document.getElementById("userbar");
-      if (!box) return;
+    function renderUserBar(uAuth,uData){
+      const box = document.getElementById("userbar"); if(!box) return;
       const name  = (uData?.name || uAuth?.displayName || (uAuth?.email ? uAuth.email.split("@")[0] : "")).trim();
       const email = uAuth?.email || "";
       const role  = (uData?.role) || (uAuth?.uid === ADMIN_UID ? "admin" : "driver");
@@ -486,222 +321,169 @@
     const paneLogin = el("pane-login");
     const paneRegister = el("pane-register");
     const authHeader = el("auth-header");
-
-    function switchAuth(mode) {
-      if (mode === "login") {
-        paneLogin.style.display = "block";
-        paneRegister.style.display = "none";
-        tabLogin.classList.add("active");
-        tabRegister.classList.remove("active");
-        authHeader.textContent = "Accesso";
-      } else {
-        paneLogin.style.display = "none";
-        paneRegister.style.display = "block";
-        tabRegister.classList.add("active");
-        tabLogin.classList.remove("active");
-        authHeader.textContent = "Registrazione";
-      }
+    function switchAuth(mode){
+      if (mode==="login"){ paneLogin.style.display="block"; paneRegister.style.display="none"; tabLogin.classList.add("active"); tabRegister.classList.remove("active"); authHeader.textContent="Accesso"; }
+      else { paneLogin.style.display="none"; paneRegister.style.display="block"; tabRegister.classList.add("active"); tabLogin.classList.remove("active"); authHeader.textContent="Registrazione"; }
     }
-    tabLogin.addEventListener("click", () => switchAuth("login"));
-    tabRegister.addEventListener("click", () => switchAuth("register"));
-    function showAuth(defaultTab = "login") { disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
+    tabLogin.addEventListener("click", ()=>switchAuth("login"));
+    tabRegister.addEventListener("click", ()=>switchAuth("register"));
+    function showAuth(defaultTab="login"){ disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
 
     // REGISTRAZIONE
-    el("btn-register").addEventListener("click", async () => {
+    el("btn-register").addEventListener("click", async ()=>{
       const name = el("reg-name").value.trim();
       const email = el("reg-email").value.trim();
       const password = el("reg-password").value;
-      if (!name || !email || !password) { alert("Compila nome, email e password."); return; }
-      if (password.length < 6) { alert("La password deve avere almeno 6 caratteri."); return; }
+      if (!name || !email || !password){ alert("Compila nome, email e password."); return; }
+      if (password.length<6){ alert("La password deve avere almeno 6 caratteri."); return; }
       disableBtn(el("btn-register"), true);
-      try {
+      try{
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(cred.user, { displayName: name });
+        await updateProfile(cred.user, { displayName:name });
         await setDoc(doc(db, "users", cred.user.uid), {
-          name, email, role: "driver", approved: false, createdAt: serverTimestamp()
+          name, email, role:"driver", approved:false, createdAt: serverTimestamp()
         });
         alert("Registrazione completata! Ora attendi l'approvazione dell'amministratore.");
-      } catch (e) {
-        alert("Registrazione non riuscita: " + authErrorMsg(e));
-      } finally {
-        disableBtn(el("btn-register"), false);
-      }
+      }catch(e){ alert("Registrazione non riuscita: " + authErrorMsg(e)); }
+      finally{ disableBtn(el("btn-register"), false); }
     });
 
     // LOGIN
-    el("btn-login").addEventListener("click", async () => {
+    el("btn-login").addEventListener("click", async ()=>{
       const email = el("log-email").value.trim();
       const password = el("log-password").value;
-      if (!email || !password) { alert("Inserisci email e password."); return; }
+      if (!email || !password){ alert("Inserisci email e password."); return; }
       disableBtn(el("btn-login"), true);
-      try { await signInWithEmailAndPassword(auth, email, password); }
-      catch (e) { alert("Accesso non riuscito: " + authErrorMsg(e)); }
-      finally { disableBtn(el("btn-login"), false); }
+      try{ await signInWithEmailAndPassword(auth, email, password); }
+      catch(e){ alert("Accesso non riuscito: " + authErrorMsg(e)); }
+      finally{ disableBtn(el("btn-login"), false); }
     });
 
     // LOGOUT
-    el("btn-logout").addEventListener("click", () => signOut(auth));
-    el("btn-logout-while-waiting").addEventListener("click", () => signOut(auth));
+    el("btn-logout").addEventListener("click", ()=>signOut(auth));
+    el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
 
-    // 🔔 --- PUSH MESSAGING (FCM) ---
+    // 🔔 PUSH (FCM)
     const messaging = getMessaging(app);
     const VAPID_PUBLIC_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
-    // Registra il service worker FCM e salva il token su Firestore per l'utente indicato.
     async function enablePushForUser(user){
-      try {
-        // Verifica compatibilità
-        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-          console.warn('Notifiche o Service Worker non supportati');
-          return;
-        }
-        // Registra il service worker con percorso relativo corretto
-        const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js').catch((err) => {
-          console.warn('Registrazione service worker FCM fallita:', err);
-          throw err;
-        });
-        // Richiedi permesso per le notifiche (dopo interazione utente)
+      try{
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+        const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js').catch((err)=>{ console.warn('Registrazione service worker FCM fallita:', err); throw err; });
         const perm = await Notification.requestPermission();
-        if (perm !== 'granted') {
-          console.warn('Permesso notifiche negato');
-          return;
-        }
-        // Ottieni token FCM passando la registrazione del service worker
+        if (perm!=='granted'){ console.warn('Permesso notifiche negato'); return; }
         const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: swReg });
-        if (!token) {
-          console.warn('Nessun token FCM ricevuto (controlla HTTPS e firebase-messaging-sw.js)');
-          return;
-        }
-        // Salva token nell'utente su Firestore
-        await setDoc(doc(db, "users", user.uid), { fcmTokens: { [token]: true } }, { merge: true });
+        if (!token){ console.warn('Nessun token FCM ricevuto (controlla HTTPS e firebase-messaging-sw.js)'); return; }
+        await setDoc(doc(db,"users",user.uid), { fcmTokens: { [token]: true } }, { merge:true });
         console.log('✅ FCM token salvato per', user.uid);
-      } catch (e) {
-        console.warn('Errore during enablePushForUser', e);
-      }
+      }catch(e){ console.warn('Errore during enablePushForUser', e); }
     }
-
-    // Gestisce la richiesta di permesso e la visibilità del pulsante per le notifiche push.
-    async function handlePushPermission(user) {
-      // Se notifiche o service worker non sono supportati non fare nulla
-      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-        return;
-      }
+    async function handlePushPermission(user){
+      if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
       const wrapper = document.getElementById('push-activation-wrapper');
       const btn = document.getElementById('btn-enable-push');
-      // Se permesso già concesso, registra direttamente
-      if (Notification.permission === 'granted') {
-        if (wrapper) wrapper.style.display = 'none';
+      if (Notification.permission==='granted'){
+        if (wrapper) wrapper.style.display='none';
         await enablePushForUser(user);
       } else {
-        // Mostra il pulsante di attivazione
-        if (wrapper) wrapper.style.display = 'block';
-        if (btn) {
-          btn.onclick = async () => {
+        if (wrapper) wrapper.style.display='block';
+        if (btn){
+          btn.onclick = async ()=>{
             btn.disabled = true;
-            try {
-              await enablePushForUser(user);
-            } finally {
-              // Nascondi il pulsante dopo il tentativo
-              if (wrapper) wrapper.style.display = 'none';
-              btn.disabled = false;
-            }
+            try{ await enablePushForUser(user); }
+            finally{ if (wrapper) wrapper.style.display='none'; btn.disabled=false; }
           };
         }
       }
     }
-
-    onMessage(messaging, (payload) => {
+    onMessage(messaging, (payload)=>{
       console.log('📨 Push in foreground:', payload);
-      
-      // Mostra toast per notifiche push in foreground
-      if (payload.notification) {
+      if (payload.notification){
         const title = payload.notification.title || 'Nuovo messaggio';
-        const body = payload.notification.body || '';
-        
-        createToast(title, body, () => {
-          // Apri la chat quando clicchi sul toast
-          window.location.href = 'chat.html';
-        });
+        const body  = payload.notification.body  || '';
+        createToast(title, body, ()=>{ window.location.href='chat.html'; });
       }
     });
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    onAuthStateChanged(auth, async (user)=>{
+      if (!user){
         showAuth("login");
-        stopClientiListener();
-        stopChatListener(); // 🔔 Stop chat listener
-        currentUserId = null; // 🔔 Reset current user
-        updateChatCounter(0); // 🔔 Reset counter
-        if (userUnsub) { userUnsub(); userUnsub = null; }
-        const ub = document.getElementById("userbar"); if (ub) ub.innerHTML = "";
+        stopClientiListener(); stopChatListener(); currentUserId=null; updateChatCounter(0);
+        if (userUnsub){ userUnsub(); userUnsub=null; }
+        const ub = document.getElementById("userbar"); if (ub) ub.innerHTML="";
         return;
       }
+      currentUserId = user.uid;
 
-      currentUserId = user.uid; // 🔔 Set current user ID
-
-      const uref = doc(db, "users", user.uid);
+      const uref = doc(db,"users",user.uid);
       const snap = await getDoc(uref);
-
-      if (!snap.exists()) {
+      if (!snap.exists()){
         await setDoc(uref, {
-          name: user.displayName || "",
-          email: user.email,
-          role: (user.uid === ADMIN_UID) ? "admin" : "driver",
-          approved: (user.uid === ADMIN_UID) ? true : false,
-          createdAt: serverTimestamp()
-        }, { merge: true });
+          name: user.displayName || "", email: user.email,
+          role: (user.uid===ADMIN_UID) ? "admin":"driver",
+          approved: (user.uid===ADMIN_UID) ? true:false, createdAt: serverTimestamp()
+        }, { merge:true });
       } else {
         const dataNow = snap.data() || {};
-        if (!("role" in dataNow)) {
-          await updateDoc(uref, { role: (user.uid === ADMIN_UID) ? "admin" : "driver" });
-        }
+        if (!("role" in dataNow)){ await updateDoc(uref, { role: (user.uid===ADMIN_UID) ? "admin" : "driver" }); }
         await setDoc(uref, {
-          name: dataNow.name || user.displayName || "",
-          email: dataNow.email || user.email || ""
-        }, { merge: true });
+          name: dataNow.name || user.displayName || "", email: dataNow.email || user.email || ""
+        }, { merge:true });
       }
 
-      if (userUnsub) { userUnsub(); userUnsub = null; }
-      userUnsub = onSnapshot(uref, (usnap) => {
+      if (userUnsub){ userUnsub(); userUnsub=null; }
+      userUnsub = onSnapshot(uref, (usnap)=>{
         const data = usnap.data() || {};
         nomeUtente = (data.name || (user.email ? user.email.split("@")[0] : "")).trim();
         renderUserBar(user, data);
 
-        if (data.role === "driver" && data.approved === true) {
-          enableAppUI(); 
-          startClientiListener();
-          startChatListener(user.uid); // 🔔 Start chat listener
-          // 🔔 abilita push per driver approvato tramite gestione permessi
-          handlePushPermission(user);
-        } else if (data.role === "admin") {
+        if (data.role==="driver" && data.approved===true){
+          enableAppUI(); startClientiListener(); startChatListener(user.uid); handlePushPermission(user);
+        } else if (data.role==="admin"){
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
             "<h3>👑 Sei loggato come admin</h3><div>L'app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
-          document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
-          stopClientiListener();
-          stopChatListener(); // 🔔 Stop chat listener for admin
-          // (opzionale) abilita push anche per admin tramite gestione permessi
-          handlePushPermission(user);
+          document.getElementById('btn-logout-while-waiting').onclick = ()=>signOut(auth);
+          stopClientiListener(); stopChatListener(); handlePushPermission(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
-          stopClientiListener();
-          stopChatListener(); // 🔔 Stop chat listener for unapproved users
+          stopClientiListener(); stopChatListener();
         }
       });
     });
 
+    // ✅ NUOVA VERSIONE — salva autore e posizione d’inserimento
     async function aggiungiOmodificaCliente() {
-      const nome = el("nome").value;
-      const indirizzo = el("indirizzo").value;
-      const coordinate = el("coordinate").value;
-      const note = el("note").value;
+      const nome = el("nome").value.trim();
+      const indirizzo = el("indirizzo").value.trim();
+      const coordinate = el("coordinate").value.trim(); // es. "44.8015, 10.3274"
+      const note = el("note").value.trim();
       if (!nome || !indirizzo) { alert("Inserisci almeno nome e indirizzo."); return; }
+
+      const user = auth.currentUser;
+      const autore = {
+        uid: user?.uid || null,
+        name: (nomeUtente || user?.displayName || (user?.email ? user.email.split("@")[0] : "")) || "",
+        email: user?.email || ""
+      };
+
+      let createdLat = null, createdLng = null;
+      if (coordinate) {
+        const parts = coordinate.split(",").map(s => s.trim());
+        if (parts.length === 2) {
+          const lat = Number(parts[0]); const lng = Number(parts[1]);
+          if (!Number.isNaN(lat) && !Number.isNaN(lng)) { createdLat = lat; createdLng = lng; }
+        }
+      }
+
+      const payload = { nome, indirizzo, coordinate, note };
 
       if (clienteDaModificare) {
         const docRef = doc(db, "clienti", clienteDaModificare);
         try {
-          await updateDoc(docRef, { nome, indirizzo, coordinate, note });
+          await updateDoc(docRef, payload);
           clienteDaModificare = null;
           el("btn-aggiungi").innerText = "Aggiungi cliente";
           el("btn-annulla").style.display = "none";
@@ -710,9 +492,15 @@
           console.error(error);
         }
       } else {
-        await addDoc(clientiRef, { nome, indirizzo, coordinate, note, timestamp: serverTimestamp() });
+        await addDoc(clientiRef, {
+          ...payload,
+          createdAt: serverTimestamp(),
+          createdBy: autore,
+          createdLocation: (createdLat !== null && createdLng !== null) ? { lat: createdLat, lng: createdLng, source: "gps" } : null
+        });
       }
-      el("nome").value = ""; el("indirizzo").value = ""; el("coordinate").value = ""; el("note").value = "";
+
+      el("nome").value=""; el("indirizzo").value=""; el("coordinate").value=""; el("note").value="";
     }
 
     async function eliminaCliente(id) {
@@ -739,10 +527,14 @@
         const c = docSnap.data();
         const div = document.createElement("div");
         div.className = "cliente";
+        const inseritoDa = c.createdBy ? `<div class="muted">Inserito da: <strong>${c.createdBy.name || "sconosciuto"}</strong>${c.createdAt?.toDate ? " • " + c.createdAt.toDate().toLocaleString() : ""}</div>` : "";
+        const posIns = c.createdLocation ? `<div class="muted">Posizione inserimento: ${Number(c.createdLocation.lat).toFixed(5)}, ${Number(c.createdLocation.lng).toFixed(5)} (${c.createdLocation.source})</div>` : "";
         div.innerHTML = `<strong>${c.nome || "(senza nome)"}</strong><br>
                          ${c.indirizzo || ""}<br>
                          ${c.coordinate ? `<a href='https://maps.google.com/?q=${c.coordinate}' target='_blank'>Vai a Google Maps</a><br>` : ""}
                          ${c.note ? `<em>${c.note}</em><br>` : ""}
+                         ${inseritoDa}
+                         ${posIns}
                          <button class='btn-azione' onclick='eliminaCliente("${docSnap.id}")'>🗑️ Elimina</button>
                          <button class='btn-azione' onclick='preparaModificaCliente("${docSnap.id}", ${JSON.stringify(c).replace(/"/g, '&quot;')})'>✏️ Modifica</button>`;
         clientiDiv.appendChild(div);
@@ -751,57 +543,97 @@
 
     function filtraClienti() {
       const queryTxt = el("cerca").value.toLowerCase();
-      const clienti = document.querySelectorAll(".cliente");
-      clienti.forEach(c => { c.style.display = c.innerText.toLowerCase().includes(queryTxt) ? "block" : "none"; });
+      document.querySelectorAll(".cliente").forEach(c=>{
+        c.style.display = c.innerText.toLowerCase().includes(queryTxt) ? "block" : "none";
+      });
     }
 
     el("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
     el("btn-annulla").addEventListener("click", annullaModifica);
     el("cerca").addEventListener("input", filtraClienti);
 
-    el("btn-gps").addEventListener("click", () => {
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async position => {
-            const coords = `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`;
-            el("coordinate").value = coords;
-            if (nomeUtente) {
-              await addDoc(posizioniRef, {
-                // 🔐 suggerito: salva anche l'uid del proprietario posizione
-                uid: auth.currentUser?.uid || null,
-                mezzo: nomeUtente,
-                latitudine: position.coords.latitude,
-                longitudine: position.coords.longitude,
-                timestamp: serverTimestamp()
-              });
-            }
-          },
-          error => { alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo."); console.error(error); }
-        );
-      } else { alert("Geolocalizzazione non supportata su questo dispositivo."); }
+    // 📍 GPS: aggiorna il documento del mezzo (stessa logica "un doc per uid")
+    el("btn-gps").addEventListener("click", async () => {
+      if (!auth.currentUser) { alert("Devi essere loggato."); return; }
+      if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
+
+      const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
+      const docRef = doc(db, 'posizioniMezzo', auth.currentUser.uid);
+
+      navigator.geolocation.getCurrentPosition(async position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        el("coordinate").value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        await setDoc(docRef, {
+          uid: auth.currentUser.uid,
+          mezzo: mezzoNome,
+          lat, lng,
+          accuracy: position.coords.accuracy,
+          online: true,
+          updatedAt: serverTimestamp()
+        }, { merge:true });
+      }, err => {
+        alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
+        console.error(err);
+      }, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
     });
 
-    // Tracciamento automatico (facoltativo: mantieni la tua implementazione)
-    window.avviaTracciamento = function(){
+    // 🔴🔵 TRACKING: UN SOLO DOCUMENTO PER MEZZO
+    let watchId = null;
+
+    window.avviaTracciamento = async function () {
       const status = document.getElementById('status');
+      const btn = document.getElementById('btn-tracciamento');
+
+      if (!auth.currentUser) { status.textContent = 'Non sei loggato.'; return; }
       if (!('geolocation' in navigator)) { status.textContent = 'Geolocalizzazione non supportata.'; return; }
-      if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; status.textContent = 'Tracciamento disattivato.'; return; }
+
+      // se già attivo → disattivo
+      if (watchId) { await stopTracking(); status.textContent = 'Tracciamento disattivato.'; btn.textContent = '▶️ Attiva tracciamento automatico'; return; }
+
+      const uid = auth.currentUser.uid;
+      const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
+      const docRef = doc(db, 'posizioniMezzo', uid);
+
+      // segno subito online
+      await setDoc(docRef, { uid, mezzo: mezzoNome, online:true, updatedAt: serverTimestamp() }, { merge:true });
+
+      status.textContent = 'Attivo: invio posizioni…';
+      btn.textContent = '⏸️ Disattiva tracciamento';
+
       watchId = navigator.geolocation.watchPosition(async pos => {
-        const { latitude, longitude } = pos.coords;
-        status.textContent = `Ultima posizione: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-        if (nomeUtente) {
-          await addDoc(posizioniRef, {
-            uid: auth.currentUser?.uid || null,
-            mezzo: nomeUtente,
-            latitudine: latitude,
-            longitudine: longitude,
-            timestamp: serverTimestamp()
-          });
+        const { latitude:lat, longitude:lng, accuracy } = pos.coords;
+        await setDoc(docRef, {
+          uid, mezzo: mezzoNome, lat, lng, accuracy, online:true, updatedAt: serverTimestamp()
+        }, { merge:true });
+        status.textContent = `Ultima posizione: ${lat.toFixed(5)}, ${lng.toFixed(5)} (±${Math.round(accuracy)} m)`;
+      }, async err => {
+        status.textContent = 'Errore GPS: ' + err.message;
+        await setDoc(docRef, { online:false, updatedAt: serverTimestamp() }, { merge:true });
+      }, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
+    };
+
+    async function stopTracking() {
+      const btn = document.getElementById('btn-tracciamento');
+      if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+      if (auth.currentUser) {
+        try {
+          await deleteDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid));
+        } catch (e) {
+          await setDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid), { online:false, updatedAt: serverTimestamp() }, { merge:true });
         }
-      }, err => { status.textContent = 'Errore GPS: ' + err.message; }, { enableHighAccuracy:true, maximumAge:5000 });
+      }
+      if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
     }
 
-    // Espone alcune funzioni globali per i bottoni inline
+    // se chiudo la pagina mentre è attivo, provo a “pulire” il doc
+    window.addEventListener('beforeunload', async () => {
+      if (watchId && auth.currentUser) {
+        try { await deleteDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid)); } catch(e){}
+      }
+    });
+
+    // Espone funzioni globali per i bottoni inline
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
 
@@ -810,7 +642,6 @@
   <!-- 🔔 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
   <script>
     if ('serviceWorker' in navigator) {
-      // Registra il service worker per FCM con percorso relativo corretto.
       navigator.serviceWorker.register('firebase-messaging-sw.js')
         .catch(err => console.warn('SW (FCM) registration failed', err));
     }
