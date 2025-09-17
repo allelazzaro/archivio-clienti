@@ -33,6 +33,33 @@
     .badge-gray{ background:#eee; color:#333; }
     .badge-red{ background:#ff4757; color:#fff; }
 
+    /* Stili per la modifica nome */
+    .name-edit-row {
+      margin-top: 8px;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .name-input {
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 12px;
+      width: 180px;
+    }
+    .name-btn {
+      padding: 4px 8px;
+      background: #0b5;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .name-btn:hover {
+      background: #096;
+    }
+
     /* Pannello chat laterale - SOLUZIONE DEFINITIVA */
     .chat-panel {
       position: fixed; 
@@ -198,6 +225,30 @@
       });
     }
 
+    // Funzione per aggiornare il nome del driver
+    window.updateDriverName = async function(uid) {
+      const input = document.getElementById(`name-input-${uid}`);
+      if (!input) {
+        console.error(`Input con id name-input-${uid} non trovato`);
+        return;
+      }
+      
+      const newName = input.value.trim();
+      
+      if (!newName) {
+        alert("Inserisci un nome valido.");
+        return;
+      }
+      
+      try {
+        await updateDoc(doc(db, "users", uid), { name: newName });
+        setStatus("ok", `✅ Nome aggiornato per ${newName}`);
+      } catch (error) {
+        console.error("Errore nell'aggiornamento del nome:", error);
+        setStatus("err", "❌ Errore nell'aggiornamento del nome.");
+      }
+    };
+
     function renderUsers(containerId, countId, snap, type){
       const container = $(containerId);
       const count = $(countId);
@@ -215,6 +266,15 @@
               <strong>${u.name || "(senza nome)"} </strong>
               ${ type !== "in attesa" ? `<span class="badge badge-gray badge-unread" data-uid="${uid}" title="Messaggi non letti">0</span>` : "" }
               <br><span class="muted">${u.email || ""}</span>
+              ${ type !== "in attesa" ? `
+                <div class="name-edit-row">
+                  <input type="text" placeholder="Modifica nome" value="${u.name || ""}" 
+                         class="name-input" id="name-input-${uid}">
+                  <button onclick="updateDriverName('${uid}')" class="name-btn">
+                    Aggiorna nome
+                  </button>
+                </div>
+              ` : "" }
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               ${
