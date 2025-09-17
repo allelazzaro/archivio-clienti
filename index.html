@@ -232,6 +232,106 @@
   <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
+// AGGIUNGI QUESTO CODICE ALL'INIZIO DEL TUO <script type="module"> in index.html
+
+// Debug overlay per iOS (rimuovi dopo il debug)
+function createDebugOverlay() {
+  const overlay = document.createElement('div');
+  overlay.id = 'debug-overlay';
+  overlay.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+    background: rgba(0,0,0,0.9); color: white; 
+    padding: 20px; font-size: 12px; 
+    overflow-y: auto; z-index: 99999; 
+    font-family: monospace; line-height: 1.4;
+    display: none;
+  `;
+  
+  const header = document.createElement('div');
+  header.innerHTML = `
+    <button onclick="document.getElementById('debug-overlay').style.display='none'" 
+            style="float: right; background: red; color: white; border: none; padding: 5px 10px;">
+      CHIUDI
+    </button>
+    <h3 style="margin: 0 0 10px 0;">🔍 Debug Notifiche iOS</h3>
+    <button onclick="debugClearLog()" style="background: orange; color: white; border: none; padding: 5px 10px; margin-bottom: 10px;">
+      Pulisci Log
+    </button>
+    <hr>
+  `;
+  
+  const content = document.createElement('div');
+  content.id = 'debug-content';
+  
+  overlay.appendChild(header);
+  overlay.appendChild(content);
+  document.body.appendChild(overlay);
+  
+  return overlay;
+}
+
+// Crea overlay al caricamento
+const debugOverlay = createDebugOverlay();
+
+// Override console.log per mostrare nell'overlay
+const originalLog = console.log;
+const originalError = console.error;
+const originalWarn = console.warn;
+
+function debugLog(message, type = 'log') {
+  const content = document.getElementById('debug-content');
+  if (content) {
+    const time = new Date().toLocaleTimeString();
+    const color = type === 'error' ? '#ff6b6b' : type === 'warn' ? '#ffa726' : '#4caf50';
+    const div = document.createElement('div');
+    div.style.cssText = `margin-bottom: 5px; color: ${color}; border-left: 3px solid ${color}; padding-left: 10px;`;
+    div.innerHTML = `<strong>[${time}]</strong> ${message}`;
+    content.appendChild(div);
+    content.scrollTop = content.scrollHeight;
+  }
+  
+  // Mantieni anche il log normale
+  if (type === 'error') originalError(message);
+  else if (type === 'warn') originalWarn(message);
+  else originalLog(message);
+}
+
+console.log = (msg) => debugLog(msg, 'log');
+console.error = (msg) => debugLog(msg, 'error');
+console.warn = (msg) => debugLog(msg, 'warn');
+
+// Funzione per pulire il log
+window.debugClearLog = function() {
+  document.getElementById('debug-content').innerHTML = '';
+};
+
+// Pulsante per aprire debug (aggiungi alla tua UI)
+function addDebugButton() {
+  const btn = document.createElement('button');
+  btn.textContent = '🔍 Debug';
+  btn.style.cssText = `
+    position: fixed; top: 10px; right: 10px; 
+    background: #007bff; color: white; border: none; 
+    padding: 10px; border-radius: 5px; z-index: 9999;
+    font-size: 12px;
+  `;
+  btn.onclick = () => {
+    document.getElementById('debug-overlay').style.display = 'block';
+  };
+  document.body.appendChild(btn);
+}
+
+// Aggiungi il pulsante debug quando la pagina è carica
+document.addEventListener('DOMContentLoaded', addDebugButton);
+
+// Test immediato dei requisiti iOS
+console.log('🍎 === DEBUG NOTIFICHE iOS ===');
+console.log('PWA standalone:', window.navigator.standalone);
+console.log('Supporto notifiche:', 'Notification' in window);
+console.log('Supporto Service Worker:', 'serviceWorker' in navigator);
+console.log('User Agent:', navigator.userAgent);
+console.log('HTTPS:', location.protocol === 'https:');
+console.log('================================');
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
       authDomain: "archivio-clienti-trasporti.firebaseapp.com",
@@ -288,6 +388,7 @@
         <div class="toast-body">${message}</div>
       `;
 
+      // Click per aprire chat
       if (onClick) {
         toast.addEventListener('click', (e) => {
           if (e.target.classList.contains('toast-close')) return;
@@ -297,8 +398,13 @@
       }
 
       container.appendChild(toast);
+      
+      // Anima l'entrata
       setTimeout(() => toast.classList.add('show'), 100);
+      
+      // Auto-hide dopo 6 secondi
       setTimeout(() => hideToast(toast), 6000);
+      
       return toast;
     }
 
@@ -319,7 +425,10 @@
       createToast(
         `Nuovo messaggio da ${senderName}`,
         truncatedMessage,
-        () => { window.location.href = 'chat.html'; }
+        () => {
+          // Apri la chat quando clicchi sul toast
+          window.location.href = 'chat.html';
+        }
       );
     }
 
@@ -334,6 +443,8 @@
     // 🔔 Funzioni per gestire il contatore chat - CORRETTE per readBy come ARRAY
     function startChatListener(userId) {
       if (chatUnsub) return;
+      
+      // Query per messaggi nel thread dell'utente (ultimi 50 per performance)
       const threadMessagesRef = collection(db, "threads", userId, "messages");
       const q = query(threadMessagesRef, orderBy("createdAt", "desc"), limit(50));
       
@@ -344,12 +455,16 @@
         
         snapshot.forEach(doc => {
           const msg = doc.data();
+          // Conta solo i messaggi ricevuti (non inviati dall'utente corrente)
           if (msg.sender !== userId) {
             const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
             if (!readBy.includes(userId)) {
               unreadCount++;
+              
+              // Trova il messaggio non letto più recente per il toast
               if (!latestUnreadMessage) {
                 const msgTime = msg.createdAt?.toDate?.()?.getTime() || 0;
+                // Mostra toast solo per messaggi degli ultimi 30 secondi
                 if (currentTime - msgTime < 30000) {
                   latestUnreadMessage = msg;
                 }
@@ -358,7 +473,9 @@
           }
         });
         
+        // Mostra toast solo se ci sono nuovi messaggi (non al caricamento iniziale)
         if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0) {
+          // Solo se la pagina è visibile e attiva
           if (!document.hidden && document.hasFocus()) {
             showMessageToast('Admin', latestUnreadMessage.text || 'Nuovo messaggio');
           }
@@ -366,6 +483,7 @@
         
         lastMessageCount = unreadCount;
         updateChatCounter(unreadCount);
+        console.log(`🔔 Messaggi non letti: ${unreadCount}`);
       }, (err) => console.error("Errore listener chat:", err));
     }
 
@@ -373,17 +491,22 @@
       if (chatUnsub) {
         chatUnsub();
         chatUnsub = null;
-        lastMessageCount = 0;
+        lastMessageCount = 0; // Reset contatore messaggi
       }
     }
 
     function updateChatCounter(count) {
       const counter = document.getElementById('chat-counter');
+      
       if (count > 0) {
         counter.textContent = count > 99 ? '99+' : count;
         counter.classList.remove('hidden');
+        
+        // Aggiungi animazione per nuovi messaggi
         counter.classList.add('new-message');
         setTimeout(() => counter.classList.remove('new-message'), 1000);
+        
+        // Cambia il titolo della pagina per notificare
         document.title = `(${count}) Archivio Clienti - Trasporti`;
       } else {
         counter.classList.add('hidden');
@@ -391,23 +514,36 @@
       }
     }
 
+    // 🔔 Segna messaggi come letti quando si clicca sulla chat - CORRETTO per ARRAY
     document.getElementById('chat-link').addEventListener('click', async (e) => {
       if (currentUserId) {
         try {
+          // Riferimento ai messaggi del thread dell'utente
           const threadMessagesRef = collection(db, "threads", currentUserId, "messages");
           const q = query(threadMessagesRef);
+          
           const snapshot = await getDocs(q);
+          
+          // Segna tutti i messaggi ricevuti come letti
           const batch = [];
           snapshot.forEach((doc) => {
             const msg = doc.data();
+            // Solo messaggi ricevuti (non inviati dall'utente corrente)
             if (msg.sender !== currentUserId) {
               const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
+              // Se l'utente non è già nell'array readBy, aggiungilo
               if (!readBy.includes(currentUserId)) {
-                batch.push(updateDoc(doc.ref, { readBy: arrayUnion(currentUserId) }));
+                batch.push(updateDoc(doc.ref, { 
+                  readBy: arrayUnion(currentUserId) 
+                }));
               }
             }
           });
-          if (batch.length > 0) { await Promise.all(batch); }
+          
+          if (batch.length > 0) {
+            await Promise.all(batch);
+            console.log('✅ Messaggi segnati come letti');
+          }
         } catch (error) {
           console.error('Errore nel segnare messaggi come letti:', error);
         }
@@ -509,39 +645,53 @@
     const messaging = getMessaging(app);
     const VAPID_PUBLIC_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
+    // Registra il service worker FCM e salva il token su Firestore per l'utente indicato.
     async function enablePushForUser(user){
       try {
+        // Verifica compatibilità
         if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+          console.warn('Notifiche o Service Worker non supportati');
           return;
         }
+        // Registra il service worker con percorso relativo corretto
         const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js').catch((err) => {
           console.warn('Registrazione service worker FCM fallita:', err);
           throw err;
         });
+        // Richiedi permesso per le notifiche (dopo interazione utente)
         const perm = await Notification.requestPermission();
         if (perm !== 'granted') {
+          console.warn('Permesso notifiche negato');
           return;
         }
+        // Ottieni token FCM passando la registrazione del service worker
         const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: swReg });
         if (!token) {
+          console.warn('Nessun token FCM ricevuto (controlla HTTPS e firebase-messaging-sw.js)');
           return;
         }
+        // Salva token nell'utente su Firestore
         await setDoc(doc(db, "users", user.uid), { fcmTokens: { [token]: true } }, { merge: true });
+        console.log('✅ FCM token salvato per', user.uid);
       } catch (e) {
         console.warn('Errore during enablePushForUser', e);
       }
     }
 
+    // Gestisce la richiesta di permesso e la visibilità del pulsante per le notifiche push.
     async function handlePushPermission(user) {
+      // Se notifiche o service worker non sono supportati non fare nulla
       if (!('Notification' in window) || !('serviceWorker' in navigator)) {
         return;
       }
       const wrapper = document.getElementById('push-activation-wrapper');
       const btn = document.getElementById('btn-enable-push');
+      // Se permesso già concesso, registra direttamente
       if (Notification.permission === 'granted') {
         if (wrapper) wrapper.style.display = 'none';
         await enablePushForUser(user);
       } else {
+        // Mostra il pulsante di attivazione
         if (wrapper) wrapper.style.display = 'block';
         if (btn) {
           btn.onclick = async () => {
@@ -549,6 +699,7 @@
             try {
               await enablePushForUser(user);
             } finally {
+              // Nascondi il pulsante dopo il tentativo
               if (wrapper) wrapper.style.display = 'none';
               btn.disabled = false;
             }
@@ -558,10 +709,17 @@
     }
 
     onMessage(messaging, (payload) => {
+      console.log('📨 Push in foreground:', payload);
+      
+      // Mostra toast per notifiche push in foreground
       if (payload.notification) {
         const title = payload.notification.title || 'Nuovo messaggio';
         const body = payload.notification.body || '';
-        createToast(title, body, () => { window.location.href = 'chat.html'; });
+        
+        createToast(title, body, () => {
+          // Apri la chat quando clicchi sul toast
+          window.location.href = 'chat.html';
+        });
       }
     });
 
@@ -569,15 +727,15 @@
       if (!user) {
         showAuth("login");
         stopClientiListener();
-        stopChatListener();
-        currentUserId = null;
-        updateChatCounter(0);
+        stopChatListener(); // 🔔 Stop chat listener
+        currentUserId = null; // 🔔 Reset current user
+        updateChatCounter(0); // 🔔 Reset counter
         if (userUnsub) { userUnsub(); userUnsub = null; }
         const ub = document.getElementById("userbar"); if (ub) ub.innerHTML = "";
         return;
       }
 
-      currentUserId = user.uid;
+      currentUserId = user.uid; // 🔔 Set current user ID
 
       const uref = doc(db, "users", user.uid);
       const snap = await getDoc(uref);
@@ -610,7 +768,8 @@
         if (data.role === "driver" && data.approved === true) {
           enableAppUI(); 
           startClientiListener();
-          startChatListener(user.uid);
+          startChatListener(user.uid); // 🔔 Start chat listener
+          // 🔔 abilita push per driver approvato tramite gestione permessi
           handlePushPermission(user);
         } else if (data.role === "admin") {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
@@ -618,13 +777,14 @@
             "<h3>👑 Sei loggato come admin</h3><div>L'app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
           document.getElementById('btn-logout-while-waiting').onclick = () => signOut(auth);
           stopClientiListener();
-          stopChatListener();
+          stopChatListener(); // 🔔 Stop chat listener for admin
+          // (opzionale) abilita push anche per admin tramite gestione permessi
           handlePushPermission(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
           stopClientiListener();
-          stopChatListener();
+          stopChatListener(); // 🔔 Stop chat listener for unapproved users
         }
       });
     });
@@ -705,6 +865,7 @@
             el("coordinate").value = coords;
             if (nomeUtente) {
               await addDoc(posizioniRef, {
+                // 🔐 suggerito: salva anche l'uid del proprietario posizione
                 uid: auth.currentUser?.uid || null,
                 mezzo: nomeUtente,
                 latitudine: position.coords.latitude,
@@ -718,6 +879,7 @@
       } else { alert("Geolocalizzazione non supportata su questo dispositivo."); }
     });
 
+    // Tracciamento automatico (facoltativo: mantieni la tua implementazione)
     window.avviaTracciamento = function(){
       const status = document.getElementById('status');
       if (!('geolocation' in navigator)) { status.textContent = 'Geolocalizzazione non supportata.'; return; }
@@ -737,6 +899,7 @@
       }, err => { status.textContent = 'Errore GPS: ' + err.message; }, { enableHighAccuracy:true, maximumAge:5000 });
     }
 
+    // Espone alcune funzioni globali per i bottoni inline
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
 
@@ -745,6 +908,7 @@
   <!-- 🔔 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
   <script>
     if ('serviceWorker' in navigator) {
+      // Registra il service worker per FCM con percorso relativo corretto.
       navigator.serviceWorker.register('firebase-messaging-sw.js')
         .catch(err => console.warn('SW (FCM) registration failed', err));
     }
