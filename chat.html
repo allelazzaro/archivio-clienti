@@ -8,7 +8,8 @@
     :root{
       --brand:#128c7e; --bg:#ece5dd; --line:#d9d9d9; --ink:#222;
       --mine:#dcf8c6; --their:#fff;
-      --app-h: 100svh; /* usa small viewport unit (iOS friendly) */
+      --app-h: 100svh;      /* altezza viewport “piccola” (iOS friendly) */
+      --kb: 0px;            /* offset tastiera dinamico */
     }
 
     *{ box-sizing:border-box; margin:0; padding:0; }
@@ -17,6 +18,7 @@
     body{
       font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
       color:var(--ink); background:var(--bg);
+      overscroll-behavior-y: contain;
     }
 
     /* Contenitore app a tutta altezza */
@@ -33,19 +35,21 @@
     .header .right{ margin-left:auto; }
     .btn{ border:1px solid #ffffff40; color:#fff; background:transparent; padding:6px 10px; border-radius:999px; text-decoration:none; }
 
-    /* Area centrale: solo lista messaggi scorrevole */
+    /* Area centrale: lista messaggi scorrevole */
     .messages{
       flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch;
       display:flex; flex-direction:column;
-      padding:10px 10px 12px;
+      padding:10px 10px calc(80px + env(safe-area-inset-bottom) + var(--kb)); /* spazio per composer + tastiera */
       background:var(--bg);
+      overflow-anchor: none; /* evita “salti” su iOS */
     }
 
     /* Composer fisso in basso */
     .composer{
+      position:fixed; left:0; right:0;
+      bottom:calc(env(safe-area-inset-bottom) + var(--kb));
       background:#f0f0f0; border-top:1px solid var(--line); flex-shrink:0;
-      display:flex; gap:8px; padding:8px; align-items:flex-end;
-      padding-bottom:calc(8px + env(safe-area-inset-bottom));
+      display:flex; gap:8px; padding:8px; align-items:flex-end; z-index:10;
     }
     .composer textarea{
       flex:1; min-height:40px; max-height:120px; resize:none;
@@ -80,8 +84,8 @@
 
     /* Pulsante “vai in basso” */
     #toBottom{
-      position:fixed; right:12px; bottom:calc(76px + env(safe-area-inset-bottom));
-      display:none; z-index:10; background:#fff; border:1px solid #ddd; border-radius:999px;
+      position:fixed; right:12px; bottom:calc(76px + env(safe-area-inset-bottom) + var(--kb));
+      display:none; z-index:20; background:#fff; border:1px solid #ddd; border-radius:999px;
       padding:8px 10px; box-shadow:0 6px 18px rgba(0,0,0,.12);
     }
 
@@ -151,14 +155,26 @@
     let isNearBottom = true;
     let firstLoad = true;
 
-    /* ====================== iOS/keyboard safe height ====================== */
+    /* ====================== iOS/viewport & tastiera ====================== */
     function applyViewportHeight(){
       const vh = (window.visualViewport?.height ?? window.innerHeight);
       document.documentElement.style.setProperty('--app-h', `${vh}px`);
     }
+    function applyKeyboardInset(){
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const kb = Math.max(0, (window.innerHeight - vv.height - vv.offsetTop));
+      document.documentElement.style.setProperty('--kb', kb + 'px');
+      // resta ancorato al fondo solo se l'utente era già vicino al fondo
+      const near = (messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight) < 40;
+      if (near) setTimeout(()=> messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior:'auto' }), 0);
+    }
     applyViewportHeight();
     window.addEventListener('resize', applyViewportHeight);
-    window.visualViewport?.addEventListener('resize', applyViewportHeight);
+    window.visualViewport?.addEventListener('resize', ()=>{ applyViewportHeight(); applyKeyboardInset(); });
+    window.visualViewport?.addEventListener('scroll', applyKeyboardInset);
+    window.addEventListener('orientationchange', ()=> setTimeout(()=>{ applyViewportHeight(); applyKeyboardInset(); }, 300));
+    applyKeyboardInset();
 
     /* ====================== Helpers ====================== */
     const toDate = t => t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : new Date());
@@ -184,9 +200,7 @@
       div.textContent = date.toLocaleDateString();
       messagesEl.appendChild(div);
     }
-
     function escapeHTML(s){ return (s||"").replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-
     function renderMessage(m){
       const mine = m.sender === currentUser.uid;
       const div = document.createElement('div');
@@ -266,13 +280,16 @@
       if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); send(); }
     });
     input.addEventListener('input', autoresize);
-    input.addEventListener('focus', ()=> setTimeout(()=> isNearBottom && scrollBottom(false), 250));
+    input.addEventListener('focus', ()=>{
+      setTimeout(()=>{
+        if (atBottom()) messagesEl.scrollTop = messagesEl.scrollHeight;
+      }, 250);
+    });
     messagesEl.addEventListener('scroll', ()=>{
       isNearBottom = atBottom();
       toBottom.style.display = isNearBottom ? 'none' : 'block';
     });
     toBottom.addEventListener('click', ()=> scrollBottom(true));
-    // focus rapido toccando l’area composer
     document.querySelector('.composer').addEventListener('click', e=>{ if (e.target.tagName!=='TEXTAREA') input.focus(); });
 
     /* ====================== Push (opzionale) ====================== */
@@ -287,7 +304,6 @@
         await setDoc(doc(db,'users',user.uid), { fcmTokens:{ [token]: true } }, { merge:true });
       }catch(e){ console.warn('Push setup error', e); }
     }
-
     async function handlePushPermission(user){
       if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
       const wrap = document.getElementById('push-activation-wrapper');
@@ -304,13 +320,11 @@
         };
       }
     }
-
     onMessage(messaging, payload=>{
-      // toast in-Page solo se pagina non a fuoco
       if (document.hidden || !document.hasFocus()){
         const title = payload.notification?.title || 'Nuovo messaggio';
         const body  = payload.notification?.body  || '';
-        alert(`${title}\n${body}`); // minimal, sostituibile con un toast custom
+        alert(`${title}\n${body}`);
       }
     });
 
@@ -319,10 +333,8 @@
       if (!user){ location.href='index.html'; return; }
       currentUser = user;
 
-      // push
       await handlePushPermission(user);
 
-      // routing: se admin può passare uid=? per aprire un driver specifico
       const params = new URLSearchParams(location.search);
       const target = params.get('uid');
       const isAdmin = user.uid === ADMIN_UID;
@@ -336,7 +348,6 @@
           await ensureThread(target, d.name||'', d.email||'');
           openThread(target);
         } else {
-          // se nessun target, apri la prima chat attiva
           const q = query(collection(db,'threads'), orderBy('updatedAt','desc'));
           onSnapshot(q, snap=>{
             if (!currentThreadId && !snap.empty){
