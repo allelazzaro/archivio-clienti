@@ -36,7 +36,7 @@
     .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
     .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; position: relative; }
     
-    /* 🔔 Contatore messaggi */
+    /* 📱 Contatore messaggi */
     .chat-counter {
       position: absolute; top: -8px; right: -8px;
       background-color: #f44336; color: #fff; border-radius: 50%;
@@ -90,9 +90,9 @@
       </div>
 
       <div id="pane-register" class="pane" style="display:none;">
-        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)">
-        <input id="reg-email" placeholder="Email">
-        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password">
+        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
+        <input id="reg-email" placeholder="Email" required>
+        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
         <button id="btn-register">Crea account</button>
         <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
       </div>
@@ -111,9 +111,9 @@
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-    <!-- 🔔 Attivazione push (solo se necessario) -->
+    <!-- 📱 Attivazione push (solo se necessario) -->
     <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
-      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">🔔 Attiva notifiche push</button>
+      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
     </div>
 
     <div class="avviso">
@@ -183,7 +183,7 @@
     let nomeUtente = ""; // letto da Firestore o email
     let clienteDaModificare = null;
 
-    // 🔔 Variabili per il contatore chat
+    // 📱 Variabili per il contatore chat
     let chatUnsub = null;
     let currentUserId = null;
     let lastMessageCount = 0;
@@ -224,7 +224,7 @@
     }
     function stopClientiListener(){ if (clientiUnsub){ clientiUnsub(); clientiUnsub=null; } }
 
-    // 🔔 Chat unread counter
+    // 📱 Chat unread counter
     function startChatListener(userId){
       if (chatUnsub) return;
       const threadMessagesRef = collection(db, "threads", userId, "messages");
@@ -251,7 +251,7 @@
         }
         lastMessageCount = unreadCount;
         updateChatCounter(unreadCount);
-        console.log(`🔔 Messaggi non letti: ${unreadCount}`);
+        console.log(`📱 Messaggi non letti: ${unreadCount}`);
       }, (err)=>console.error("Errore listener chat:", err));
     }
     function stopChatListener(){ if (chatUnsub){ chatUnsub(); chatUnsub=null; lastMessageCount=0; } }
@@ -363,7 +363,7 @@
     el("btn-logout").addEventListener("click", ()=>signOut(auth));
     el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
 
-    // 🔔 PUSH (FCM)
+    // 📱 PUSH (FCM)
     const messaging = getMessaging(app);
     const VAPID_PUBLIC_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
@@ -448,13 +448,19 @@
           stopClientiListener(); stopChatListener(); handlePushPermission(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
-          el("awaiting-approval").querySelector("h3").textContent = "⏳ Account in attesa di approvazione";
+          const nomeUtentePendente = data.name || user.displayName || user.email?.split("@")[0] || "Utente";
+          el("awaiting-approval").innerHTML = `
+            <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
+            <div>Ciao <strong>${nomeUtentePendente}</strong>! Sei registrato ma non ancora approvato. Quando l'amministratore ti abiliterà, questa pagina si aggiornerà automaticamente.</div>
+            <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
+          `;
+          document.getElementById('btn-logout-while-waiting').onclick = ()=>signOut(auth);
           stopClientiListener(); stopChatListener();
         }
       });
     });
 
-    // ✅ NUOVA VERSIONE — salva autore e posizione d’inserimento
+    // ✅ NUOVA VERSIONE – salva autore e posizione d'inserimento
     async function aggiungiOmodificaCliente() {
       const nome = el("nome").value.trim();
       const indirizzo = el("indirizzo").value.trim();
@@ -626,7 +632,7 @@
       if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
     }
 
-    // se chiudo la pagina mentre è attivo, provo a “pulire” il doc
+    // se chiudo la pagina mentre è attivo, provo a "pulire" il doc
     window.addEventListener('beforeunload', async () => {
       if (watchId && auth.currentUser) {
         try { await deleteDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid)); } catch(e){}
@@ -639,7 +645,7 @@
 
   </script>
 
-  <!-- 🔔 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
+  <!-- 📱 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('firebase-messaging-sw.js')
