@@ -51,6 +51,10 @@
     .badge.zero{background:#eee;color:#333}
 
     .chat{display:flex;flex-direction:column;min-height:0}
+    #chatHeader{display:flex;align-items:center;gap:10px;padding:8px 10px;background:#fff;border-bottom:1px solid var(--line)}
+    #chatWith{font-weight:700;}
+    #deleteChat{margin-left:auto;background:#b02a37;border-color:#b02a37;color:#fff;display:none;border-radius:12px;padding:6px 12px;cursor:pointer}
+
     #messages{
       flex:1; overflow:auto; -webkit-overflow-scrolling:touch;
       padding:12px; background:linear-gradient(#dde7f0,#eef3f8)
@@ -91,6 +95,10 @@
 
     <!-- PANNELLO CHAT -->
     <section class="chat" aria-label="Conversazione">
+      <div id="chatHeader">
+        <div id="chatWith">Chat con: —</div>
+        <button id="deleteChat">🗑 Elimina chat</button>
+      </div>
       <div id="messages"></div>
       <div id="composer">
         <textarea id="text" rows="1" placeholder="Scrivi un messaggio…"></textarea>
@@ -103,7 +111,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc,
-      query, orderBy, onSnapshot, serverTimestamp, limit
+      query, orderBy, onSnapshot, serverTimestamp, limit,
+      deleteDoc, getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -119,17 +128,17 @@
 
     const app  = initializeApp(firebaseConfig);
     const db   = getFirestore(app);
-    const auth = getAuth(app); // accesso aperto a tutti gli utenti autenticati
+    const auth = getAuth(app);
 
     const $ = (id)=>document.getElementById(id);
     const list = $("list"), q = $("q");
     const messages = $("messages"), text = $("text"), send = $("send");
     const sidebar = $("sidebar"), drawer = $("drawer"), btnMenu = $("btnMenu");
-    const composer = document.getElementById('composer');
+    const composer = $("composer");
+    const chatWith = $("chatWith"), deleteBtn = $("deleteChat");
 
     let me=null, current=null, unsubMsgs=null;
 
-    // ===== Viewport dinamico con tastiera (iOS) =====
     if (window.visualViewport){
       const updateVH = () => document.body.style.setProperty('--vvh', window.visualViewport.height + 'px');
       visualViewport.addEventListener('resize', updateVH);
@@ -137,18 +146,16 @@
       updateVH();
     }
 
-    // ===== Drawer mobile =====
     const openDrawer = ()=>{ sidebar.classList.add("open"); drawer.style.display="block"; };
     const closeDrawer = ()=>{ sidebar.classList.remove("open"); drawer.style.display="none"; };
     btnMenu?.addEventListener("click", openDrawer); 
     drawer?.addEventListener("click", closeDrawer);
 
-    // ===== NIENTE SALTO + TASTIERA SOLO SU TAP =====
     composer.addEventListener('touchstart', (e)=>{
       const t = e.target;
-      if (t === text) return;                 // tocco diretto sulla textarea
-      e.preventDefault();                      // evita scroll-into-view
-      text.focus({ preventScroll:true });      // focus sincrono => tastiera si apre
+      if (t === text) return;
+      e.preventDefault();
+      text.focus({ preventScroll:true });
       try { text.setSelectionRange(text.value.length, text.value.length); } catch {}
     }, {passive:false});
     composer.addEventListener('mousedown', (e)=>{
@@ -157,7 +164,6 @@
       text.focus({ preventScroll:true });
     });
 
-    // ===== Auto-resize textarea =====
     function autoresize(){
       text.style.height="auto";
       const lh = parseInt(getComputedStyle(text).lineHeight)||22;
@@ -169,7 +175,6 @@
     text.addEventListener("input", autoresize);
     autoresize();
 
-    // ===== Helpers =====
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : new Date());
     const fmtDay = (d)=> d.toLocaleDateString();
     const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
@@ -184,11 +189,9 @@
     function atBottom(){ return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40; }
     function scrollBottom(smooth=false){ messages.scrollTo({ top: messages.scrollHeight, behavior: smooth?'smooth':'auto' }); }
 
-    // Auto-scroll quando stai scrivendo
     const obs = new MutationObserver(()=>{ if (document.activeElement === text) setTimeout(()=>scrollBottom(false), 80); });
     obs.observe(messages, { childList:true });
 
-    // ===== Firestore =====
     async function ensureThread(uid, name="", email=""){
       const tref = doc(db,"threads",uid);
       const s = await getDoc(tref);
@@ -224,9 +227,13 @@
         toMark.forEach(id=>{
           updateDoc(doc(db,"threads",uid,"messages",id),{ readBy: arrayUnion(me.uid) }).catch(()=>{});
         });
-        // Niente focus automatico qui -> evita salto
         if (atBottom()) scrollBottom(false);
       });
+
+      const niceName = el?.querySelector(".name")?.childNodes[0]?.textContent?.trim() || uid;
+      chatWith.textContent = `Chat con: ${niceName}`;
+      deleteBtn.style.display = "inline-block";
+      deleteBtn.onclick = ()=>deleteThread(uid, niceName);
 
       closeDrawer();
     }
@@ -238,15 +245,33 @@
       });
       await updateDoc(doc(db,"threads",current),{ lastMessage:t, updatedAt: serverTimestamp() });
       text.value=""; autoresize(); scrollBottom(false);
-      text.focus({ preventScroll:true }); // tastiera resta aperta
+      text.focus({ preventScroll:true });
     }
 
-    // Invio: niente perdita di focus
+    async function deleteThread(uid, niceName){
+      if (!confirm(`Eliminare definitivamente la chat con "${niceName}"?`)) return;
+      try {
+        const msgsRef = collection(db, "threads", uid, "messages");
+        while (true) {
+          const snap = await getDocs(query(msgsRef, limit(100)));
+          if (snap.empty) break;
+          await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+        }
+        await deleteDoc(doc(db, "threads", uid));
+        const it = document.getElementById("it-"+uid);
+        if (it) it.remove();
+        messages.innerHTML="";
+        chatWith.textContent="Chat con: —";
+        deleteBtn.style.display="none";
+        current=null;
+      } catch(e){
+        alert("Errore eliminazione chat: "+(e?.message||e));
+      }
+    }
+
     let touchSending=false;
     send.addEventListener("mousedown", e=>e.preventDefault());
-    send.addEventListener("touchstart", e=>{
-      touchSending=true; e.preventDefault(); sendMsg(); setTimeout(()=>touchSending=false,0);
-    }, {passive:false});
+    send.addEventListener("touchstart", e=>{touchSending=true; e.preventDefault(); sendMsg(); setTimeout(()=>touchSending=false,0);},{passive:false});
     send.addEventListener("click", ()=>{ if(!touchSending) sendMsg(); });
     text.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMsg(); }});
 
@@ -288,7 +313,6 @@
       });
     });
 
-    // ===== Auth =====
     onAuthStateChanged(auth, async (user)=>{
       if(!user){ location.href="index.html"; return; }
       me=user;
