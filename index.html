@@ -115,6 +115,21 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
   </div>
 
+  <!-- MODAL RUBRICA -->
+
+  <div id="rubrica-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; display:none; align-items:center; justify-content:center; padding:20px;">
+    <div style="width:100%; max-width:500px; background:white; border-radius:12px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="padding:16px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="margin:0;">📞 Rubrica Aziendale</h3>
+        <button id="close-rubrica" style="background:none; border:none; font-size:18px; cursor:pointer; padding:4px;">✖</button>
+      </div>
+      <div style="padding:16px; flex:1; overflow:auto;">
+        <input id="cerca-rubrica" placeholder="Cerca nella rubrica..." style="width:100%; margin-bottom:16px; box-sizing:border-box;">
+        <div id="rubrica-container"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- APP -->
 
   <div id="app-wrapper" style="display:none;">
@@ -136,6 +151,9 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     💬 Chat con Admin
     <span class="chat-counter hidden" id="chat-counter">0</span>
   </a>
+  <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
+    📞 Rubrica
+  </button>
   <button id="btn-logout" style="max-width:160px;">Esci</button>
 </div>
 
@@ -151,11 +169,6 @@ button:disabled { opacity:.6; cursor:not-allowed; }
 
 <div><input id="cerca" placeholder="Cerca cliente"></div>
 <div id="clienti"></div>
-
-<hr>
-<h2>📞 Rubrica Aziendale</h2>
-<div><input id="cerca-rubrica" placeholder="Cerca nella rubrica..."></div>
-<div id="rubrica-container" style="margin-top:12px;"></div>
 
 <hr>
 <h2>📡 Tracciamento automatico</h2>
@@ -207,6 +220,10 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     let currentUserId = null;
     let lastMessageCount = 0;
 
+    // Variabili rubrica
+    let clientiUnsub = null;
+    let rubricaUnsub = null;
+
     // 🍞 Toast
     function createToast(title, message, onClick) {
       const container = document.getElementById('toast-container');
@@ -235,8 +252,6 @@ button:disabled { opacity:.6; cursor:not-allowed; }
       createToast(`Nuovo messaggio da ${senderName}`, truncated, ()=>{ window.location.href='chat.html'; });
     }
 
-    let clientiUnsub = null;
-    let rubricaUnsub = null;
     function startClientiListener(){
       if (clientiUnsub) return;
       const q = query(clientiRef);
@@ -265,18 +280,10 @@ button:disabled { opacity:.6; cursor:not-allowed; }
         const contact = docSnap.data();
         const card = document.createElement("div");
         card.className = "cliente"; // Riusa lo stesso stile
-        
-        const tipoColors = {
-          cliente: "#007bff",
-          fornitore: "#f39c12",
-          partner: "#9b59b6",
-          altro: "#95a5a6"
-        };
 
         card.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <strong>${contact.nome || "(senza nome)"}</strong>
-            <span style="background:${tipoColors[contact.tipo] || '#95a5a6'}; color:#fff; padding:2px 8px; border-radius:12px; font-size:11px; text-transform:uppercase;">${contact.tipo}</span>
           </div>
           ${contact.telefono ? `📞 <a href="tel:${contact.telefono}">${contact.telefono}</a>` : ""}
           ${contact.telefono && contact.email ? " • " : ""}
@@ -629,6 +636,24 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     el("btn-annulla").addEventListener("click", annullaModifica);
     el("cerca").addEventListener("input", filtraClienti);
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
+
+    // Event listeners per modal rubrica
+    el("btn-rubrica").addEventListener("click", () => {
+      el("rubrica-overlay").style.display = "flex";
+      el("cerca-rubrica").value = ""; // Reset ricerca
+      filtraRubrica(); // Mostra tutti i contatti
+    });
+
+    el("close-rubrica").addEventListener("click", () => {
+      el("rubrica-overlay").style.display = "none";
+    });
+
+    // Chiudi modal se clicchi fuori
+    el("rubrica-overlay").addEventListener("click", (e) => {
+      if (e.target === el("rubrica-overlay")) {
+        el("rubrica-overlay").style.display = "none";
+      }
+    });
 
     // 📍 GPS: aggiorna il documento del mezzo (stessa logica "un doc per uid")
     el("btn-gps").addEventListener("click", async () => {
