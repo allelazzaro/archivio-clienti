@@ -1,11 +1,9 @@
-// firebase-messaging-sw.js - VERSIONE CON PERCORSI CORRETTI
+// firebase-messaging-sw.js
 console.log('[SW] Firebase messaging service worker caricato');
 
-// Import Firebase scripts con percorsi assoluti
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
-// Configurazione Firebase (identica agli altri file)
 firebase.initializeApp({
   apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
   authDomain: "archivio-clienti-trasporti.firebaseapp.com",
@@ -15,76 +13,43 @@ firebase.initializeApp({
   appId: "1:773533170263:web:d05e2b00e991b0294c0112"
 });
 
-console.log('[SW] Firebase inizializzato');
-
 const messaging = firebase.messaging();
 
-// Gestione messaggi in background
+// Messaggi in background via FCM
 messaging.onBackgroundMessage((payload) => {
-  console.log('[SW] Background message ricevuto:', payload);
-  
-  const notificationTitle = payload.notification?.title || "Nuovo messaggio";
-  const notificationOptions = {
-    body: payload.notification?.body || "",
-    icon: './icon192.png', // Percorso relativo
-    badge: './icon192.png',
-    data: { 
-      url: payload.data?.url || './chat.html' // Percorso relativo
-    },
-    tag: 'chat-message',
-    requireInteraction: true,
+  console.log('[SW] Background message:', payload);
+
+  const title = payload.notification?.title || "Nuovo messaggio";
+  const body  = payload.notification?.body  || "";
+  const url   = payload.data?.url || "/archivio-clienti/chat.html";
+
+  return self.registration.showNotification(title, {
+    body,
+    icon: "/archivio-clienti/icon192.png",
+    badge: "/archivio-clienti/icon192.png",
+    tag: "chat-message",
+    data: { url },
+    requireInteraction: false,
     silent: false
-  };
-
-  console.log('[SW] Mostro notifica:', notificationTitle);
-  return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
 });
 
-// Click sulla notifica
+// Click sulla notifica → focus o apri chat
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notifica cliccata');
-  
   event.notification.close();
-  
-  const url = event.notification.data?.url || './chat.html';
-  
-  event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-      // Cerca finestra esistente
-      const existingClient = clients.find(client => 
-        client.url.includes('chat.html') || 
-        client.url.includes('allelazzaro.github.io')
-      );
-      
-      if (existingClient) {
-        console.log('[SW] Focus su finestra esistente');
-        return existingClient.focus();
-      }
-      
-      // Apri nuova finestra - URL completo
-      const fullUrl = new URL(url, self.location.origin + '/archivio-clienti/').href;
-      console.log('[SW] Apro nuova finestra:', fullUrl);
-      return self.clients.openWindow(fullUrl);
-    })
-  );
+  const targetUrl = event.notification?.data?.url || "/archivio-clienti/chat.html";
+
+  event.waitUntil((async () => {
+    const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const existing = allClients.find(c => c.url.includes('/archivio-clienti/'));
+    if (existing) { await existing.focus(); return; }
+    await self.clients.openWindow(targetUrl);
+  })());
 });
 
-// Install e activate con logging
-self.addEventListener('install', (event) => {
-  console.log('[SW] Service Worker installato');
-  self.skipWaiting();
-});
+self.addEventListener('install', (e) => { console.log('[SW] install'); self.skipWaiting(); });
+self.addEventListener('activate', (e) => { console.log('[SW] activate'); e.waitUntil(self.clients.claim()); });
 
-self.addEventListener('activate', (event) => {
-  console.log('[SW] Service Worker attivato');
-  event.waitUntil(self.clients.claim());
-});
-
-// Error handling
-self.addEventListener('error', (event) => {
-  console.error('[SW] Errore:', event.error);
-});
-
-self.addEventListener('unhandledrejection', (event) => {
-  console.error('[SW] Promise rejection:', event.reason);
-});
+// Extra log errori
+self.addEventListener('error', (e) => console.error('[SW] error:', e.error || e));
+self.addEventListener('unhandledrejection', (e) => console.error('[SW] unhandled:', e.reason));
