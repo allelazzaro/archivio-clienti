@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <meta charset="UTF-8" />
@@ -15,85 +16,88 @@
     .warn { background:#fff7e6; border:1px solid #f0ad4e; color:#c77c11; }
     .err { background:#fdecea; border:1px solid #f5c2c7; color:#b02a37; }
 
-    .login-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    input, button, a.btn { padding:8px 12px; border-radius:8px; border:1px solid #ccc; background:#fff; text-decoration:none; color:#000; }
-    button { cursor:pointer; }
-    button:disabled{ opacity:.6; cursor:not-allowed; }
-    .btn-danger{ background:#b02a37; border-color:#b02a37; color:#fff; }
-    .btn-secondary{ background:#eee; }
-    .btn-primary{ background:#0b5; color:#fff; border-color:#0b5; }
+```
+.login-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+input, button, a.btn { padding:8px 12px; border-radius:8px; border:1px solid #ccc; background:#fff; text-decoration:none; color:#000; }
+button { cursor:pointer; }
+button:disabled{ opacity:.6; cursor:not-allowed; }
+.btn-danger{ background:#b02a37; border-color:#b02a37; color:#fff; }
+.btn-secondary{ background:#eee; }
+.btn-primary{ background:#0b5; color:#fff; border-color:#0b5; }
 
-    .cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-    @media (max-width: 900px){ .cols { grid-template-columns: 1fr; } }
+.cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+@media (max-width: 900px){ .cols { grid-template-columns: 1fr; } }
 
-    .card { background:#fff; border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:10px; }
-    .row { display:flex; gap:8px; align-items:center; justify-content:space-between; }
-    .muted { color:#666; font-size:14px; }
-    .badge{ display:inline-block; min-width:18px; padding:2px 6px; border-radius:999px; font-size:12px; text-align:center; }
-    .badge-gray{ background:#eee; color:#333; }
-    .badge-red{ background:#ff4757; color:#fff; }
+.card { background:#fff; border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:10px; }
+.row { display:flex; gap:8px; align-items:center; justify-content:space-between; }
+.muted { color:#666; font-size:14px; }
+.badge{ display:inline-block; min-width:18px; padding:2px 6px; border-radius:999px; font-size:12px; text-align:center; }
+.badge-gray{ background:#eee; color:#333; }
+.badge-red{ background:#ff4757; color:#fff; }
 
-    /* Stili per la modifica nome */
-    .name-edit-row {
-      margin-top: 8px;
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-    .name-input {
-      padding: 4px 6px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 12px;
-      width: 180px;
-    }
-    .name-btn {
-      padding: 4px 8px;
-      background: #0b5;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      font-size: 12px;
-      cursor: pointer;
-    }
-    .name-btn:hover {
-      background: #096;
-    }
+/* Stili per la modifica nome */
+.name-edit-row {
+  margin-top: 8px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.name-input {
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  width: 180px;
+}
+.name-btn {
+  padding: 4px 8px;
+  background: #0b5;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.name-btn:hover {
+  background: #096;
+}
 
-    /* Pannello chat laterale - SOLUZIONE DEFINITIVA */
-    .chat-panel {
-      position: fixed; 
-      top:0; 
-      right:0; 
-      width: min(560px, 100%); 
-      height: 100vh;
-      background:#fff; 
-      border-left:1px solid #ddd; 
-      box-shadow: -6px 0 18px rgba(0,0,0,.08);
-      transform: translateX(100%); 
-      transition: transform .25s ease; 
-      z-index: 50; 
-      display:flex; 
-      flex-direction:column;
-    }
-    .chat-panel.open { 
-      transform: translateX(0); 
-    }
-    .chat-panel header { 
-      padding:12px 14px; 
-      border-bottom:1px solid #eee; 
-      display:flex; 
-      align-items:center; 
-      justify-content:space-between;
-      flex-shrink: 0;
-      min-height: 48px;
-    }
-    .chat-iframe { 
-      border:0; 
-      width:100%; 
-      height: calc(100vh - 48px); /* Altezza esplicita */
-      display: block;
-    }
+/* Pannello chat laterale - SOLUZIONE DEFINITIVA */
+.chat-panel {
+  position: fixed; 
+  top:0; 
+  right:0; 
+  width: min(560px, 100%); 
+  height: 100vh;
+  background:#fff; 
+  border-left:1px solid #ddd; 
+  box-shadow: -6px 0 18px rgba(0,0,0,.08);
+  transform: translateX(100%); 
+  transition: transform .25s ease; 
+  z-index: 50; 
+  display:flex; 
+  flex-direction:column;
+}
+.chat-panel.open { 
+  transform: translateX(0); 
+}
+.chat-panel header { 
+  padding:12px 14px; 
+  border-bottom:1px solid #eee; 
+  display:flex; 
+  align-items:center; 
+  justify-content:space-between;
+  flex-shrink: 0;
+  min-height: 48px;
+}
+.chat-iframe { 
+  border:0; 
+  width:100%; 
+  height: calc(100vh - 48px); /* Altezza esplicita */
+  display: block;
+}
+```
+
   </style>
 </head>
 <body>
@@ -116,14 +120,47 @@
         <div id="pending" class="muted">Effettua il login come admin per vedere gli utenti in attesa.</div>
       </div>
 
-      <div>
-        <h2>Utenti approvati <span id="count-approved" class="badge badge-gray">0</span></h2>
-        <div id="approved" class="muted">Effettua il login come admin per vedere gli utenti approvati.</div>
-      </div>
+```
+  <div>
+    <h2>Utenti approvati <span id="count-approved" class="badge badge-gray">0</span></h2>
+    <div id="approved" class="muted">Effettua il login come admin per vedere gli utenti approvati.</div>
+  </div>
+</div>
+
+<hr style="margin: 32px 0; border: none; border-top: 1px solid #ddd;">
+
+<!-- GESTIONE RUBRICA -->
+<div id="rubrica-section" style="display:none;">
+  <h2>📞 Gestione Rubrica</h2>
+  <div style="background:#fff; border:1px solid #ddd; border-radius:10px; padding:16px; margin-bottom:16px;">
+    <h3 style="margin-top:0;">Aggiungi nuovo contatto</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <input id="rubrica-nome" placeholder="Nome/Azienda">
+      <input id="rubrica-telefono" placeholder="Telefono">
+      <input id="rubrica-email" placeholder="Email">
+      <select id="rubrica-tipo">
+        <option value="cliente">Cliente</option>
+        <option value="fornitore">Fornitore</option>
+        <option value="partner">Partner</option>
+        <option value="altro">Altro</option>
+      </select>
+    </div>
+    <textarea id="rubrica-note" placeholder="Note aggiuntive" style="width:100%; margin-bottom:12px; min-height:60px;"></textarea>
+    <div style="display:flex; gap:8px;">
+      <button id="btn-add-contact" class="btn-primary">Aggiungi contatto</button>
+      <button id="btn-cancel-contact" class="btn-secondary" style="display:none;">Annulla modifica</button>
     </div>
   </div>
 
+  <h3>Contatti esistenti <span id="count-contacts" class="badge badge-gray">0</span></h3>
+  <div id="contacts-list"></div>
+</div>
+```
+
+  </div>
+
   <!-- pannello chat inline -->
+
   <aside id="chatPanel" class="chat-panel" aria-hidden="true">
     <header>
       <strong id="chatTitle">Chat</strong>
@@ -145,7 +182,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc,
-      orderBy, limit
+      orderBy, limit, addDoc, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
@@ -183,7 +220,8 @@
     });
     $("btn-logout").addEventListener("click", () => signOut(auth));
 
-    let pendingUnsub = null, approvedUnsub = null;
+    let pendingUnsub = null, approvedUnsub = null, contactsUnsub = null;
+    let editingContactId = null;
 
     // --------- Badge non letti per un driver (ultimi 50 msg) ----------
     function watchUnreadBadgeForDriver(uid){
@@ -248,6 +286,143 @@
         setStatus("err", "❌ Errore nell'aggiornamento del nome.");
       }
     };
+
+    // ========== GESTIONE RUBRICA ==========
+    
+    // Funzioni per gestire i contatti della rubrica
+    async function addOrEditContact() {
+      const nome = $("rubrica-nome").value.trim();
+      const telefono = $("rubrica-telefono").value.trim();
+      const email = $("rubrica-email").value.trim();
+      const tipo = $("rubrica-tipo").value;
+      const note = $("rubrica-note").value.trim();
+
+      if (!nome) {
+        alert("Inserisci almeno il nome/azienda.");
+        return;
+      }
+
+      const contactData = {
+        nome,
+        telefono,
+        email,
+        tipo,
+        note,
+        updatedAt: serverTimestamp()
+      };
+
+      try {
+        if (editingContactId) {
+          // Modifica contatto esistente
+          await updateDoc(doc(db, "rubrica", editingContactId), contactData);
+          setStatus("ok", "✅ Contatto aggiornato.");
+          cancelEditContact();
+        } else {
+          // Aggiungi nuovo contatto
+          await addDoc(collection(db, "rubrica"), {
+            ...contactData,
+            createdAt: serverTimestamp(),
+            createdBy: "admin"
+          });
+          setStatus("ok", "✅ Contatto aggiunto alla rubrica.");
+        }
+        clearContactForm();
+      } catch (error) {
+        console.error("Errore nella gestione del contatto:", error);
+        setStatus("err", "❌ Errore nella gestione del contatto.");
+      }
+    }
+
+    function clearContactForm() {
+      $("rubrica-nome").value = "";
+      $("rubrica-telefono").value = "";
+      $("rubrica-email").value = "";
+      $("rubrica-tipo").value = "cliente";
+      $("rubrica-note").value = "";
+    }
+
+    function editContact(id, contact) {
+      editingContactId = id;
+      $("rubrica-nome").value = contact.nome || "";
+      $("rubrica-telefono").value = contact.telefono || "";
+      $("rubrica-email").value = contact.email || "";
+      $("rubrica-tipo").value = contact.tipo || "cliente";
+      $("rubrica-note").value = contact.note || "";
+      $("btn-add-contact").textContent = "Aggiorna contatto";
+      $("btn-cancel-contact").style.display = "inline-block";
+    }
+
+    function cancelEditContact() {
+      editingContactId = null;
+      $("btn-add-contact").textContent = "Aggiungi contatto";
+      $("btn-cancel-contact").style.display = "none";
+      clearContactForm();
+    }
+
+    async function deleteContact(id, nome) {
+      if (!confirm(`Eliminare il contatto "${nome}"?`)) return;
+      try {
+        await deleteDoc(doc(db, "rubrica", id));
+        setStatus("ok", "🗑️ Contatto eliminato.");
+      } catch (error) {
+        console.error("Errore nell'eliminazione del contatto:", error);
+        setStatus("err", "❌ Errore nell'eliminazione del contatto.");
+      }
+    }
+
+    function renderContacts(snapshot) {
+      const container = $("contacts-list");
+      const count = $("count-contacts");
+      container.innerHTML = "";
+      count.textContent = String(snapshot.size);
+
+      if (snapshot.empty) {
+        container.innerHTML = "<div class='muted'>Nessun contatto in rubrica.</div>";
+        return;
+      }
+
+      snapshot.forEach(docSnap => {
+        const contact = docSnap.data();
+        const id = docSnap.id;
+        const card = document.createElement("div");
+        card.className = "card";
+        
+        const tipoColors = {
+          cliente: "#0b5",
+          fornitore: "#f39c12",
+          partner: "#9b59b6",
+          altro: "#95a5a6"
+        };
+
+        card.innerHTML = `
+          <div class="row">
+            <div>
+              <strong>${contact.nome || "(senza nome)"}</strong>
+              <span class="badge" style="background:${tipoColors[contact.tipo] || '#95a5a6'}; color:#fff; margin-left:8px;">${contact.tipo}</span>
+              <br>
+              ${contact.telefono ? `📞 ${contact.telefono}` : ""}
+              ${contact.telefono && contact.email ? " • " : ""}
+              ${contact.email ? `📧 ${contact.email}` : ""}
+              ${contact.note ? `<br><em style="color:#666; font-size:13px;">${contact.note}</em>` : ""}
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
+                      class="btn-secondary">✏️ Modifica</button>
+              <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
+                      class="btn-danger">🗑️ Elimina</button>
+            </div>
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+
+    // Event listeners per la rubrica
+    $("btn-add-contact").addEventListener("click", addOrEditContact);
+    $("btn-cancel-contact").addEventListener("click", cancelEditContact);
+
+    // Espone le funzioni globalmente per i bottoni inline
+    window.editContact = editContact;
+    window.deleteContact = deleteContact;
 
     function renderUsers(containerId, countId, snap, type){
       const container = $(containerId);
@@ -339,14 +514,26 @@
                                 where("approved","==",true));
         approvedUnsub = onSnapshot(qApproved, (snap) => renderUsers("approved","count-approved",snap,"approvati"));
       }
+      if (!contactsUnsub) {
+        const qContacts = query(collection(db,"rubrica"), orderBy("nome","asc"));
+        contactsUnsub = onSnapshot(qContacts, renderContacts);
+      }
+      // Mostra sezione rubrica
+      $("rubrica-section").style.display = "block";
     }
     function stopListeners(){
       if (pendingUnsub) { pendingUnsub(); pendingUnsub=null; }
       if (approvedUnsub) { approvedUnsub(); approvedUnsub=null; }
+      if (contactsUnsub) { contactsUnsub(); contactsUnsub=null; }
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
+      $("count-contacts").textContent = "0";
       $("pending").innerHTML  = "<div class='muted'>Effettua il login come admin per vedere gli utenti in attesa.</div>";
       $("approved").innerHTML = "<div class='muted'>Effettua il login come admin per vedere gli utenti approvati.</div>";
+      $("contacts-list").innerHTML = "";
+      // Nascondi sezione rubrica
+      $("rubrica-section").style.display = "none";
+      cancelEditContact();
     }
 
     onAuthStateChanged(auth, (user) => {
@@ -356,5 +543,6 @@
       else { setStatus("warn",`⚠️ Loggato come ${user.email}, ma non sei admin.`); stopListeners(); }
     });
   </script>
+
 </body>
 </html>
