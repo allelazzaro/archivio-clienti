@@ -181,12 +181,6 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
       <input id="rubrica-nome" placeholder="Nome/Azienda">
       <input id="rubrica-telefono" placeholder="Telefono">
       <input id="rubrica-email" placeholder="Email">
-      <select id="rubrica-tipo">
-        <option value="cliente">Cliente</option>
-        <option value="fornitore">Fornitore</option>
-        <option value="partner">Partner</option>
-        <option value="altro">Altro</option>
-      </select>
     </div>
     <textarea id="rubrica-note" placeholder="Note aggiuntive" style="width:100%; margin-bottom:12px; min-height:60px; box-sizing:border-box;"></textarea>
     <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -337,7 +331,6 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
       const nome = $("rubrica-nome").value.trim();
       const telefono = $("rubrica-telefono").value.trim();
       const email = $("rubrica-email").value.trim();
-      const tipo = $("rubrica-tipo").value;
       const note = $("rubrica-note").value.trim();
 
       if (!nome) {
@@ -349,7 +342,6 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
         nome,
         telefono,
         email,
-        tipo,
         note,
         updatedAt: serverTimestamp()
       };
@@ -380,7 +372,6 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
       $("rubrica-nome").value = "";
       $("rubrica-telefono").value = "";
       $("rubrica-email").value = "";
-      $("rubrica-tipo").value = "cliente";
       $("rubrica-note").value = "";
     }
 
@@ -389,10 +380,12 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
       $("rubrica-nome").value = contact.nome || "";
       $("rubrica-telefono").value = contact.telefono || "";
       $("rubrica-email").value = contact.email || "";
-      $("rubrica-tipo").value = contact.tipo || "cliente";
       $("rubrica-note").value = contact.note || "";
       $("btn-add-contact").textContent = "Aggiorna contatto";
       $("btn-cancel-contact").style.display = "inline-block";
+      
+      // Scroll verso il form per una migliore UX
+      $("rubrica-nome").scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function cancelEditContact() {
@@ -429,30 +422,22 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
         const id = docSnap.id;
         const card = document.createElement("div");
         card.className = "card";
-        
-        const tipoColors = {
-          cliente: "#0b5",
-          fornitore: "#f39c12",
-          partner: "#9b59b6",
-          altro: "#95a5a6"
-        };
 
         card.innerHTML = `
           <div class="row">
             <div>
               <strong>${contact.nome || "(senza nome)"}</strong>
-              <span class="badge" style="background:${tipoColors[contact.tipo] || '#95a5a6'}; color:#fff; margin-left:8px;">${contact.tipo}</span>
               <br>
               ${contact.telefono ? `📞 ${contact.telefono}` : ""}
               ${contact.telefono && contact.email ? " • " : ""}
               ${contact.email ? `📧 ${contact.email}` : ""}
               ${contact.note ? `<br><em style="color:#666; font-size:13px;">${contact.note}</em>` : ""}
             </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div class="action-buttons">
               <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
-                      class="btn-secondary">✏️ Modifica</button>
+                      class="btn-secondary">Modifica</button>
               <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
-                      class="btn-danger">🗑️ Elimina</button>
+                      class="btn-danger">Elimina</button>
             </div>
           </div>`;
         container.appendChild(card);
