@@ -8,30 +8,36 @@
   <style>
     :root{ --bg:#f6f8fa; --card:#fff; --muted:#666; --b:#ddd; --pri:#0b5; --danger:#b02a37; }
     body { font-family: Arial, sans-serif; margin:0; background: var(--bg); }
-    header { padding:16px; background:#fff; border-bottom:1px solid #eee; position:sticky; top:0; z-index:10; }
-    h1 { margin:0 0 10px; }
-    .container { padding:16px; }
-    .status { margin: 8px 0 16px; padding:10px; border-radius:8px; font-size:14px; }
+    header { padding:12px 16px; background:#fff; border-bottom:1px solid #eee; position:sticky; top:0; z-index:10; }
+    h1 { margin:0 0 8px; font-size:20px; }
+    .container { padding:16px; max-width:1200px; margin:0 auto; }
+    .status { margin: 8px 0 12px; padding:8px 12px; border-radius:6px; font-size:14px; }
     .ok { background:#e7f7ec; border:1px solid #33a35c; color:#0b5; }
     .warn { background:#fff7e6; border:1px solid #f0ad4e; color:#c77c11; }
     .err { background:#fdecea; border:1px solid #f5c2c7; color:#b02a37; }
 
 ```
-.login-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-input, button, a.btn { padding:8px 12px; border-radius:8px; border:1px solid #ccc; background:#fff; text-decoration:none; color:#000; }
+.login-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+input, button, a.btn { padding:6px 10px; border-radius:6px; border:1px solid #ccc; background:#fff; text-decoration:none; color:#000; font-size:14px; }
 button { cursor:pointer; }
 button:disabled{ opacity:.6; cursor:not-allowed; }
 .btn-danger{ background:#b02a37; border-color:#b02a37; color:#fff; }
 .btn-secondary{ background:#eee; }
 .btn-primary{ background:#0b5; color:#fff; border-color:#0b5; }
 
-.cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-@media (max-width: 900px){ .cols { grid-template-columns: 1fr; } }
+.cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:24px; }
+@media (max-width: 768px){ 
+  .cols { grid-template-columns: 1fr; gap:12px; }
+  .login-row { gap:4px; }
+  input, button, a.btn { padding:8px 12px; font-size:16px; } /* Migliore touch target su mobile */
+  h1 { font-size:18px; }
+  .container { padding:12px; }
+}
 
-.card { background:#fff; border:1px solid #ddd; border-radius:10px; padding:12px; margin-bottom:10px; }
-.row { display:flex; gap:8px; align-items:center; justify-content:space-between; }
-.muted { color:#666; font-size:14px; }
-.badge{ display:inline-block; min-width:18px; padding:2px 6px; border-radius:999px; font-size:12px; text-align:center; }
+.card { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; margin-bottom:8px; }
+.row { display:flex; gap:8px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+.muted { color:#666; font-size:13px; }
+.badge{ display:inline-block; min-width:16px; padding:2px 6px; border-radius:999px; font-size:11px; text-align:center; }
 .badge-gray{ background:#eee; color:#333; }
 .badge-red{ background:#ff4757; color:#fff; }
 
@@ -41,13 +47,15 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   display: flex;
   gap: 4px;
   align-items: center;
+  flex-wrap: wrap;
 }
 .name-input {
   padding: 4px 6px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 12px;
-  width: 180px;
+  min-width: 120px;
+  flex: 1;
 }
 .name-btn {
   padding: 4px 8px;
@@ -57,9 +65,44 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
   border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
+  white-space: nowrap;
 }
 .name-btn:hover {
   background: #096;
+}
+
+/* Bottoni azioni - meglio su mobile */
+.action-buttons {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.action-buttons button,
+.action-buttons a {
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Rubrica */
+.rubrica-form {
+  background:#fff; 
+  border:1px solid #ddd; 
+  border-radius:8px; 
+  padding:16px; 
+  margin-bottom:16px;
+}
+.rubrica-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+@media (max-width: 768px) {
+  .rubrica-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Pannello chat laterale - SOLUZIONE DEFINITIVA */
@@ -132,9 +175,9 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
 <!-- GESTIONE RUBRICA -->
 <div id="rubrica-section" style="display:none;">
   <h2>📞 Gestione Rubrica</h2>
-  <div style="background:#fff; border:1px solid #ddd; border-radius:10px; padding:16px; margin-bottom:16px;">
+  <div class="rubrica-form">
     <h3 style="margin-top:0;">Aggiungi nuovo contatto</h3>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+    <div class="rubrica-grid">
       <input id="rubrica-nome" placeholder="Nome/Azienda">
       <input id="rubrica-telefono" placeholder="Telefono">
       <input id="rubrica-email" placeholder="Email">
@@ -145,8 +188,8 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
         <option value="altro">Altro</option>
       </select>
     </div>
-    <textarea id="rubrica-note" placeholder="Note aggiuntive" style="width:100%; margin-bottom:12px; min-height:60px;"></textarea>
-    <div style="display:flex; gap:8px;">
+    <textarea id="rubrica-note" placeholder="Note aggiuntive" style="width:100%; margin-bottom:12px; min-height:60px; box-sizing:border-box;"></textarea>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button id="btn-add-contact" class="btn-primary">Aggiungi contatto</button>
       <button id="btn-cancel-contact" class="btn-secondary" style="display:none;">Annulla modifica</button>
     </div>
@@ -451,14 +494,14 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
                 </div>
               ` : "" }
             </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <div class="action-buttons">
               ${
                 type === "in attesa"
                 ? `<button data-uid="${uid}" class="approve btn-primary">Approva</button>`
                 : `
                   <button data-uid="${uid}" class="revoke btn-secondary">Revoca accesso</button>
                   <button data-uid="${uid}" class="remove btn-danger">Elimina record</button>
-                  <a class="btn-secondary" href="chat.html?uid=${uid}" target="_blank" title="Apri chat in nuova pagina">🔗 Apri chat</a>
+                  <a class="btn-secondary" href="chat.html?uid=${uid}" target="_blank" title="Apri chat in nuova pagina">🔗 Chat</a>
                   <button data-uid="${uid}" data-name="${u.name || uid}" class="open-inline btn-secondary" title="Apri chat nel pannello">🗂 Apri qui</button>
                 `
               }
