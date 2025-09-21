@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="it">
 <head>
-  <link rel="manifest" href="manifest.json">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Archivio Clienti - Trasporti</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Manifest: percorso ASSOLUTO per GitHub Pages -->
+  <link rel="manifest" href="/archivio-clienti/manifest.json">
+
   <style>
     :root { --bg:#f9f9f9; --card:#fff; --txt:#222; --muted:#666; --brand:#007bff; }
     body { font-family: Arial, sans-serif; padding: 15px; margin: 0; background-color: var(--bg); color:var(--txt); }
@@ -29,86 +31,78 @@
     .row { display:flex; gap:8px; }
     .row > * { flex:1; }
 
-```
-#status { margin-top: 10px; font-size: 14px; font-style: italic; }
-button { cursor:pointer; }
-button:disabled { opacity:.6; cursor:not-allowed; }
+    #status { margin-top: 10px; font-size: 14px; font-style: italic; }
+    button { cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
 
-.userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
-.userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
-.link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; position: relative; }
+    .userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
+    .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
+    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3c6b; text-decoration:none; position: relative; }
 
-/* 📱 Contatore messaggi */
-.chat-counter {
-  position: absolute; top: -8px; right: -8px;
-  background-color: #f44336; color: #fff; border-radius: 50%;
-  width: 20px; height: 20px; min-width:20px;
-  display:flex; align-items:center; justify-content:center;
-  font-size:11px; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.2);
-}
-.chat-counter.hidden { display:none; }
-@keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
-.chat-counter.new-message { animation: bounce 1s ease-in-out; }
+    /* 📱 Contatore messaggi */
+    .chat-counter {
+      position: absolute; top: -8px; right: -8px;
+      background-color: #f44336; color: #fff; border-radius: 50%;
+      width: 20px; height: 20px; min-width:20px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:11px; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.2);
+    }
+    .chat-counter.hidden { display:none; }
+    @keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
+    .chat-counter.new-message { animation: bounce 1s ease-in-out; }
 
-/* 🍞 Toast popup */
-.toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
-.toast {
-  background:#fff; border:1px solid #e0e0e0; border-radius:12px;
-  box-shadow:0 8px 24px rgba(0,0,0,.15);
-  padding:16px; margin-bottom:12px;
-  transform:translateX(100%); transition:all .3s cubic-bezier(.4,0,.2,1);
-  cursor:pointer; position:relative; overflow:hidden;
-}
-.toast.show { transform:translateX(0); }
-.toast.hide { transform:translateX(100%); opacity:0; }
-.toast::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--brand); }
-.toast-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:600; font-size:14px; color:var(--brand); }
-.toast-body { color:#333; font-size:14px; line-height:1.4; margin-left:24px; }
-.toast-close {
-  position:absolute; top:8px; right:8px; width:24px; height:24px;
-  background:none; border:none; font-size:18px; color:#999; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; border-radius:50%;
-  transition: background-color .2s;
-}
-.toast-close:hover { background-color:#f0f0f0; }
-```
-
+    /* 🍞 Toast popup */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
+    .toast {
+      background:#fff; border:1px solid #e0e0e0; border-radius:12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.15);
+      padding:16px; margin-bottom:12px;
+      transform:translateX(100%); transition:all .3s cubic-bezier(.4,0,.2,1);
+      cursor:pointer; position:relative; overflow:hidden;
+    }
+    .toast.show { transform:translateX(0); }
+    .toast.hide { transform:translateX(100%); opacity:0; }
+    .toast::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--brand); }
+    .toast-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:600; font-size:14px; color:var(--brand); }
+    .toast-body { color:#333; font-size:14px; line-height:1.4; margin-left:24px; }
+    .toast-close {
+      position:absolute; top:8px; right:8px; width:24px; height:24px;
+      background:none; border:none; font-size:18px; color:#999; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; border-radius:50%;
+      transition: background-color .2s;
+    }
+    .toast-close:hover { background-color:#f0f0f0; }
   </style>
 </head>
 <body>
 
   <!-- OVERLAY AUTH -->
-
   <div id="auth-overlay">
     <div id="auth-box">
       <div id="auth-header">Accesso</div>
 
-```
-  <div class="tabs">
-    <button id="tab-login" class="tab active">Accedi</button>
-    <button id="tab-register" class="tab">Registrati</button>
-  </div>
+      <div class="tabs">
+        <button id="tab-login" class="tab active">Accedi</button>
+        <button id="tab-register" class="tab">Registrati</button>
+      </div>
 
-  <div id="pane-login" class="pane">
-    <input id="log-email" placeholder="Email">
-    <input id="log-password" placeholder="Password" type="password">
-    <button id="btn-login">Accedi</button>
-  </div>
+      <div id="pane-login" class="pane">
+        <input id="log-email" placeholder="Email">
+        <input id="log-password" placeholder="Password" type="password">
+        <button id="btn-login">Accedi</button>
+      </div>
 
-  <div id="pane-register" class="pane" style="display:none;">
-    <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
-    <input id="reg-email" placeholder="Email" required>
-    <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
-    <button id="btn-register">Crea account</button>
-    <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
-  </div>
-</div>
-```
-
+      <div id="pane-register" class="pane" style="display:none;">
+        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
+        <input id="reg-email" placeholder="Email" required>
+        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
+        <button id="btn-register">Crea account</button>
+        <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
+      </div>
+    </div>
   </div>
 
   <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
-
   <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
     <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
     <div>Sei registrato ma non ancora approvato. Quando l'amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
@@ -116,7 +110,6 @@ button:disabled { opacity:.6; cursor:not-allowed; }
   </div>
 
   <!-- MODAL RUBRICA -->
-
   <div id="rubrica-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; display:none; align-items:center; justify-content:center; padding:20px;">
     <div style="width:100%; max-width:500px; background:white; border-radius:12px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column;">
       <div style="padding:16px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
@@ -131,57 +124,53 @@ button:disabled { opacity:.6; cursor:not-allowed; }
   </div>
 
   <!-- APP -->
-
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-```
-<!-- 📱 Attivazione push (solo se necessario) -->
-<div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
-  <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
-</div>
+    <!-- 📱 Attivazione push (solo se necessario) -->
+    <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
+      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
+    </div>
 
-<div class="avviso">
-  ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
-</div>
+    <div class="avviso">
+      ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
+    </div>
 
-<div class="row" style="align-items:center;">
-  <a class="link-pill" href="chat.html" id="chat-link">
-    💬 Chat con Admin
-    <span class="chat-counter hidden" id="chat-counter">0</span>
-  </a>
-  <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
-    📞 Rubrica agenti
-  </button>
-  <button id="btn-logout" style="max-width:160px;">Esci</button>
-</div>
+    <div class="row" style="align-items:center;">
+      <a class="link-pill" href="chat.html" id="chat-link">
+        💬 Chat con Admin
+        <span class="chat-counter hidden" id="chat-counter">0</span>
+      </a>
+      <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
+        📞 Rubrica agenti
+      </button>
+      <button id="btn-logout" style="max-width:160px;">Esci</button>
+    </div>
 
-<div>
-  <input id="nome" placeholder="Nome cliente">
-  <input id="indirizzo" placeholder="Indirizzo">
-  <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
-  <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
-  <textarea id="note" placeholder="Note per la consegna"></textarea>
-  <button id="btn-aggiungi">Aggiungi cliente</button>
-  <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
-</div>
+    <div>
+      <input id="nome" placeholder="Nome cliente">
+      <input id="indirizzo" placeholder="Indirizzo">
+      <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
+      <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
+      <textarea id="note" placeholder="Note per la consegna"></textarea>
+      <button id="btn-aggiungi">Aggiungi cliente</button>
+      <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
+    </div>
 
-<div><input id="cerca" placeholder="Cerca cliente"></div>
-<div id="clienti"></div>
+    <div><input id="cerca" placeholder="Cerca cliente"></div>
+    <div id="clienti"></div>
 
-<hr>
-<h2>📡 Tracciamento automatico</h2>
-<button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
-<div id="status"></div>
-```
-
+    <hr>
+    <h2>📡 Tracciamento automatico</h2>
+    <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+    <div id="status"></div>
   </div>
 
   <!-- 🍞 Container per toast messaggi -->
-
   <div id="toast-container" class="toast-container"></div>
 
+  <!-- APP LOGIC -->
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -195,7 +184,7 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
-      onSnapshot, query, getDocs, getDoc, where, orderBy, serverTimestamp, limit
+      onSnapshot, query, getDocs, getDoc, orderBy, serverTimestamp, limit
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
@@ -209,13 +198,12 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     const auth = getAuth(app);
 
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+    const clientiRef = collection(db, "clienti");
 
-    const clientiRef   = collection(db, "clienti");
-
-    let nomeUtente = ""; // letto da Firestore o email
+    let nomeUtente = "";
     let clienteDaModificare = null;
 
-    // 📱 Variabili per il contatore chat
+    // 📱 Chat counter
     let chatUnsub = null;
     let currentUserId = null;
     let lastMessageCount = 0;
@@ -259,7 +247,7 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     }
     function stopClientiListener(){ if (clientiUnsub){ clientiUnsub(); clientiUnsub=null; } }
 
-    // ========== GESTIONE RUBRICA (SOLO LETTURA) ==========
+    // ========== RUBRICA ==========
     function startRubricaListener(){
       if (rubricaUnsub) return;
       const qRubrica = query(collection(db, "rubrica"), orderBy("nome", "asc"));
@@ -270,17 +258,14 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     function mostraRubrica(snapshot) {
       const container = el("rubrica-container");
       container.innerHTML = "";
-      
       if (snapshot.empty) {
         container.innerHTML = "<div class='muted'>Nessun contatto in rubrica.</div>";
         return;
       }
-
       snapshot.forEach(docSnap => {
         const contact = docSnap.data();
         const card = document.createElement("div");
-        card.className = "cliente"; // Riusa lo stesso stile
-
+        card.className = "cliente";
         card.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
             <strong>${contact.nome || "(senza nome)"}</strong>
@@ -448,15 +433,24 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     async function enablePushForUser(user){
       try{
         if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-        const swReg = await navigator.serviceWorker.register('firebase-messaging-sw.js').catch((err)=>{ console.warn('Registrazione service worker FCM fallita:', err); throw err; });
+
+        // Usa il Service Worker GIÀ registrato globalmente (vedi blocco a fondo pagina)
+        const reg = await navigator.serviceWorker.ready;
+
         const perm = await Notification.requestPermission();
         if (perm!=='granted'){ console.warn('Permesso notifiche negato'); return; }
-        const token = await getToken(messaging, { vapidKey: VAPID_PUBLIC_KEY, serviceWorkerRegistration: swReg });
-        if (!token){ console.warn('Nessun token FCM ricevuto (controlla HTTPS e firebase-messaging-sw.js)'); return; }
+
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_PUBLIC_KEY,
+          serviceWorkerRegistration: reg
+        });
+        if (!token){ console.warn('Nessun token FCM ricevuto'); return; }
+
         await setDoc(doc(db,"users",user.uid), { fcmTokens: { [token]: true } }, { merge:true });
         console.log('✅ FCM token salvato per', user.uid);
-      }catch(e){ console.warn('Errore during enablePushForUser', e); }
+      }catch(e){ console.warn('Errore enablePushForUser', e); }
     }
+
     async function handlePushPermission(user){
       if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
       const wrapper = document.getElementById('push-activation-wrapper');
@@ -475,6 +469,7 @@ button:disabled { opacity:.6; cursor:not-allowed; }
         }
       }
     }
+
     onMessage(messaging, (payload)=>{
       console.log('📨 Push in foreground:', payload);
       if (payload.notification){
@@ -538,11 +533,11 @@ button:disabled { opacity:.6; cursor:not-allowed; }
       });
     });
 
-    // ✅ NUOVA VERSIONE – salva autore e posizione d'inserimento
+    // ✅ Aggiungi/Modifica/Elimina clienti
     async function aggiungiOmodificaCliente() {
       const nome = el("nome").value.trim();
       const indirizzo = el("indirizzo").value.trim();
-      const coordinate = el("coordinate").value.trim(); // es. "44.8015, 10.3274"
+      const coordinate = el("coordinate").value.trim();
       const note = el("note").value.trim();
       if (!nome || !indirizzo) { alert("Inserisci almeno nome e indirizzo."); return; }
 
@@ -552,15 +547,6 @@ button:disabled { opacity:.6; cursor:not-allowed; }
         name: (nomeUtente || user?.displayName || (user?.email ? user.email.split("@")[0] : "")) || "",
         email: user?.email || ""
       };
-
-      let createdLat = null, createdLng = null;
-      if (coordinate) {
-        const parts = coordinate.split(",").map(s => s.trim());
-        if (parts.length === 2) {
-          const lat = Number(parts[0]); const lng = Number(parts[1]);
-          if (!Number.isNaN(lat) && !Number.isNaN(lng)) { createdLat = lat; createdLng = lng; }
-        }
-      }
 
       const payload = { nome, indirizzo, coordinate, note };
 
@@ -579,8 +565,7 @@ button:disabled { opacity:.6; cursor:not-allowed; }
         await addDoc(clientiRef, {
           ...payload,
           createdAt: serverTimestamp(),
-          createdBy: autore,
-          createdLocation: (createdLat !== null && createdLng !== null) ? { lat: createdLat, lng: createdLng, source: "gps" } : null
+          createdBy: autore
         });
       }
 
@@ -612,13 +597,11 @@ button:disabled { opacity:.6; cursor:not-allowed; }
         const div = document.createElement("div");
         div.className = "cliente";
         const inseritoDa = c.createdBy ? `<div class="muted">Inserito da: <strong>${c.createdBy.name || "sconosciuto"}</strong>${c.createdAt?.toDate ? " • " + c.createdAt.toDate().toLocaleString() : ""}</div>` : "";
-        const posIns = c.createdLocation ? `<div class="muted">Posizione inserimento: ${Number(c.createdLocation.lat).toFixed(5)}, ${Number(c.createdLocation.lng).toFixed(5)} (${c.createdLocation.source})</div>` : "";
         div.innerHTML = `<strong>${c.nome || "(senza nome)"}</strong><br>
                          ${c.indirizzo || ""}<br>
                          ${c.coordinate ? `<a href='https://maps.google.com/?q=${c.coordinate}' target='_blank'>Vai a Google Maps</a><br>` : ""}
                          ${c.note ? `<em>${c.note}</em><br>` : ""}
                          ${inseritoDa}
-                         ${posIns}
                          <button class='btn-azione' onclick='eliminaCliente("${docSnap.id}")'>🗑️ Elimina</button>
                          <button class='btn-azione' onclick='preparaModificaCliente("${docSnap.id}", ${JSON.stringify(c).replace(/"/g, '&quot;')})'>✏️ Modifica</button>`;
         clientiDiv.appendChild(div);
@@ -637,25 +620,16 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     el("cerca").addEventListener("input", filtraClienti);
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
-    // Event listeners per modal rubrica
+    // Modal rubrica
     el("btn-rubrica").addEventListener("click", () => {
       el("rubrica-overlay").style.display = "flex";
-      el("cerca-rubrica").value = ""; // Reset ricerca
-      filtraRubrica(); // Mostra tutti i contatti
+      el("cerca-rubrica").value = "";
+      filtraRubrica();
     });
+    el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
+    el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
-    el("close-rubrica").addEventListener("click", () => {
-      el("rubrica-overlay").style.display = "none";
-    });
-
-    // Chiudi modal se clicchi fuori
-    el("rubrica-overlay").addEventListener("click", (e) => {
-      if (e.target === el("rubrica-overlay")) {
-        el("rubrica-overlay").style.display = "none";
-      }
-    });
-
-    // 📍 GPS: aggiorna il documento del mezzo (stessa logica "un doc per uid")
+    // 📍 GPS
     el("btn-gps").addEventListener("click", async () => {
       if (!auth.currentUser) { alert("Devi essere loggato."); return; }
       if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
@@ -681,7 +655,7 @@ button:disabled { opacity:.6; cursor:not-allowed; }
       }, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
     });
 
-    // 🔴🔵 TRACKING: UN SOLO DOCUMENTO PER MEZZO
+    // 🔴🔵 Tracking
     let watchId = null;
 
     window.avviaTracciamento = async function () {
@@ -691,14 +665,12 @@ button:disabled { opacity:.6; cursor:not-allowed; }
       if (!auth.currentUser) { status.textContent = 'Non sei loggato.'; return; }
       if (!('geolocation' in navigator)) { status.textContent = 'Geolocalizzazione non supportata.'; return; }
 
-      // se già attivo → disattivo
       if (watchId) { await stopTracking(); status.textContent = 'Tracciamento disattivato.'; btn.textContent = '▶️ Attiva tracciamento automatico'; return; }
 
       const uid = auth.currentUser.uid;
       const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
       const docRef = doc(db, 'posizioniMezzo', uid);
 
-      // segno subito online
       await setDoc(docRef, { uid, mezzo: mezzoNome, online:true, updatedAt: serverTimestamp() }, { merge:true });
 
       status.textContent = 'Attivo: invio posizioni…';
@@ -729,7 +701,6 @@ button:disabled { opacity:.6; cursor:not-allowed; }
       if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
     }
 
-    // se chiudo la pagina mentre è attivo, provo a "pulire" il doc
     window.addEventListener('beforeunload', async () => {
       if (watchId && auth.currentUser) {
         try { await deleteDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid)); } catch(e){}
@@ -739,18 +710,17 @@ button:disabled { opacity:.6; cursor:not-allowed; }
     // Espone funzioni globali per i bottoni inline
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
-
   </script>
 
-  <!-- 📱 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
-
+  <!-- 📱 Registrazione UNICA del Service Worker con path assoluto e scope /archivio-clienti/ -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('firebase-messaging-sw.js')
-        .catch(err => console.warn('SW (FCM) registration failed', err));
+      navigator.serviceWorker.register('/archivio-clienti/firebase-messaging-sw.js', {
+        scope: '/archivio-clienti/'
+      })
+      .then(() => console.log('✅ SW registrato con scope /archivio-clienti/'))
+      .catch(err => console.warn('SW registration failed', err));
     }
   </script>
-
 </body>
 </html>
-
