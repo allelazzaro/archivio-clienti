@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
   <link rel="manifest" href="manifest.json">
@@ -28,78 +29,86 @@
     .row { display:flex; gap:8px; }
     .row > * { flex:1; }
 
-    #status { margin-top: 10px; font-size: 14px; font-style: italic; }
-    button { cursor:pointer; }
-    button:disabled { opacity:.6; cursor:not-allowed; }
+```
+#status { margin-top: 10px; font-size: 14px; font-style: italic; }
+button { cursor:pointer; }
+button:disabled { opacity:.6; cursor:not-allowed; }
 
-    .userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
-    .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
-    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; position: relative; }
-    
-    /* 📱 Contatore messaggi */
-    .chat-counter {
-      position: absolute; top: -8px; right: -8px;
-      background-color: #f44336; color: #fff; border-radius: 50%;
-      width: 20px; height: 20px; min-width:20px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:11px; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.2);
-    }
-    .chat-counter.hidden { display:none; }
-    @keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
-    .chat-counter.new-message { animation: bounce 1s ease-in-out; }
+.userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
+.userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
+.link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d91; text-decoration:none; position: relative; }
 
-    /* 🍞 Toast popup */
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
-    .toast {
-      background:#fff; border:1px solid #e0e0e0; border-radius:12px;
-      box-shadow:0 8px 24px rgba(0,0,0,.15);
-      padding:16px; margin-bottom:12px;
-      transform:translateX(100%); transition:all .3s cubic-bezier(.4,0,.2,1);
-      cursor:pointer; position:relative; overflow:hidden;
-    }
-    .toast.show { transform:translateX(0); }
-    .toast.hide { transform:translateX(100%); opacity:0; }
-    .toast::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--brand); }
-    .toast-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:600; font-size:14px; color:var(--brand); }
-    .toast-body { color:#333; font-size:14px; line-height:1.4; margin-left:24px; }
-    .toast-close {
-      position:absolute; top:8px; right:8px; width:24px; height:24px;
-      background:none; border:none; font-size:18px; color:#999; cursor:pointer;
-      display:flex; align-items:center; justify-content:center; border-radius:50%;
-      transition: background-color .2s;
-    }
-    .toast-close:hover { background-color:#f0f0f0; }
+/* 📱 Contatore messaggi */
+.chat-counter {
+  position: absolute; top: -8px; right: -8px;
+  background-color: #f44336; color: #fff; border-radius: 50%;
+  width: 20px; height: 20px; min-width:20px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:bold; border:2px solid #fff; box-shadow:0 2px 4px rgba(0,0,0,.2);
+}
+.chat-counter.hidden { display:none; }
+@keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
+.chat-counter.new-message { animation: bounce 1s ease-in-out; }
+
+/* 🍞 Toast popup */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
+.toast {
+  background:#fff; border:1px solid #e0e0e0; border-radius:12px;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+  padding:16px; margin-bottom:12px;
+  transform:translateX(100%); transition:all .3s cubic-bezier(.4,0,.2,1);
+  cursor:pointer; position:relative; overflow:hidden;
+}
+.toast.show { transform:translateX(0); }
+.toast.hide { transform:translateX(100%); opacity:0; }
+.toast::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--brand); }
+.toast-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:600; font-size:14px; color:var(--brand); }
+.toast-body { color:#333; font-size:14px; line-height:1.4; margin-left:24px; }
+.toast-close {
+  position:absolute; top:8px; right:8px; width:24px; height:24px;
+  background:none; border:none; font-size:18px; color:#999; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; border-radius:50%;
+  transition: background-color .2s;
+}
+.toast-close:hover { background-color:#f0f0f0; }
+```
+
   </style>
 </head>
 <body>
 
   <!-- OVERLAY AUTH -->
+
   <div id="auth-overlay">
     <div id="auth-box">
       <div id="auth-header">Accesso</div>
 
-      <div class="tabs">
-        <button id="tab-login" class="tab active">Accedi</button>
-        <button id="tab-register" class="tab">Registrati</button>
-      </div>
+```
+  <div class="tabs">
+    <button id="tab-login" class="tab active">Accedi</button>
+    <button id="tab-register" class="tab">Registrati</button>
+  </div>
 
-      <div id="pane-login" class="pane">
-        <input id="log-email" placeholder="Email">
-        <input id="log-password" placeholder="Password" type="password">
-        <button id="btn-login">Accedi</button>
-      </div>
+  <div id="pane-login" class="pane">
+    <input id="log-email" placeholder="Email">
+    <input id="log-password" placeholder="Password" type="password">
+    <button id="btn-login">Accedi</button>
+  </div>
 
-      <div id="pane-register" class="pane" style="display:none;">
-        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
-        <input id="reg-email" placeholder="Email" required>
-        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
-        <button id="btn-register">Crea account</button>
-        <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
-      </div>
-    </div>
+  <div id="pane-register" class="pane" style="display:none;">
+    <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
+    <input id="reg-email" placeholder="Email" required>
+    <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
+    <button id="btn-register">Crea account</button>
+    <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
+  </div>
+</div>
+```
+
   </div>
 
   <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
+
   <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
     <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
     <div>Sei registrato ma non ancora approvato. Quando l'amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
@@ -107,47 +116,57 @@
   </div>
 
   <!-- APP -->
+
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-    <!-- 📱 Attivazione push (solo se necessario) -->
-    <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
-      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
-    </div>
+```
+<!-- 📱 Attivazione push (solo se necessario) -->
+<div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
+  <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
+</div>
 
-    <div class="avviso">
-      ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
-    </div>
+<div class="avviso">
+  ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
+</div>
 
-    <div class="row" style="align-items:center;">
-      <a class="link-pill" href="chat.html" id="chat-link">
-        💬 Chat con Admin
-        <span class="chat-counter hidden" id="chat-counter">0</span>
-      </a>
-      <button id="btn-logout" style="max-width:160px;">Esci</button>
-    </div>
+<div class="row" style="align-items:center;">
+  <a class="link-pill" href="chat.html" id="chat-link">
+    💬 Chat con Admin
+    <span class="chat-counter hidden" id="chat-counter">0</span>
+  </a>
+  <button id="btn-logout" style="max-width:160px;">Esci</button>
+</div>
 
-    <div>
-      <input id="nome" placeholder="Nome cliente">
-      <input id="indirizzo" placeholder="Indirizzo">
-      <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
-      <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
-      <textarea id="note" placeholder="Note per la consegna"></textarea>
-      <button id="btn-aggiungi">Aggiungi cliente</button>
-      <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
-    </div>
+<div>
+  <input id="nome" placeholder="Nome cliente">
+  <input id="indirizzo" placeholder="Indirizzo">
+  <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
+  <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
+  <textarea id="note" placeholder="Note per la consegna"></textarea>
+  <button id="btn-aggiungi">Aggiungi cliente</button>
+  <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
+</div>
 
-    <div><input id="cerca" placeholder="Cerca cliente"></div>
-    <div id="clienti"></div>
+<div><input id="cerca" placeholder="Cerca cliente"></div>
+<div id="clienti"></div>
 
-    <hr>
-    <h2>📡 Tracciamento automatico</h2>
-    <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
-    <div id="status"></div>
+<hr>
+<h2>📞 Rubrica Aziendale</h2>
+<div><input id="cerca-rubrica" placeholder="Cerca nella rubrica..."></div>
+<div id="rubrica-container" style="margin-top:12px;"></div>
+
+<hr>
+<h2>📡 Tracciamento automatico</h2>
+<button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+<div id="status"></div>
+```
+
   </div>
 
   <!-- 🍞 Container per toast messaggi -->
+
   <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
@@ -217,12 +236,64 @@
     }
 
     let clientiUnsub = null;
+    let rubricaUnsub = null;
     function startClientiListener(){
       if (clientiUnsub) return;
       const q = query(clientiRef);
       clientiUnsub = onSnapshot(q, mostraClienti, (err)=>console.error(err));
     }
     function stopClientiListener(){ if (clientiUnsub){ clientiUnsub(); clientiUnsub=null; } }
+
+    // ========== GESTIONE RUBRICA (SOLO LETTURA) ==========
+    function startRubricaListener(){
+      if (rubricaUnsub) return;
+      const qRubrica = query(collection(db, "rubrica"), orderBy("nome", "asc"));
+      rubricaUnsub = onSnapshot(qRubrica, mostraRubrica, (err)=>console.error("Errore rubrica:", err));
+    }
+    function stopRubricaListener(){ if (rubricaUnsub){ rubricaUnsub(); rubricaUnsub=null; } }
+
+    function mostraRubrica(snapshot) {
+      const container = el("rubrica-container");
+      container.innerHTML = "";
+      
+      if (snapshot.empty) {
+        container.innerHTML = "<div class='muted'>Nessun contatto in rubrica.</div>";
+        return;
+      }
+
+      snapshot.forEach(docSnap => {
+        const contact = docSnap.data();
+        const card = document.createElement("div");
+        card.className = "cliente"; // Riusa lo stesso stile
+        
+        const tipoColors = {
+          cliente: "#007bff",
+          fornitore: "#f39c12",
+          partner: "#9b59b6",
+          altro: "#95a5a6"
+        };
+
+        card.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <strong>${contact.nome || "(senza nome)"}</strong>
+            <span style="background:${tipoColors[contact.tipo] || '#95a5a6'}; color:#fff; padding:2px 8px; border-radius:12px; font-size:11px; text-transform:uppercase;">${contact.tipo}</span>
+          </div>
+          ${contact.telefono ? `📞 <a href="tel:${contact.telefono}">${contact.telefono}</a>` : ""}
+          ${contact.telefono && contact.email ? " • " : ""}
+          ${contact.email ? `📧 <a href="mailto:${contact.email}">${contact.email}</a>` : ""}
+          ${contact.note ? `<br><em style="color:#666; font-size:13px; margin-top:6px; display:block;">${contact.note}</em>` : ""}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filtraRubrica() {
+      const queryTxt = el("cerca-rubrica").value.toLowerCase();
+      document.querySelectorAll("#rubrica-container .cliente").forEach(c=>{
+        const text = c.innerText.toLowerCase();
+        c.style.display = text.includes(queryTxt) ? "block" : "none";
+      });
+    }
 
     // 📱 Chat unread counter
     function startChatListener(userId){
@@ -409,7 +480,7 @@
     onAuthStateChanged(auth, async (user)=>{
       if (!user){
         showAuth("login");
-        stopClientiListener(); stopChatListener(); currentUserId=null; updateChatCounter(0);
+        stopClientiListener(); stopRubricaListener(); stopChatListener(); currentUserId=null; updateChatCounter(0);
         if (userUnsub){ userUnsub(); userUnsub=null; }
         const ub = document.getElementById("userbar"); if (ub) ub.innerHTML="";
         return;
@@ -439,13 +510,13 @@
         renderUserBar(user, data);
 
         if (data.role==="driver" && data.approved===true){
-          enableAppUI(); startClientiListener(); startChatListener(user.uid); handlePushPermission(user);
+          enableAppUI(); startClientiListener(); startRubricaListener(); startChatListener(user.uid); handlePushPermission(user);
         } else if (data.role==="admin"){
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
             "<h3>👑 Sei loggato come admin</h3><div>L'app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
           document.getElementById('btn-logout-while-waiting').onclick = ()=>signOut(auth);
-          stopClientiListener(); stopChatListener(); handlePushPermission(user);
+          stopClientiListener(); stopRubricaListener(); stopChatListener(); handlePushPermission(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           const nomeUtentePendente = data.name || user.displayName || user.email?.split("@")[0] || "Utente";
@@ -455,7 +526,7 @@
             <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
           `;
           document.getElementById('btn-logout-while-waiting').onclick = ()=>signOut(auth);
-          stopClientiListener(); stopChatListener();
+          stopClientiListener(); stopRubricaListener(); stopChatListener();
         }
       });
     });
@@ -557,6 +628,7 @@
     el("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
     el("btn-annulla").addEventListener("click", annullaModifica);
     el("cerca").addEventListener("input", filtraClienti);
+    el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
     // 📍 GPS: aggiorna il documento del mezzo (stessa logica "un doc per uid")
     el("btn-gps").addEventListener("click", async () => {
@@ -646,11 +718,13 @@
   </script>
 
   <!-- 📱 Registrazione del Service Worker FCM (root: /firebase-messaging-sw.js) -->
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('firebase-messaging-sw.js')
         .catch(err => console.warn('SW (FCM) registration failed', err));
     }
   </script>
+
 </body>
 </html>
