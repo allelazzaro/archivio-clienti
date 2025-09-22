@@ -21,7 +21,7 @@
     #auth-overlay, #awaiting-approval { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px; }
     #auth-box { width: 100%; max-width: 420px; background: var(--card); border: 1px solid #ddd; border-radius: 12px; padding: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
     #auth-header { padding: 14px 16px; border-bottom:1px solid #eee; font-weight:700; display:flex; gap:8px; align-items:center; }
-    #auth-header::before { content:"🔐"; }
+    #auth-header::before { content:"🔒"; }
     .tabs { display:flex; gap:0; border-bottom:1px solid #eee; }
     .tab { flex:1; padding:10px 12px; background:#fafafa; border:none; border-right:1px solid #eee; cursor:pointer; font-weight:600; }
     .tab:last-child { border-right:none; }
@@ -72,15 +72,6 @@
       transition: background-color .2s;
     }
     .toast-close:hover { background-color:#f0f0f0; }
-
-    /* Audio notification button */
-    .audio-enable-btn {
-      position: fixed; top: 10px; right: 10px; z-index: 9999;
-      background: #28a745; color: white; border: none;
-      padding: 8px 12px; border-radius: 6px; font-size: 12px;
-      cursor: pointer; display: none;
-    }
-    .audio-enable-btn:hover { background: #218838; }
   </style>
 </head>
 <body>
@@ -131,9 +122,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Audio Enable Button (iOS) -->
-  <button id="audio-enable-btn" class="audio-enable-btn">🔊 Abilita suoni notifica</button>
 
   <!-- APP -->
   <div id="app-wrapper" style="display:none;">
@@ -223,91 +211,6 @@
     // Variabili rubrica
     let clientiUnsub = null;
     let rubricaUnsub = null;
-
-    // ========== SISTEMA AUDIO NOTIFICHE per iOS ==========
-    class AudioNotificationManager {
-      constructor() {
-        this.audioContext = null;
-        this.enabled = false;
-        this.lastMessageTime = Date.now();
-        this.enableButton = document.getElementById('audio-enable-btn');
-      }
-
-      async init() {
-        if (!this.enableButton) return;
-        
-        this.enableButton.style.display = 'block';
-        this.enableButton.onclick = async () => {
-          try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            await this.audioContext.resume();
-            this.enabled = true;
-            this.enableButton.style.display = 'none';
-            console.log('🔊 Audio notifiche abilitate');
-            this.playNotificationSound();
-          } catch (e) {
-            console.error('Errore audio context:', e);
-          }
-        };
-      }
-
-      playNotificationSound() {
-        if (!this.enabled || !this.audioContext) return;
-
-        try {
-          const oscillator = this.audioContext.createOscillator();
-          const gainNode = this.audioContext.createGain();
-
-          oscillator.connect(gainNode);
-          gainNode.connect(this.audioContext.destination);
-
-          oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
-          oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime + 0.1);
-          
-          gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
-
-          oscillator.start();
-          oscillator.stop(this.audioContext.currentTime + 0.2);
-          
-          if ('vibrate' in navigator) {
-            navigator.vibrate([100, 50, 100]);
-          }
-        } catch (e) {
-          console.error('Errore riproduzione suono:', e);
-        }
-      }
-
-      onNewMessage() {
-        const now = Date.now();
-        if (now - this.lastMessageTime < 3000) return;
-        
-        this.lastMessageTime = now;
-        this.playNotificationSound();
-        
-        if (document.hidden) {
-          this.showVisualAlert();
-        }
-      }
-
-      showVisualAlert() {
-        const originalTitle = document.title;
-        let flashCount = 0;
-        
-        const flashInterval = setInterval(() => {
-          document.title = flashCount % 2 === 0 ? '🔔 NUOVO MESSAGGIO!' : originalTitle;
-          flashCount++;
-          
-          if (flashCount >= 10 || !document.hidden) {
-            clearInterval(flashInterval);
-            document.title = originalTitle;
-          }
-        }, 1000);
-      }
-    }
-
-    // Inizializza il sistema audio
-    const audioNotifier = new AudioNotificationManager();
 
     // 🍞 Toast
     function createToast(title, message, onClick) {
@@ -404,12 +307,7 @@
             }
           }
         });
-        
-        // Nuovi messaggi
         if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0){
-          // Suono audio per iOS
-          audioNotifier.onNewMessage();
-          
           if (!document.hidden && document.hasFocus()){
             showMessageToast('Admin', latestUnreadMessage.text || 'Nuovo messaggio');
           }
@@ -536,6 +434,7 @@
       try{
         if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
 
+        // Usa il Service Worker GIÀ registrato globalmente (vedi blocco a fondo pagina)
         const reg = await navigator.serviceWorker.ready;
 
         const perm = await Notification.requestPermission();
@@ -580,86 +479,15 @@
       }
     });
 
-    // ========== KEEP-ALIVE per iOS Safari ==========
-    if ('serviceWorker' in navigator) {
-      let keepAliveInterval;
-      
-      navigator.serviceWorker.ready.then((registration) => {
-        console.log('Service Worker ready');
-        
-        const startKeepAlive = () => {
-          if (keepAliveInterval) clearInterval(keepAliveInterval);
-          
-          keepAliveInterval = setInterval(() => {
-            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-              const channel = new MessageChannel();
-              
-              channel.port1.onmessage = (event) => {
-                console.log('SW keep-alive response:', event.data);
-              };
-              
-              navigator.serviceWorker.controller.postMessage({
-                type: 'KEEP_ALIVE',
-                timestamp: Date.now()
-              }, [channel.port2]);
-            }
-          }, 30000);
-        };
-        
-        if (!document.hidden) {
-          startKeepAlive();
-        }
-        
-        document.addEventListener('visibilitychange', () => {
-          if (document.hidden) {
-            if (keepAliveInterval) {
-              clearInterval(keepAliveInterval);
-              keepAliveInterval = null;
-            }
-          } else {
-            startKeepAlive();
-          }
-        });
-        
-        window.addEventListener('focus', startKeepAlive);
-        
-        if ('sync' in window.ServiceWorkerRegistration.prototype) {
-          registration.sync.register('keep-alive').catch(() => {
-            console.log('Background sync non supportato');
-          });
-        }
-      });
-    }
-
-    // Listener per messaggi dal Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        console.log('Messaggio da SW:', event.data);
-        
-        if (event.data && event.data.type === 'NOTIFICATION_CLICKED') {
-          if (event.data.action === 'open-chat') {
-            if (window.location.pathname.includes('index.html') || window.location.pathname.endsWith('/')) {
-              window.location.href = 'chat.html';
-            }
-            updateChatCounter(0);
-          }
-        }
-      });
-    }
-
     onAuthStateChanged(auth, async (user)=>{
       if (!user){
         showAuth("login");
         stopClientiListener(); stopRubricaListener(); stopChatListener(); currentUserId=null; updateChatCounter(0);
         if (userUnsub){ userUnsub(); userUnsub=null; }
         const ub = document.getElementById("userbar"); if (ub) ub.innerHTML="";
-        el('audio-enable-btn').style.display = 'none';
         return;
       }
       currentUserId = user.uid;
-
-      // Inizializza sistema audio dopo login
-      await audioNotifier.init();
 
       const uref = doc(db,"users",user.uid);
       const snap = await getDoc(uref);
@@ -884,7 +712,7 @@
     window.preparaModificaCliente = preparaModificaCliente;
   </script>
 
-  <!-- 📱 Registrazione Service Worker con scope /archivio-clienti/ -->
+  <!-- 📱 Registrazione UNICA del Service Worker con path assoluto e scope /archivio-clienti/ -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/archivio-clienti/firebase-messaging-sw.js', {
