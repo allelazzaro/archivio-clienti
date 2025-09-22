@@ -1,9 +1,10 @@
-// firebase-messaging-sw.js - Versione ottimizzata per iOS
-console.log('[SW] Firebase messaging service worker caricato - iOS optimized');
+// firebase-messaging-sw.js - Versione corretta per GitHub Pages
+console.log('[SW] Firebase messaging service worker caricato - GitHub Pages');
 
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
+// Configurazione Firebase
 firebase.initializeApp({
   apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
   authDomain: "archivio-clienti-trasporti.firebaseapp.com",
@@ -15,7 +16,7 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Messaggi in background - ottimizzato per iOS
+// Messaggi in background - ottimizzato
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Background message ricevuto:', payload);
 
@@ -23,24 +24,20 @@ messaging.onBackgroundMessage((payload) => {
   const body  = payload.notification?.body  || "";
   const url   = payload.data?.url || "/archivio-clienti/chat.html";
 
-  // Opzioni ottimizzate per iOS
   const notificationOptions = {
     body,
     icon: "/archivio-clienti/icon192.png",
-    badge: "/archivio-clienti/icon192.png",
+    badge: "/archivio-clienti/icon192.png", 
     tag: "chat-message",
     data: { url },
-    requireInteraction: true, // Importante per iOS - mantiene la notifica visibile
+    requireInteraction: true,
     silent: false,
-    vibrate: [200, 100, 200], // Pattern vibrazione
-    // Aggiungi timestamp per evitare duplicati
+    vibrate: [200, 100, 200],
     timestamp: Date.now(),
-    // Azioni rapide (se supportate)
     actions: [
       {
         action: 'open-chat',
-        title: 'Apri Chat',
-        icon: '/archivio-clienti/icon192.png'
+        title: 'Apri Chat'
       }
     ]
   };
@@ -48,7 +45,7 @@ messaging.onBackgroundMessage((payload) => {
   return self.registration.showNotification(title, notificationOptions);
 });
 
-// Gestione click notifica con supporto azioni
+// Gestione click notifica
 self.addEventListener('notificationclick', (event) => {
   console.log('[SW] Notification clicked:', event);
   
@@ -58,58 +55,61 @@ self.addEventListener('notificationclick', (event) => {
   const action = event.action;
 
   event.waitUntil((async () => {
-    const allClients = await self.clients.matchAll({ 
-      type: 'window', 
-      includeUncontrolled: true 
-    });
-    
-    // Cerca un client esistente dell'app
-    const existing = allClients.find(client => 
-      client.url.includes('/archivio-clienti/')
-    );
-    
-    if (existing) {
-      // Se l'app è già aperta, portala in primo piano
-      await existing.focus();
+    try {
+      const allClients = await self.clients.matchAll({ 
+        type: 'window', 
+        includeUncontrolled: true 
+      });
       
-      // Se è la chat, invia un messaggio per aggiornare
-      if (targetUrl.includes('chat.html')) {
-        existing.postMessage({
-          type: 'NOTIFICATION_CLICKED',
-          action: action || 'open-chat'
-        });
+      // Cerca client esistente
+      const existing = allClients.find(client => 
+        client.url.includes('/archivio-clienti/')
+      );
+      
+      if (existing && existing.focus) {
+        await existing.focus();
+        
+        if (targetUrl.includes('chat.html')) {
+          existing.postMessage({
+            type: 'NOTIFICATION_CLICKED',
+            action: action || 'open-chat'
+          });
+        }
+      } else {
+        // Apri nuova finestra con URL completo
+        const fullUrl = new URL(targetUrl, self.location.origin).href;
+        await self.clients.openWindow(fullUrl);
       }
-    } else {
-      // Altrimenti apri una nuova finestra/tab
-      await self.clients.openWindow(targetUrl);
+    } catch (error) {
+      console.error('[SW] Errore gestione click:', error);
+      // Fallback - apri sempre una nuova finestra
+      const fullUrl = new URL(targetUrl, self.location.origin).href;
+      await self.clients.openWindow(fullUrl);
     }
   })());
 });
 
-// Keep-alive per iOS - mantiene il SW attivo
+// Keep-alive per iOS
 self.addEventListener('message', (event) => {
   console.log('[SW] Messaggio ricevuto:', event.data);
   
   if (event.data && event.data.type === 'KEEP_ALIVE') {
-    // Risponde per mantenere la connessione attiva
     event.ports[0]?.postMessage({ success: true });
   }
 });
 
-// Installazione e attivazione ottimizzate
+// Installazione e attivazione
 self.addEventListener('install', (event) => {
   console.log('[SW] Installing...');
-  self.skipWaiting(); // Forza l'attivazione immediata
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating...');
-  event.waitUntil(
-    self.clients.claim() // Prende controllo di tutti i client
-  );
+  event.waitUntil(self.clients.claim());
 });
 
-// Gestione errori potenziata
+// Gestione errori
 self.addEventListener('error', (event) => {
   console.error('[SW] Error:', event.error || event);
 });
@@ -118,14 +118,15 @@ self.addEventListener('unhandledrejection', (event) => {
   console.error('[SW] Unhandled promise rejection:', event.reason);
 });
 
-// Periodic sync per mantenere attiva la connessione (se supportato)
+// Background sync per keep-alive
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync:', event.tag);
   
   if (event.tag === 'keep-alive') {
     event.waitUntil(
-      // Mantiene la connessione attiva
-      fetch('/archivio-clienti/').catch(() => {})
+      fetch('/archivio-clienti/').catch(() => {
+        console.log('[SW] Keep-alive fetch failed (normale in background)');
+      })
     );
   }
 });
