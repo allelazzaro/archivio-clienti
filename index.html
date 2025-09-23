@@ -629,32 +629,152 @@
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
-    // 📍 GPS
-    el("btn-gps").addEventListener("click", async () => {
-      if (!auth.currentUser) { alert("Devi essere loggato."); return; }
-      if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
+// SOSTITUISCI la funzione GPS in index.html con questa versione migliorata:
 
-      const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
-      const docRef = doc(db, 'posizioniMezzo', auth.currentUser.uid);
+// 📍 GPS con reverse geocoding per compilare automaticamente l'indirizzo
+el("btn-gps").addEventListener("click", async () => {
+  if (!auth.currentUser) { alert("Devi essere loggato."); return; }
+  if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
 
-      navigator.geolocation.getCurrentPosition(async position => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        el("coordinate").value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-        await setDoc(docRef, {
-          uid: auth.currentUser.uid,
-          mezzo: mezzoNome,
-          lat, lng,
-          accuracy: position.coords.accuracy,
-          online: true,
-          updatedAt: serverTimestamp()
-        }, { merge:true });
-      }, err => {
-        alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
-        console.error(err);
-      }, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
-    });
+  const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
+  const docRef = doc(db, 'posizioniMezzo', auth.currentUser.uid);
 
+  // Mostra indicatore di caricamento
+  el("btn-gps").textContent = "📍 Ottenendo posizione...";
+  el("btn-gps").disabled = true;
+
+  navigator.geolocation.getCurrentPosition(async position => {
+    const lat = position.coords.latitude;
+    const lng = position.coords.longitude;
+    
+    // Compila le coordinate
+    el("coordinate").value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+    
+    // ✅ NUOVO: Ottieni l'indirizzo tramite reverse geocoding
+    try {
+      el("btn-gps").textContent = "🏠 Ottenendo indirizzo...";
+      
+      // Usa Nominatim (OpenStreetMap) - gratuito e senza API key
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'ArchivioClienti-Trasporti/1.0' // Richiesto da Nominatim
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data && data.display_name) {
+          // ✅ Compila automaticamente il campo indirizzo
+          el("indirizzo").value = data.display_name;
+          
+          // Alternativa più pulita: costruisci indirizzo da componenti
+          if (data.address) {
+            const addr = data.address;
+            const parts = [];
+            
+            // Priorità: strada e numero civico
+            if (addr.house_number && addr.road) {
+              parts.push(`${addr.road} ${addr.house_number}`);
+            } else if (addr.road) {
+              parts.push(addr.road);
+            }
+            
+            // Aggiungi città
+            if (addr.city || addr.town || addr.village) {
+              parts.push(addr.city || addr.town || addr.village);
+            }
+            
+            // Aggiungi provincia/stato
+            if (addr.state || addr.province) {
+              parts.push(addr.state || addr.province);
+            }
+            
+            // Aggiungi paese se non è Italia
+            if (addr.country && addr.country !== 'Italia' && addr.country !== 'Italy') {
+              parts.push(addr.country);
+            }
+            
+            if (parts.length > 0) {
+              el("indirizzo").value = parts.join(', ');
+            }
+          }
+        } else {
+          // Fallback: se non trova indirizzo specifico, usa le coordinate
+          el("indirizzo").value = `Posizione: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+      } else {
+        // Errore API: usa coordinate come fallback
+        el("indirizzo").value = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+      }
+    } catch (error) {
+      console.warn("Errore reverse geocoding:", error);
+      // Fallback in caso di errore
+      el("indirizzo").value = `Coordinate: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+
+    // Salva posizione per tracking (come prima)
+    try {
+      await setDoc(docRef, {
+        uid: auth.currentUser.uid,
+        mezzo: mezzoNome,
+        lat, lng,
+        accuracy: position.coords.accuracy,
+        online: true,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (error) {
+      console.warn("Errore salvataggio posizione:", error);
+    }
+    
+    // Ripristina pulsante
+    el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
+    el("btn-gps").disabled = false;
+    
+  }, err => {
+    // Errore geolocalizzazione
+    alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
+    console.error(err);
+    
+    // Ripristina pulsante
+    el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
+    el("btn-gps").disabled = false;
+  }, { 
+    enableHighAccuracy: true, 
+    maximumAge: 5000, 
+    timeout: 15000 
+  });
+});
+
+// ALTERNATIVA: Usa Google Geocoding API (a pagamento, più precisa)
+// Sostituisci la parte del reverse geocoding con:
+/*
+async function reverseGeocodeGoogle(lat, lng) {
+  const API_KEY = "LA_TUA_GOOGLE_API_KEY"; // Inserisci la tua API key
+  const response = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_KEY}&language=it`
+  );
+  
+  if (response.ok) {
+    const data = await response.json();
+    if (data.results && data.results.length > 0) {
+      return data.results[0].formatted_address;
+    }
+  }
+  return null;
+}
+
+// E nella funzione GPS:
+const address = await reverseGeocodeGoogle(lat, lng);
+if (address) {
+  el("indirizzo").value = address;
+} else {
+  el("indirizzo").value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+}
+*/
     // 🔴🔵 Tracking
     let watchId = null;
 
