@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -7,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Manifest: percorso per Netlify -->
-
   <link rel="manifest" href="./manifest.json">
 
   <style>
@@ -53,7 +51,7 @@
     @keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
     .chat-counter.new-message { animation: bounce 1s ease-in-out; }
 
-    /* 🐞 Toast popup */
+    /* 🍞 Toast popup */
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
     .toast {
       background:#fff; border:1px solid #e0e0e0; border-radius:12px;
@@ -99,42 +97,36 @@
       background: #dee2e6;
     }
   </style>
-
 </head>
 <body>
 
   <!-- OVERLAY AUTH -->
-
   <div id="auth-overlay">
     <div id="auth-box">
       <div id="auth-header">Accesso</div>
 
-```
-  <div class="tabs">
-    <button id="tab-login" class="tab active">Accedi</button>
-    <button id="tab-register" class="tab">Registrati</button>
-  </div>
+      <div class="tabs">
+        <button id="tab-login" class="tab active">Accedi</button>
+        <button id="tab-register" class="tab">Registrati</button>
+      </div>
 
-  <div id="pane-login" class="pane">
-    <input id="log-email" placeholder="Email">
-    <input id="log-password" placeholder="Password" type="password">
-    <button id="btn-login">Accedi</button>
-  </div>
+      <div id="pane-login" class="pane">
+        <input id="log-email" placeholder="Email">
+        <input id="log-password" placeholder="Password" type="password">
+        <button id="btn-login">Accedi</button>
+      </div>
 
-  <div id="pane-register" class="pane" style="display:none;">
-    <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
-    <input id="reg-email" placeholder="Email" required>
-    <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
-    <button id="btn-register">Crea account</button>
-    <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
-  </div>
-</div>
-```
-
+      <div id="pane-register" class="pane" style="display:none;">
+        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
+        <input id="reg-email" placeholder="Email" required>
+        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
+        <button id="btn-register">Crea account</button>
+        <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
+      </div>
+    </div>
   </div>
 
   <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
-
   <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
     <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
     <div>Sei registrato ma non ancora approvato. Quando l'amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
@@ -142,7 +134,6 @@
   </div>
 
   <!-- MODAL RUBRICA -->
-
   <div id="rubrica-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; display:none; align-items:center; justify-content:center; padding:20px;">
     <div style="width:100%; max-width:500px; background:white; border-radius:12px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column;">
       <div style="padding:16px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
@@ -157,74 +148,68 @@
   </div>
 
   <!-- APP -->
-
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-```
-<!-- 📱 Attivazione push (solo se necessario) -->
-<div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
-  <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
-</div>
+    <!-- 📱 Attivazione push (solo se necessario) -->
+    <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
+      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
+    </div>
 
-<div class="avviso">
-  ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
-</div>
+    <div class="avviso">
+      ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
+    </div>
 
-<div class="row" style="align-items:center;">
-  <a class="link-pill" href="chat.html" id="chat-link">
-    💬 Chat con Admin
-    <span class="chat-counter hidden" id="chat-counter">0</span>
-  </a>
-  <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
-    📞 Rubrica agenti
-  </button>
-  <button id="btn-logout" style="max-width:160px;">Esci</button>
-</div>
+    <div class="row" style="align-items:center;">
+      <a class="link-pill" href="chat.html" id="chat-link">
+        💬 Chat con Admin
+        <span class="chat-counter hidden" id="chat-counter">0</span>
+      </a>
+      <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
+        📞 Rubrica agenti
+      </button>
+      <button id="btn-logout" style="max-width:160px;">Esci</button>
+    </div>
 
-<!-- FORM INSERIMENTO CLIENTI CON CAMPO INDIRIZZO MIGLIORATO -->
-<div>
-  <input id="nome" placeholder="Nome cliente">
-  
-  <!-- Campo indirizzo NON editabile con toggle -->
-  <input id="indirizzo" 
-         placeholder="Clicca 'Usa la mia posizione attuale' per compilare automaticamente" 
-         readonly
-         style="background-color: #f8f9fa; color: #6c757d; cursor: not-allowed;">
-  
-  <div class="address-note">
-    💡 L'indirizzo viene compilato automaticamente quando usi la geolocalizzazione
-    <button id="btn-manual-address" type="button" class="toggle-btn">
-      Inserimento manuale
-    </button>
-  </div>
-  
-  <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
-  <button id="btn-gps" type="button">🌍 Usa la mia posizione attuale</button>
-  
-  <textarea id="note" placeholder="Note per la consegna"></textarea>
-  <button id="btn-aggiungi">Aggiungi cliente</button>
-  <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
-</div>
+    <!-- FORM INSERIMENTO CLIENTI CON CAMPO INDIRIZZO MIGLIORATO -->
+    <div>
+      <input id="nome" placeholder="Nome cliente">
+      
+      <!-- Campo indirizzo NON editabile con toggle -->
+      <input id="indirizzo" 
+             placeholder="Clicca 'Usa la mia posizione attuale' per compilare automaticamente" 
+             readonly
+             style="background-color: #f8f9fa; color: #6c757d; cursor: not-allowed;">
+      
+      <div class="address-note">
+        💡 L'indirizzo viene compilato automaticamente quando usi la geolocalizzazione
+        <button id="btn-manual-address" type="button" class="toggle-btn">
+          Inserimento manuale
+        </button>
+      </div>
+      
+      <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
+      <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
+      
+      <textarea id="note" placeholder="Note per la consegna"></textarea>
+      <button id="btn-aggiungi">Aggiungi cliente</button>
+      <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
+    </div>
 
-<div><input id="cerca" placeholder="Cerca cliente"></div>
-<div id="clienti"></div>
+    <div><input id="cerca" placeholder="Cerca cliente"></div>
+    <div id="clienti"></div>
 
-<hr>
-<h2>📡 Tracciamento automatico</h2>
-<button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
-<div id="status"></div>
-```
-
+    <hr>
+    <h2>📡 Tracciamento automatico</h2>
+    <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+    <div id="status"></div>
   </div>
 
-  <!-- 🐞 Container per toast messaggi -->
-
+  <!-- 🍞 Container per toast messaggi -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- APP LOGIC -->
-
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -266,7 +251,7 @@
     let clientiUnsub = null;
     let rubricaUnsub = null;
 
-    // 🐞 Toast
+    // 🍞 Toast
     function createToast(title, message, onClick) {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -411,8 +396,6 @@
     const hide = (node)=> node.style.display = 'none';
     function enableAppUI(){ show(el("app-wrapper")); hide(el("auth-overlay")); hide(el("awaiting-approval")); }
     function disableAppUI(){ hide(el("app-wrapper")); }
-    
-    // ✅ CORREZIONE: Gestione migliorata degli errori
     function authErrorMsg(e){
       switch(e?.code){
         case 'auth/weak-password': return 'La password deve avere almeno 6 caratteri.';
@@ -420,17 +403,9 @@
         case 'auth/invalid-email': return 'Email non valida.';
         case 'auth/invalid-credential': return 'Credenziali non valide.';
         case 'auth/network-request-failed': return 'Problema di rete. Controlla la connessione.';
-        case 'permission-denied': 
-        case 'insufficient-permissions':
-          return 'Errore di configurazione del sistema. Contatta l\'amministratore.';
-        default: 
-          if (e?.message && e.message.toLowerCase().includes('permission')) {
-            return 'Errore di configurazione del sistema. Contatta l\'amministratore.';
-          }
-          return e?.message || 'Errore imprevisto.';
+        default: return e?.message || 'Errore imprevisto.';
       }
     }
-    
     const disableBtn = (btn,on)=> btn.disabled=!!on;
 
     function renderUserBar(uAuth,uData){
@@ -456,70 +431,23 @@
     tabRegister.addEventListener("click", ()=>switchAuth("register"));
     function showAuth(defaultTab="login"){ disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
 
-    // ✅ REGISTRAZIONE CORRETTA
+    // REGISTRAZIONE
     el("btn-register").addEventListener("click", async ()=>{
       const name = el("reg-name").value.trim();
       const email = el("reg-email").value.trim();
       const password = el("reg-password").value;
-      
-      if (!name || !email || !password){ 
-        alert("Compila nome, email e password."); 
-        return; 
-      }
-      if (password.length<6){ 
-        alert("La password deve avere almeno 6 caratteri."); 
-        return; 
-      }
-      
+      if (!name || !email || !password){ alert("Compila nome, email e password."); return; }
+      if (password.length<6){ alert("La password deve avere almeno 6 caratteri."); return; }
       disableBtn(el("btn-register"), true);
-      
       try{
-        // Crea l'account
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        
-        // Imposta il displayName nel profilo Firebase Auth
-        await updateProfile(cred.user, { displayName: name });
-        
-        // Salva i dati utente in Firestore con retry
-        let retryCount = 0;
-        while (retryCount < 3) {
-          try {
-            await setDoc(doc(db, "users", cred.user.uid), {
-              name: name,
-              email: email,
-              role: "driver",
-              approved: false,
-              createdAt: serverTimestamp()
-            }, { merge: true });
-            
-            console.log("✅ Dati utente salvati correttamente:", {name, email});
-            break;
-          } catch (firestoreError) {
-            retryCount++;
-            console.error(`Tentativo ${retryCount} di salvataggio fallito:`, firestoreError);
-            
-            if (retryCount >= 3) {
-              throw firestoreError;
-            }
-            
-            // Aspetta un po' prima di riprovare
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        }
-        
-        alert(`Registrazione completata per ${name}! Ora attendi l'approvazione dell'amministratore.`);
-        
-        // Pulisce i campi
-        el("reg-name").value = "";
-        el("reg-email").value = "";
-        el("reg-password").value = "";
-        
-      } catch(e) { 
-        console.error("Errore registrazione completo:", e);
-        alert("Registrazione non riuscita: " + authErrorMsg(e)); 
-      } finally { 
-        disableBtn(el("btn-register"), false); 
-      }
+        await updateProfile(cred.user, { displayName:name });
+        await setDoc(doc(db, "users", cred.user.uid), {
+          name, email, role:"driver", approved:false, createdAt: serverTimestamp()
+        });
+        alert("Registrazione completata! Ora attendi l'approvazione dell'amministratore.");
+      }catch(e){ alert("Registrazione non riuscita: " + authErrorMsg(e)); }
+      finally{ disableBtn(el("btn-register"), false); }
     });
 
     // LOGIN
@@ -761,7 +689,7 @@
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
-    // 🌍 GPS CON REVERSE GEOCODING E COMPILAZIONE AUTOMATICA INDIRIZZO
+    // 📍 GPS CON REVERSE GEOCODING E COMPILAZIONE AUTOMATICA INDIRIZZO
     el("btn-gps").addEventListener("click", async () => {
       if (!auth.currentUser) { alert("Devi essere loggato."); return; }
       if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
@@ -770,7 +698,7 @@
       const docRef = doc(db, 'posizioniMezzo', auth.currentUser.uid);
 
       // Mostra indicatore di caricamento
-      el("btn-gps").textContent = "🌍 Ottenendo posizione...";
+      el("btn-gps").textContent = "📍 Ottenendo posizione...";
       el("btn-gps").disabled = true;
 
       navigator.geolocation.getCurrentPosition(async position => {
@@ -801,14 +729,14 @@
               const addr = data.address;
               const parts = [];
               
-              // Priorità : strada e numero civico
+              // Priorità: strada e numero civico
               if (addr.house_number && addr.road) {
                 parts.push(`${addr.road} ${addr.house_number}`);
               } else if (addr.road) {
                 parts.push(addr.road);
               }
               
-              // Aggiungi città 
+              // Aggiungi città
               if (addr.city || addr.town || addr.village) {
                 parts.push(addr.city || addr.town || addr.village);
               }
@@ -857,7 +785,7 @@
         }
         
         // Ripristina pulsante
-        el("btn-gps").textContent = "🌍 Usa la mia posizione attuale";
+        el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
         el("btn-gps").disabled = false;
         
       }, err => {
@@ -866,7 +794,7 @@
         console.error(err);
         
         // Ripristina pulsante
-        el("btn-gps").textContent = "🌍 Usa la mia posizione attuale";
+        el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
         el("btn-gps").disabled = false;
       }, { 
         enableHighAccuracy: true, 
@@ -960,7 +888,6 @@
   </script>
 
   <!-- 📱 Registrazione UNICA del Service Worker con path relativo per Netlify -->
-
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./firebase-messaging-sw.js', {
@@ -970,6 +897,5 @@
       .catch(err => console.warn('SW registration failed', err));
     }
   </script>
-
 </body>
 </html>
