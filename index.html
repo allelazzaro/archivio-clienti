@@ -432,94 +432,23 @@
     function showAuth(defaultTab="login"){ disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
 
     // REGISTRAZIONE
-    // REGISTRAZIONE CORRETTA - Sostituisci la sezione di registrazione in index.html
-el(“btn-register”).addEventListener(“click”, async ()=>{
-const name = el(“reg-name”).value.trim();
-const email = el(“reg-email”).value.trim();
-const password = el(“reg-password”).value;
-
-if (!name || !email || !password){
-alert(“Compila nome, email e password.”);
-return;
-}
-if (password.length<6){
-alert(“La password deve avere almeno 6 caratteri.”);
-return;
-}
-
-disableBtn(el(“btn-register”), true);
-
-try{
-console.log(“Iniziando registrazione per:”, { name, email }); // Debug
-
-```
-// 1. Crea l'account
-const cred = await createUserWithEmailAndPassword(auth, email, password);
-console.log("Account creato, UID:", cred.user.uid); // Debug
-
-// 2. Aggiorna il profilo
-await updateProfile(cred.user, { displayName: name });
-console.log("Profilo aggiornato con displayName:", name); // Debug
-
-// 3. Salva i dati in Firestore con retry in caso di errore
-let retryCount = 0;
-const maxRetries = 3;
-
-while (retryCount < maxRetries) {
-  try {
-    await setDoc(doc(db, "users", cred.user.uid), {
-      name: name,
-      email: email,
-      role: "driver",
-      approved: false,
-      createdAt: serverTimestamp(),
-      displayName: name // Campo aggiuntivo per sicurezza
-    }, { merge: true }); // Usa merge: true per evitare sovrascritture
-    
-    console.log("Dati salvati in Firestore per UID:", cred.user.uid); // Debug
-    break; // Esci dal loop se il salvataggio è riuscito
-    
-  } catch (firestoreError) {
-    retryCount++;
-    console.error(`Tentativo ${retryCount} fallito:`, firestoreError);
-    
-    if (retryCount >= maxRetries) {
-      throw new Error("Impossibile salvare i dati utente dopo " + maxRetries + " tentativi: " + firestoreError.message);
-    }
-    
-    // Aspetta 1 secondo prima del prossimo tentativo
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-}
-
-alert("Registrazione completata! Il tuo nome: '" + name + "' è stato registrato. Ora attendi l'approvazione dell'amministratore.");
-```
-
-} catch(e) {
-console.error(“Errore durante la registrazione:”, e);
-
-```
-// Messaggio di errore più dettagliato
-let errorMessage = "Registrazione non riuscita: ";
-if (e.code === 'permission-denied') {
-  errorMessage += "Permessi insufficienti. Controlla le regole di Firestore.";
-} else if (e.code === 'auth/email-already-in-use') {
-  errorMessage += "Email già in uso. Prova ad accedere invece di registrarti.";
-} else if (e.code === 'auth/weak-password') {
-  errorMessage += "Password troppo debole. Usa almeno 6 caratteri.";
-} else if (e.code === 'auth/invalid-email') {
-  errorMessage += "Email non valida.";
-} else {
-  errorMessage += e.message;
-}
-
-alert(errorMessage);
-```
-
-} finally {
-disableBtn(el(“btn-register”), false);
-}
-});
+    el("btn-register").addEventListener("click", async ()=>{
+      const name = el("reg-name").value.trim();
+      const email = el("reg-email").value.trim();
+      const password = el("reg-password").value;
+      if (!name || !email || !password){ alert("Compila nome, email e password."); return; }
+      if (password.length<6){ alert("La password deve avere almeno 6 caratteri."); return; }
+      disableBtn(el("btn-register"), true);
+      try{
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(cred.user, { displayName:name });
+        await setDoc(doc(db, "users", cred.user.uid), {
+          name, email, role:"driver", approved:false, createdAt: serverTimestamp()
+        });
+        alert("Registrazione completata! Ora attendi l'approvazione dell'amministratore.");
+      }catch(e){ alert("Registrazione non riuscita: " + authErrorMsg(e)); }
+      finally{ disableBtn(el("btn-register"), false); }
+    });
 
     // LOGIN
     el("btn-login").addEventListener("click", async ()=>{
@@ -970,4 +899,3 @@ disableBtn(el(“btn-register”), false);
   </script>
 </body>
 </html>
-
