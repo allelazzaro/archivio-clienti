@@ -5,7 +5,7 @@
   <title>Archivio Clienti - Trasporti</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Manifest: percorso ASSOLUTO per GitHub Pages -->
+  <!-- Manifest: percorso per Netlify -->
   <link rel="manifest" href="./manifest.json">
 
   <style>
@@ -21,7 +21,7 @@
     #auth-overlay, #awaiting-approval { position: fixed; inset: 0; background: var(--bg); z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px; }
     #auth-box { width: 100%; max-width: 420px; background: var(--card); border: 1px solid #ddd; border-radius: 12px; padding: 0; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
     #auth-header { padding: 14px 16px; border-bottom:1px solid #eee; font-weight:700; display:flex; gap:8px; align-items:center; }
-    #auth-header::before { content:"🔒"; }
+    #auth-header::before { content:"🔐"; }
     .tabs { display:flex; gap:0; border-bottom:1px solid #eee; }
     .tab { flex:1; padding:10px 12px; background:#fafafa; border:none; border-right:1px solid #eee; cursor:pointer; font-weight:600; }
     .tab:last-child { border-right:none; }
@@ -72,6 +72,30 @@
       transition: background-color .2s;
     }
     .toast-close:hover { background-color:#f0f0f0; }
+
+    /* Stili per campo indirizzo e toggle */
+    .address-note {
+      font-size: 12px; 
+      color: #666; 
+      margin-top: 4px; 
+      margin-bottom: 8px; 
+      display: flex; 
+      align-items: center; 
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .toggle-btn {
+      padding: 3px 8px; 
+      font-size: 11px; 
+      background: #e9ecef; 
+      border: 1px solid #adb5bd; 
+      border-radius: 4px; 
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .toggle-btn:hover {
+      background: #dee2e6;
+    }
   </style>
 </head>
 <body>
@@ -148,11 +172,26 @@
       <button id="btn-logout" style="max-width:160px;">Esci</button>
     </div>
 
+    <!-- FORM INSERIMENTO CLIENTI CON CAMPO INDIRIZZO MIGLIORATO -->
     <div>
       <input id="nome" placeholder="Nome cliente">
-      <input id="indirizzo" placeholder="Indirizzo">
+      
+      <!-- Campo indirizzo NON editabile con toggle -->
+      <input id="indirizzo" 
+             placeholder="Clicca 'Usa la mia posizione attuale' per compilare automaticamente" 
+             readonly
+             style="background-color: #f8f9fa; color: #6c757d; cursor: not-allowed;">
+      
+      <div class="address-note">
+        💡 L'indirizzo viene compilato automaticamente quando usi la geolocalizzazione
+        <button id="btn-manual-address" type="button" class="toggle-btn">
+          Inserimento manuale
+        </button>
+      </div>
+      
       <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
       <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
+      
       <textarea id="note" placeholder="Note per la consegna"></textarea>
       <button id="btn-aggiungi">Aggiungi cliente</button>
       <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
@@ -582,12 +621,33 @@
       el("nome").value = cliente.nome; el("indirizzo").value = cliente.indirizzo;
       el("coordinate").value = cliente.coordinate || ""; el("note").value = cliente.note || "";
       clienteDaModificare = id; el("btn-aggiungi").innerText = "Salva modifiche"; el("btn-annulla").style.display = "inline-block";
+      
+      // Temporaneamente abilita il campo indirizzo per la modifica
+      const indirizzoField = el("indirizzo");
+      const toggleBtn = el("btn-manual-address");
+      indirizzoField.readOnly = false;
+      indirizzoField.style.backgroundColor = '#fff';
+      indirizzoField.style.color = '#000';
+      indirizzoField.style.cursor = 'text';
+      toggleBtn.textContent = 'Blocca modifica';
+      toggleBtn.style.backgroundColor = '#fff3cd';
     }
 
     function annullaModifica() {
       clienteDaModificare = null;
       el("nome").value = ""; el("indirizzo").value = ""; el("coordinate").value = ""; el("note").value = "";
       el("btn-aggiungi").innerText = "Aggiungi cliente"; el("btn-annulla").style.display = "none";
+      
+      // Ripristina il campo indirizzo come readonly
+      const indirizzoField = el("indirizzo");
+      const toggleBtn = el("btn-manual-address");
+      indirizzoField.readOnly = true;
+      indirizzoField.style.backgroundColor = '#f8f9fa';
+      indirizzoField.style.color = '#6c757d';
+      indirizzoField.style.cursor = 'not-allowed';
+      indirizzoField.placeholder = "Clicca 'Usa la mia posizione attuale' per compilare automaticamente";
+      toggleBtn.textContent = 'Inserimento manuale';
+      toggleBtn.style.backgroundColor = '#e9ecef';
     }
 
     function mostraClienti(snapshot) {
@@ -629,152 +689,147 @@
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
-// SOSTITUISCI la funzione GPS in index.html con questa versione migliorata:
+    // 📍 GPS CON REVERSE GEOCODING E COMPILAZIONE AUTOMATICA INDIRIZZO
+    el("btn-gps").addEventListener("click", async () => {
+      if (!auth.currentUser) { alert("Devi essere loggato."); return; }
+      if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
 
-// 📍 GPS con reverse geocoding per compilare automaticamente l'indirizzo
-el("btn-gps").addEventListener("click", async () => {
-  if (!auth.currentUser) { alert("Devi essere loggato."); return; }
-  if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
+      const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
+      const docRef = doc(db, 'posizioniMezzo', auth.currentUser.uid);
 
-  const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
-  const docRef = doc(db, 'posizioniMezzo', auth.currentUser.uid);
+      // Mostra indicatore di caricamento
+      el("btn-gps").textContent = "📍 Ottenendo posizione...";
+      el("btn-gps").disabled = true;
 
-  // Mostra indicatore di caricamento
-  el("btn-gps").textContent = "📍 Ottenendo posizione...";
-  el("btn-gps").disabled = true;
-
-  navigator.geolocation.getCurrentPosition(async position => {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-    
-    // Compila le coordinate
-    el("coordinate").value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-    
-    // ✅ NUOVO: Ottieni l'indirizzo tramite reverse geocoding
-    try {
-      el("btn-gps").textContent = "🏠 Ottenendo indirizzo...";
-      
-      // Usa Nominatim (OpenStreetMap) - gratuito e senza API key
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'ArchivioClienti-Trasporti/1.0' // Richiesto da Nominatim
-          }
-        }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
+      navigator.geolocation.getCurrentPosition(async position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
         
-        if (data && data.display_name) {
-          // ✅ Compila automaticamente il campo indirizzo
-          el("indirizzo").value = data.display_name;
+        // Compila le coordinate
+        el("coordinate").value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        
+        // ✅ NUOVO: Ottieni l'indirizzo tramite reverse geocoding
+        try {
+          el("btn-gps").textContent = "🏠 Ottenendo indirizzo...";
           
-          // Alternativa più pulita: costruisci indirizzo da componenti
-          if (data.address) {
-            const addr = data.address;
-            const parts = [];
-            
-            // Priorità: strada e numero civico
-            if (addr.house_number && addr.road) {
-              parts.push(`${addr.road} ${addr.house_number}`);
-            } else if (addr.road) {
-              parts.push(addr.road);
+          // Usa Nominatim (OpenStreetMap) - gratuito e senza API key
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+            {
+              headers: {
+                'User-Agent': 'ArchivioClienti-Trasporti/1.0' // Richiesto da Nominatim
+              }
             }
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
             
-            // Aggiungi città
-            if (addr.city || addr.town || addr.village) {
-              parts.push(addr.city || addr.town || addr.village);
+            if (data && data.address) {
+              const addr = data.address;
+              const parts = [];
+              
+              // Priorità: strada e numero civico
+              if (addr.house_number && addr.road) {
+                parts.push(`${addr.road} ${addr.house_number}`);
+              } else if (addr.road) {
+                parts.push(addr.road);
+              }
+              
+              // Aggiungi città
+              if (addr.city || addr.town || addr.village) {
+                parts.push(addr.city || addr.town || addr.village);
+              }
+              
+              // Aggiungi provincia/stato
+              if (addr.state || addr.province) {
+                parts.push(addr.state || addr.province);
+              }
+              
+              // Aggiungi paese se non è Italia
+              if (addr.country && addr.country !== 'Italia' && addr.country !== 'Italy') {
+                parts.push(addr.country);
+              }
+              
+              if (parts.length > 0) {
+                el("indirizzo").value = parts.join(', ');
+              } else {
+                el("indirizzo").value = data.display_name || `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+              }
+            } else {
+              // Fallback: se non trova indirizzo specifico, usa le coordinate
+              el("indirizzo").value = `Posizione: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
             }
-            
-            // Aggiungi provincia/stato
-            if (addr.state || addr.province) {
-              parts.push(addr.state || addr.province);
-            }
-            
-            // Aggiungi paese se non è Italia
-            if (addr.country && addr.country !== 'Italia' && addr.country !== 'Italy') {
-              parts.push(addr.country);
-            }
-            
-            if (parts.length > 0) {
-              el("indirizzo").value = parts.join(', ');
-            }
+          } else {
+            // Errore API: usa coordinate come fallback
+            el("indirizzo").value = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
           }
-        } else {
-          // Fallback: se non trova indirizzo specifico, usa le coordinate
-          el("indirizzo").value = `Posizione: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        } catch (error) {
+          console.warn("Errore reverse geocoding:", error);
+          // Fallback in caso di errore
+          el("indirizzo").value = `Coordinate: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         }
+
+        // Salva posizione per tracking (come prima)
+        try {
+          await setDoc(docRef, {
+            uid: auth.currentUser.uid,
+            mezzo: mezzoNome,
+            lat, lng,
+            accuracy: position.coords.accuracy,
+            online: true,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        } catch (error) {
+          console.warn("Errore salvataggio posizione:", error);
+        }
+        
+        // Ripristina pulsante
+        el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
+        el("btn-gps").disabled = false;
+        
+      }, err => {
+        // Errore geolocalizzazione
+        alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
+        console.error(err);
+        
+        // Ripristina pulsante
+        el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
+        el("btn-gps").disabled = false;
+      }, { 
+        enableHighAccuracy: true, 
+        maximumAge: 5000, 
+        timeout: 15000 
+      });
+    });
+
+    // TOGGLE PER CAMPO INDIRIZZO
+    el("btn-manual-address").addEventListener("click", () => {
+      const indirizzoField = el("indirizzo");
+      const toggleBtn = el("btn-manual-address");
+      
+      if (indirizzoField.readOnly) {
+        // Abilita modifica manuale
+        indirizzoField.readOnly = false;
+        indirizzoField.style.backgroundColor = '#fff';
+        indirizzoField.style.color = '#000';
+        indirizzoField.style.cursor = 'text';
+        indirizzoField.placeholder = 'Inserisci indirizzo manualmente';
+        toggleBtn.textContent = 'Blocca modifica';
+        toggleBtn.style.backgroundColor = '#fff3cd';
+        indirizzoField.focus();
       } else {
-        // Errore API: usa coordinate come fallback
-        el("indirizzo").value = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+        // Disabilita modifica manuale
+        indirizzoField.readOnly = true;
+        indirizzoField.style.backgroundColor = '#f8f9fa';
+        indirizzoField.style.color = '#6c757d';
+        indirizzoField.style.cursor = 'not-allowed';
+        indirizzoField.placeholder = "Clicca 'Usa la mia posizione attuale' per compilare automaticamente";
+        toggleBtn.textContent = 'Inserimento manuale';
+        toggleBtn.style.backgroundColor = '#e9ecef';
       }
-    } catch (error) {
-      console.warn("Errore reverse geocoding:", error);
-      // Fallback in caso di errore
-      el("indirizzo").value = `Coordinate: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    }
+    });
 
-    // Salva posizione per tracking (come prima)
-    try {
-      await setDoc(docRef, {
-        uid: auth.currentUser.uid,
-        mezzo: mezzoNome,
-        lat, lng,
-        accuracy: position.coords.accuracy,
-        online: true,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-    } catch (error) {
-      console.warn("Errore salvataggio posizione:", error);
-    }
-    
-    // Ripristina pulsante
-    el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
-    el("btn-gps").disabled = false;
-    
-  }, err => {
-    // Errore geolocalizzazione
-    alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
-    console.error(err);
-    
-    // Ripristina pulsante
-    el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
-    el("btn-gps").disabled = false;
-  }, { 
-    enableHighAccuracy: true, 
-    maximumAge: 5000, 
-    timeout: 15000 
-  });
-});
-
-// ALTERNATIVA: Usa Google Geocoding API (a pagamento, più precisa)
-// Sostituisci la parte del reverse geocoding con:
-/*
-async function reverseGeocodeGoogle(lat, lng) {
-  const API_KEY = "LA_TUA_GOOGLE_API_KEY"; // Inserisci la tua API key
-  const response = await fetch(
-    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${API_KEY}&language=it`
-  );
-  
-  if (response.ok) {
-    const data = await response.json();
-    if (data.results && data.results.length > 0) {
-      return data.results[0].formatted_address;
-    }
-  }
-  return null;
-}
-
-// E nella funzione GPS:
-const address = await reverseGeocodeGoogle(lat, lng);
-if (address) {
-  el("indirizzo").value = address;
-} else {
-  el("indirizzo").value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-}
-*/
     // 🔴🔵 Tracking
     let watchId = null;
 
@@ -832,15 +887,15 @@ if (address) {
     window.preparaModificaCliente = preparaModificaCliente;
   </script>
 
-  <!-- 📱 Registrazione UNICA del Service Worker con path assoluto e scope /archivio-clienti/ -->
+  <!-- 📱 Registrazione UNICA del Service Worker con path relativo per Netlify -->
   <script>
     if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./firebase-messaging-sw.js', {
-    scope: './'
-  })
-  .then(() => console.log('✅ SW registrato con scope locale'))
-  .catch(err => console.warn('SW registration failed', err));
-}
+      navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+        scope: './'
+      })
+      .then(() => console.log('✅ SW registrato per Netlify'))
+      .catch(err => console.warn('SW registration failed', err));
+    }
   </script>
 </body>
 </html>
