@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Manifest: percorso ASSOLUTO per GitHub Pages -->
-  <link rel="manifest" href="/archivio-clienti/manifest.json">
+  <link rel="manifest" href="./manifest.json">
 
   <style>
     :root { --bg:#f9f9f9; --card:#fff; --txt:#222; --muted:#666; --brand:#007bff; }
@@ -835,12 +835,12 @@ if (address) {
   <!-- 📱 Registrazione UNICA del Service Worker con path assoluto e scope /archivio-clienti/ -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/archivio-clienti/firebase-messaging-sw.js', {
-        scope: '/archivio-clienti/'
-      })
-      .then(() => console.log('✅ SW registrato con scope /archivio-clienti/'))
-      .catch(err => console.warn('SW registration failed', err));
-    }
+  navigator.serviceWorker.register('./firebase-messaging-sw.js', {
+    scope: './'
+  })
+  .then(() => console.log('✅ SW registrato con scope locale'))
+  .catch(err => console.warn('SW registration failed', err));
+}
   </script>
 </body>
 </html>

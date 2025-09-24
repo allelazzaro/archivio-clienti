@@ -25,7 +25,7 @@ messaging.onBackgroundMessage((payload) => {
 
   return self.registration.showNotification(title, {
     body,
-    icon: "/archivio-clienti/icon192.png",
+    icon: "icon192.png",
     badge: "/archivio-clienti/icon192.png",
     tag: "chat-message",
     data: { url },
