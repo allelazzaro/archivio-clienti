@@ -51,7 +51,7 @@
     @keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
     .chat-counter.new-message { animation: bounce 1s ease-in-out; }
 
-    /* 🍞 Toast popup */
+    /* 🐛 Toast popup */
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
     .toast {
       background:#fff; border:1px solid #e0e0e0; border-radius:12px;
@@ -96,6 +96,13 @@
     .toggle-btn:hover {
       background: #dee2e6;
     }
+
+    /* 🔧 Stili per validazione campi */
+    .field-valid { border-color: #28a745 !important; background-color: #f8fff9 !important; }
+    .field-invalid { border-color: #dc3545 !important; background-color: #fff8f8 !important; }
+    .field-help { font-size: 12px; margin-top: 2px; margin-bottom: 6px; }
+    .field-help.error { color: #dc3545; }
+    .field-help.success { color: #28a745; }
   </style>
 </head>
 <body>
@@ -117,9 +124,15 @@
       </div>
 
       <div id="pane-register" class="pane" style="display:none;">
-        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
+        <input id="reg-name" placeholder="Nome (Es: Mario Rossi)" required maxlength="50">
+        <div id="name-help" class="field-help">Il nome è obbligatorio e sarà visibile all'amministratore</div>
+        
         <input id="reg-email" placeholder="Email" required>
+        <div id="email-help" class="field-help"></div>
+        
         <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
+        <div id="password-help" class="field-help"></div>
+        
         <button id="btn-register">Crea account</button>
         <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
       </div>
@@ -206,7 +219,7 @@
     <div id="status"></div>
   </div>
 
-  <!-- 🍞 Container per toast messaggi -->
+  <!-- 🐛 Container per toast messaggi -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- APP LOGIC -->
@@ -251,7 +264,7 @@
     let clientiUnsub = null;
     let rubricaUnsub = null;
 
-    // 🍞 Toast
+    // 🐛 Toast
     function createToast(title, message, onClick) {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -431,23 +444,188 @@
     tabRegister.addEventListener("click", ()=>switchAuth("register"));
     function showAuth(defaultTab="login"){ disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
 
-    // REGISTRAZIONE
+    // 🔧 Validazione in tempo reale per i campi di registrazione
+    function validateName(value) {
+      if (!value || value.length === 0) {
+        return { valid: false, message: "Il nome è obbligatorio" };
+      }
+      if (value.length < 2) {
+        return { valid: false, message: "Il nome deve avere almeno 2 caratteri" };
+      }
+      if (value.length > 50) {
+        return { valid: false, message: "Il nome è troppo lungo (massimo 50 caratteri)" };
+      }
+      return { valid: true, message: "Nome valido ✓" };
+    }
+
+    function validateEmail(value) {
+      if (!value || value.length === 0) {
+        return { valid: false, message: "L'email è obbligatoria" };
+      }
+      if (!value.includes('@') || !value.includes('.')) {
+        return { valid: false, message: "Inserisci un'email valida" };
+      }
+      return { valid: true, message: "Email valida ✓" };
+    }
+
+    function validatePassword(value) {
+      if (!value || value.length === 0) {
+        return { valid: false, message: "La password è obbligatoria" };
+      }
+      if (value.length < 6) {
+        return { valid: false, message: "La password deve avere almeno 6 caratteri" };
+      }
+      return { valid: true, message: "Password valida ✓" };
+    }
+
+    function updateFieldStatus(fieldId, helpId, validation) {
+      const field = el(fieldId);
+      const help = el(helpId);
+      
+      if (validation.valid) {
+        field.className = field.className.replace(' field-invalid', '') + ' field-valid';
+        help.className = 'field-help success';
+        help.textContent = validation.message;
+      } else {
+        field.className = field.className.replace(' field-valid', '') + ' field-invalid';
+        help.className = 'field-help error';
+        help.textContent = validation.message;
+      }
+    }
+
+    // Aggiungi validazione in tempo reale
+    el("reg-name").addEventListener("input", function() {
+      const validation = validateName(this.value.trim());
+      updateFieldStatus("reg-name", "name-help", validation);
+    });
+
+    el("reg-email").addEventListener("input", function() {
+      const validation = validateEmail(this.value.trim());
+      updateFieldStatus("reg-email", "email-help", validation);
+    });
+
+    el("reg-password").addEventListener("input", function() {
+      const validation = validatePassword(this.value);
+      updateFieldStatus("reg-password", "password-help", validation);
+    });
+
+    // 🔧 REGISTRAZIONE - VERSIONE MIGLIORATA
     el("btn-register").addEventListener("click", async ()=>{
       const name = el("reg-name").value.trim();
       const email = el("reg-email").value.trim();
       const password = el("reg-password").value;
-      if (!name || !email || !password){ alert("Compila nome, email e password."); return; }
-      if (password.length<6){ alert("La password deve avere almeno 6 caratteri."); return; }
+      
+      console.log("🚀 Tentativo registrazione:", { name, email });
+      
+      // Validazione completa
+      const nameValidation = validateName(name);
+      const emailValidation = validateEmail(email);
+      const passwordValidation = validatePassword(password);
+      
+      updateFieldStatus("reg-name", "name-help", nameValidation);
+      updateFieldStatus("reg-email", "email-help", emailValidation);
+      updateFieldStatus("reg-password", "password-help", passwordValidation);
+      
+      if (!nameValidation.valid) {
+        el("reg-name").focus();
+        return;
+      }
+      if (!emailValidation.valid) {
+        el("reg-email").focus();
+        return;
+      }
+      if (!passwordValidation.valid) {
+        el("reg-password").focus();
+        return;
+      }
+      
       disableBtn(el("btn-register"), true);
+      el("btn-register").textContent = "Registrazione in corso...";
+      
       try{
+        console.log("🔥 Inizio registrazione per:", { name, email });
+        
+        // 1. Crea account Firebase Auth
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(cred.user, { displayName:name });
-        await setDoc(doc(db, "users", cred.user.uid), {
-          name, email, role:"driver", approved:false, createdAt: serverTimestamp()
-        });
-        alert("Registrazione completata! Ora attendi l'approvazione dell'amministratore.");
-      }catch(e){ alert("Registrazione non riuscita: " + authErrorMsg(e)); }
-      finally{ disableBtn(el("btn-register"), false); }
+        console.log("✅ Account Firebase Auth creato:", cred.user.uid);
+        
+        // 2. Aggiorna il profilo Firebase Auth con il nome
+        await updateProfile(cred.user, { displayName: name });
+        console.log("✅ DisplayName aggiornato in Firebase Auth");
+        
+        // 3. Salva i dati in Firestore (con retry in caso di errore)
+        const userData = {
+          name: name,
+          email: email,
+          role: "driver",
+          approved: false,
+          createdAt: serverTimestamp()
+        };
+        
+        console.log("💾 Salvataggio dati utente in Firestore:", userData);
+        
+        let saveSuccess = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (!saveSuccess && retryCount < maxRetries) {
+          try {
+            await setDoc(doc(db, "users", cred.user.uid), userData);
+            console.log("✅ Dati utente salvati in Firestore al tentativo", retryCount + 1);
+            saveSuccess = true;
+          } catch (saveError) {
+            retryCount++;
+            console.warn(`⚠️ Tentativo ${retryCount} fallito:`, saveError);
+            
+            if (retryCount >= maxRetries) {
+              throw new Error(`Impossibile salvare i dati dopo ${maxRetries} tentativi: ${saveError.message}`);
+            }
+            
+            // Aspetta un po' prima di riprovare
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+        
+        // 4. Messaggio di successo
+        alert(`Registrazione completata con successo!\n\nNome: ${name}\nEmail: ${email}\n\nIl tuo account è ora in attesa di approvazione da parte dell'amministratore.`);
+        
+        // 5. Pulisci i campi
+        el("reg-name").value = "";
+        el("reg-email").value = "";
+        el("reg-password").value = "";
+        
+        // Resetta lo styling dei campi
+        el("reg-name").className = el("reg-name").className.replace(/field-(valid|invalid)/g, '');
+        el("reg-email").className = el("reg-email").className.replace(/field-(valid|invalid)/g, '');
+        el("reg-password").className = el("reg-password").className.replace(/field-(valid|invalid)/g, '');
+        
+        // Resetta i messaggi di aiuto
+        el("name-help").className = "field-help";
+        el("name-help").textContent = "Il nome è obbligatorio e sarà visibile all'amministratore";
+        el("email-help").className = "field-help";
+        el("email-help").textContent = "";
+        el("password-help").className = "field-help";
+        el("password-help").textContent = "";
+        
+        console.log("🎉 Registrazione completata con successo per:", name);
+        
+      } catch(e) { 
+        console.error("❌ Errore durante la registrazione:", e);
+        
+        let errorMessage = "Registrazione non riuscita: ";
+        
+        // Messaggi di errore più specifici
+        if (e.message && e.message.includes("salvare i dati")) {
+          errorMessage += "Problema nel salvataggio dei dati. Verifica la connessione e riprova.";
+        } else {
+          errorMessage += authErrorMsg(e);
+        }
+        
+        alert(errorMessage);
+      } finally { 
+        disableBtn(el("btn-register"), false);
+        el("btn-register").textContent = "Crea account";
+      }
     });
 
     // LOGIN
