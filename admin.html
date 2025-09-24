@@ -3,208 +3,463 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Admin - Approvazione Utenti</title>
+  <title>Admin - Gestione Sistema</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    :root{ --bg:#f6f8fa; --card:#fff; --muted:#666; --b:#ddd; --pri:#0b5; --danger:#b02a37; }
-    body { font-family: Arial, sans-serif; margin:0; background: var(--bg); }
-    header { padding:12px 16px; background:#fff; border-bottom:1px solid #eee; position:sticky; top:0; z-index:10; }
-    h1 { margin:0 0 8px; font-size:20px; }
-    .container { padding:16px; max-width:1200px; margin:0 auto; }
-    .status { margin: 8px 0 12px; padding:8px 12px; border-radius:6px; font-size:14px; }
-    .ok { background:#e7f7ec; border:1px solid #33a35c; color:#0b5; }
-    .warn { background:#fff7e6; border:1px solid #f0ad4e; color:#c77c11; }
-    .err { background:#fdecea; border:1px solid #f5c2c7; color:#b02a37; }
+    :root { 
+      --primary: #2563eb; 
+      --success: #16a34a; 
+      --warning: #d97706; 
+      --danger: #dc2626; 
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
 
-```
-.login-row { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; }
-input, button, a.btn { padding:6px 10px; border-radius:6px; border:1px solid #ccc; background:#fff; text-decoration:none; color:#000; font-size:14px; }
-button { cursor:pointer; }
-button:disabled{ opacity:.6; cursor:not-allowed; }
-.btn-danger{ background:#b02a37; border-color:#b02a37; color:#fff; }
-.btn-secondary{ background:#eee; }
-.btn-primary{ background:#0b5; color:#fff; border-color:#0b5; }
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0; 
+      background: var(--gray-50); 
+      color: var(--gray-900);
+      line-height: 1.6;
+    }
 
-.cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:24px; }
-@media (max-width: 768px){ 
-  .cols { grid-template-columns: 1fr; gap:12px; }
-  .login-row { gap:4px; }
-  input, button, a.btn { padding:8px 12px; font-size:16px; } /* Migliore touch target su mobile */
-  h1 { font-size:18px; }
-  .container { padding:12px; }
-}
+    /* Header */
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0.75rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
 
-.card { background:#fff; border:1px solid #ddd; border-radius:8px; padding:12px; margin-bottom:8px; }
-.row { display:flex; gap:8px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
-.muted { color:#666; font-size:13px; }
-.badge{ display:inline-block; min-width:16px; padding:2px 6px; border-radius:999px; font-size:11px; text-align:center; }
-.badge-gray{ background:#eee; color:#333; }
-.badge-red{ background:#ff4757; color:#fff; }
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
 
-/* Stili per la modifica nome */
-.name-edit-row {
-  margin-top: 8px;
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.name-input {
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 12px;
-  min-width: 120px;
-  flex: 1;
-}
-.name-btn {
-  padding: 4px 8px;
-  background: #0b5;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.name-btn:hover {
-  background: #096;
-}
+    .header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
 
-/* Bottoni azioni - meglio su mobile */
-.action-buttons {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-.action-buttons button,
-.action-buttons a {
-  padding: 4px 8px;
-  font-size: 12px;
-  white-space: nowrap;
-}
+    .status-bar {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
 
-/* Rubrica */
-.rubrica-form {
-  background:#fff; 
-  border:1px solid #ddd; 
-  border-radius:8px; 
-  padding:16px; 
-  margin-bottom:16px;
-}
-.rubrica-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
-}
-@media (max-width: 768px) {
-  .rubrica-grid {
-    grid-template-columns: 1fr;
-  }
-}
+    .status-success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
+    .status-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fed7aa; }
+    .status-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
 
-/* Pannello chat laterale - SOLUZIONE DEFINITIVA */
-.chat-panel {
-  position: fixed; 
-  top:0; 
-  right:0; 
-  width: min(560px, 100%); 
-  height: 100vh;
-  background:#fff; 
-  border-left:1px solid #ddd; 
-  box-shadow: -6px 0 18px rgba(0,0,0,.08);
-  transform: translateX(100%); 
-  transition: transform .25s ease; 
-  z-index: 50; 
-  display:flex; 
-  flex-direction:column;
-}
-.chat-panel.open { 
-  transform: translateX(0); 
-}
-.chat-panel header { 
-  padding:12px 14px; 
-  border-bottom:1px solid #eee; 
-  display:flex; 
-  align-items:center; 
-  justify-content:space-between;
-  flex-shrink: 0;
-  min-height: 48px;
-}
-.chat-iframe { 
-  border:0; 
-  width:100%; 
-  height: calc(100vh - 48px); /* Altezza esplicita */
-  display: block;
-}
-```
+    .login-form {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
 
+    /* Container principale */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem;
+    }
+
+    /* Sezioni */
+    .section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid var(--gray-200);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: var(--gray-900);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 1.5rem 0 0.75rem 0;
+      color: var(--gray-700);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-info h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .card-info p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    /* Form elements */
+    input, textarea, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      color: var(--gray-700);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      gap: 0.25rem;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #15803d; }
+
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    .btn-sm {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      min-width: 1.25rem;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .badge-gray { background: var(--gray-100); color: var(--gray-700); }
+    .badge-red { background: #fee2e2; color: var(--danger); }
+
+    /* Grid layouts */
+    .users-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Priorità visiva per utenti approvati */
+    .approved-section {
+      order: 1;
+    }
+    
+    .pending-section {
+      order: 2;
+    }
+
+    /* Preview area */
+    .preview-area {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 1rem 0;
+    }
+
+    .preview-item {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 0.375rem;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Empty states */
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gray-500);
+      font-size: 0.875rem;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 0 0.75rem;
+      }
+      
+      .container {
+        padding: 1rem 0.75rem;
+      }
+      
+      .section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .login-form {
+        gap: 0.5rem;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .card-actions {
+        justify-content: flex-start;
+      }
+
+      .users-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .approved-section {
+        order: 1;
+      }
+      
+      .pending-section {
+        order: 2;
+      }
+    }
+
+    /* Chat panel */
+    .chat-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(560px, 100%);
+      height: 100vh;
+      background: white;
+      border-left: 1px solid var(--gray-200);
+      box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-panel.open {
+      transform: translateX(0);
+    }
+
+    .chat-panel-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 500;
+    }
+
+    .chat-iframe {
+      border: 0;
+      width: 100%;
+      height: calc(100vh - 60px);
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>👑 Admin — Approvazione Utenti</h1>
-    <div id="status" class="status warn">🔒 Non loggato.</div>
-    <div class="login-row">
-      <input id="email" placeholder="Email admin">
-      <input id="pass" placeholder="Password" type="password">
-      <button id="btn-login">Accedi</button>
-      <button id="btn-logout">Esci</button>
-      <a href="console.html" class="btn btn-primary">💬 Console chat (tutte)</a>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1>Pannello Amministratore</h1>
+      
+      <div id="status" class="status-bar status-warning">Accesso necessario</div>
+      
+      <div class="login-form">
+        <input id="email" placeholder="Email admin" type="email">
+        <input id="pass" placeholder="Password" type="password">
+        <button id="btn-login" class="btn btn-primary">Accedi</button>
+        <button id="btn-logout" class="btn btn-secondary">Esci</button>
+        <a href="console.html" class="btn btn-primary">Console Chat</a>
+      </div>
     </div>
   </header>
 
   <div class="container">
-    <div class="cols">
-      <div>
-        <h2>In attesa di approvazione <span id="count-pending" class="badge badge-gray">0</span></h2>
-        <div id="pending" class="muted">Effettua il login come admin per vedere gli utenti in attesa.</div>
+    <!-- Gestione Utenti -->
+    <div class="users-grid">
+      <div class="section approved-section">
+        <h2 class="section-title">
+          Utenti Approvati  
+          <span id="count-approved" class="badge badge-gray">0</span>
+        </h2>
+        <div id="approved" class="empty-state">
+          Effettua il login per vedere gli utenti approvati
+        </div>
       </div>
 
-```
-  <div>
-    <h2>Utenti approvati <span id="count-approved" class="badge badge-gray">0</span></h2>
-    <div id="approved" class="muted">Effettua il login come admin per vedere gli utenti approvati.</div>
-  </div>
-</div>
-
-<hr style="margin: 32px 0; border: none; border-top: 1px solid #ddd;">
-
-<!-- GESTIONE RUBRICA -->
-<div id="rubrica-section" style="display:none;">
-  <h2>📞 Gestione Rubrica</h2>
-  <div class="rubrica-form">
-    <h3 style="margin-top:0;">Aggiungi nuovo contatto</h3>
-    <div class="rubrica-grid">
-      <input id="rubrica-nome" placeholder="Nome/Azienda">
-      <input id="rubrica-telefono" placeholder="Telefono">
-      <input id="rubrica-email" placeholder="Email">
+      <div class="section pending-section">
+        <h2 class="section-title">
+          In Attesa di Approvazione
+          <span id="count-pending" class="badge badge-gray">0</span>
+        </h2>
+        <div id="pending" class="empty-state">
+          Effettua il login per vedere gli utenti in attesa
+        </div>
+      </div>
     </div>
-    <textarea id="rubrica-note" placeholder="Note aggiuntive" style="width:100%; margin-bottom:12px; min-height:60px; box-sizing:border-box;"></textarea>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button id="btn-add-contact" class="btn-primary">Aggiungi contatto</button>
-      <button id="btn-cancel-contact" class="btn-secondary" style="display:none;">Annulla modifica</button>
+
+    <!-- Gestione Rubrica -->
+    <div id="rubrica-section" class="section" style="display:none;">
+      <h2 class="section-title">Gestione Rubrica Aziendale</h2>
+      
+      <h3 class="section-subtitle">Aggiungi Nuovo Contatto</h3>
+      <div class="form-row">
+        <input id="rubrica-nome" placeholder="Nome/Azienda">
+        <input id="rubrica-telefono" placeholder="Telefono">
+        <input id="rubrica-email" placeholder="Email">
+      </div>
+      
+      <div class="form-group">
+        <textarea id="rubrica-note" placeholder="Note aggiuntive" rows="3"></textarea>
+      </div>
+      
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem;">
+        <button id="btn-add-contact" class="btn btn-success">Aggiungi Contatto</button>
+        <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
+      </div>
+
+      <h3 class="section-subtitle">
+        Contatti Esistenti 
+        <span id="count-contacts" class="badge badge-gray">0</span>
+      </h3>
+      <div id="contacts-list"></div>
+    </div>
+
+    <!-- Importazione Clienti -->
+    <div id="import-section" class="section" style="display:none;">
+      <h2 class="section-title">Importazione Clienti</h2>
+      
+      <div class="form-group">
+        <label>File Clienti</label>
+        <input type="file" id="clientFile" accept=".csv,.xlsx,.xls,.json">
+        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+          Formati supportati: CSV, Excel, JSON/GeoJSON
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+        <button id="btn-load-file" class="btn btn-primary">Analizza File</button>
+        <button id="btn-import-sample" class="btn btn-secondary">Usa Dati Esempio</button>
+      </div>
+      
+      <div id="import-status" style="display: none;"></div>
+      
+      <div id="import-preview" style="display: none;">
+        <h3 class="section-subtitle">Anteprima Importazione</h3>
+        <div id="preview-content" class="preview-area"></div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button id="btn-confirm-import" class="btn btn-success">Conferma Importazione</button>
+          <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <h3>Contatti esistenti <span id="count-contacts" class="badge badge-gray">0</span></h3>
-  <div id="contacts-list"></div>
-</div>
-```
-
-  </div>
-
-  <!-- pannello chat inline -->
-
-  <aside id="chatPanel" class="chat-panel" aria-hidden="true">
-    <header>
+  <!-- Chat Panel -->
+  <div id="chatPanel" class="chat-panel">
+    <div class="chat-panel-header">
       <strong id="chatTitle">Chat</strong>
-      <button id="closeChat" class="btn-secondary">✖ Chiudi</button>
-    </header>
+      <button id="closeChat" class="btn btn-secondary btn-sm">Chiudi</button>
+    </div>
     <iframe id="chatFrame" class="chat-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
-  </aside>
+  </div>
 
   <script type="module">
     const firebaseConfig = {
@@ -219,51 +474,68 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc,
-      orderBy, limit, addDoc, serverTimestamp
+      orderBy, limit, addDoc, serverTimestamp, getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
       setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const adminApp = initializeApp(firebaseConfig, "adminApp");
-    const db = getFirestore(adminApp);
-    const auth = getAuth(adminApp);
-    await setPersistence(auth, browserLocalPersistence); // persistenza condivisa con altre pagine
+    const app = initializeApp(firebaseConfig, "adminApp");
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    await setPersistence(auth, browserLocalPersistence);
 
-    // ⚠️ METTI QUI IL TUO UID ADMIN REALE
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
 
     const $ = id => document.getElementById(id);
-    const setStatus = (type, msg) => { const s=$("status"); s.className="status "+type; s.textContent=msg; };
-    const setLoginDisabled = d => { $("email").disabled=d; $("pass").disabled=d; $("btn-login").disabled=d; };
+    
+    const setStatus = (type, msg) => {
+      const status = $("status");
+      status.className = `status-bar status-${type}`;
+      status.textContent = msg;
+    };
 
-    // pannello chat inline
-    const chatPanel = $("chatPanel"), chatFrame = $("chatFrame"), chatTitle = $("chatTitle");
-    $("closeChat").addEventListener("click", () => { 
-      chatPanel.classList.remove("open"); 
-      chatPanel.setAttribute("aria-hidden","true"); 
-      chatFrame.src="about:blank"; 
+    // Chat panel
+    const chatPanel = $("chatPanel");
+    const chatFrame = $("chatFrame");
+    const chatTitle = $("chatTitle");
+
+    $("closeChat").addEventListener("click", () => {
+      chatPanel.classList.remove("open");
+      chatFrame.src = "about:blank";
     });
 
-    // ---- Login/Logout
+    // Login/Logout
     $("btn-login").addEventListener("click", async () => {
       const email = $("email").value.trim();
-      const pass  = $("pass").value;
-      if (!email || !pass) { setStatus("err","❌ Inserisci email e password."); return; }
-      try { await signInWithEmailAndPassword(auth, email, pass); }
-      catch(e){ setStatus("err","❌ Login fallito: " + (e.code || e.message)); }
+      const pass = $("pass").value;
+      
+      if (!email || !pass) {
+        setStatus("error", "Inserisci email e password");
+        return;
+      }
+      
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+      } catch (e) {
+        setStatus("error", "Login fallito: " + (e.code || e.message));
+      }
     });
+
     $("btn-logout").addEventListener("click", () => signOut(auth));
 
+    // Variabili globali
     let pendingUnsub = null, approvedUnsub = null, contactsUnsub = null;
     let editingContactId = null;
+    let parsedClienti = [];
+    let validClienti = [];
 
-    // --------- Badge non letti per un driver (ultimi 50 msg) ----------
-    function watchUnreadBadgeForDriver(uid){
+    // Funzioni per badge messaggi non letti
+    function watchUnreadBadgeForDriver(uid) {
       const msgsRef = collection(db, "threads", uid, "messages");
-      const qRecent = query(msgsRef, orderBy("createdAt","desc"), limit(50));
+      const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
+      
       return onSnapshot(qRecent, (snap) => {
         let count = 0;
         snap.forEach(d => {
@@ -271,62 +543,59 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
           const rb = Array.isArray(m.readBy) ? m.readBy : [];
           if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) count++;
         });
+        
         const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
         if (badge) {
-          if (count > 0) { badge.textContent = String(count); badge.className = "badge badge-red badge-unread"; }
-          else { badge.textContent = "0"; badge.className = "badge badge-gray badge-unread"; }
+          if (count > 0) {
+            badge.textContent = String(count);
+            badge.className = "badge badge-red badge-unread";
+          } else {
+            badge.textContent = "0";
+            badge.className = "badge badge-gray badge-unread";
+          }
         }
       });
     }
 
-    // (opzionale) warm-up; se vuoi creare al volo il thread fallo in chat.html
-    async function ensureThreadForDriver(uid, name, email){
-      await getDocs(query(collection(db,"threads"))); // no-op warm
-    }
-
-    function attachInlineChatHandlers(container){
+    // Gestione chat inline
+    function attachInlineChatHandlers(container) {
       container.querySelectorAll(".open-inline").forEach(btn => {
         btn.addEventListener("click", (e) => {
-          const uid  = e.currentTarget.dataset.uid;
+          const uid = e.currentTarget.dataset.uid;
           const name = e.currentTarget.dataset.name || uid;
-          if (!uid) { alert("Impossibile aprire la chat: UID mancante."); return; }
-          console.log("[ADMIN] Apri chat inline → uid:", uid, "name:", name);
-          chatTitle.textContent = `Chat con: ${name} (${uid})`;
-          // Aggiungi parametro per indicare che è in iframe
+          
+          if (!uid) {
+            alert("Impossibile aprire la chat: UID mancante");
+            return;
+          }
+          
+          chatTitle.textContent = `Chat con: ${name}`;
           chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
           chatPanel.classList.add("open");
-          chatPanel.setAttribute("aria-hidden","false");
         });
       });
     }
 
-    // Funzione per aggiornare il nome del driver
+    // Aggiornamento nome driver
     window.updateDriverName = async function(uid) {
       const input = document.getElementById(`name-input-${uid}`);
-      if (!input) {
-        console.error(`Input con id name-input-${uid} non trovato`);
-        return;
-      }
+      if (!input) return;
       
       const newName = input.value.trim();
-      
       if (!newName) {
-        alert("Inserisci un nome valido.");
+        alert("Inserisci un nome valido");
         return;
       }
       
       try {
         await updateDoc(doc(db, "users", uid), { name: newName });
-        setStatus("ok", `✅ Nome aggiornato per ${newName}`);
+        setStatus("success", `Nome aggiornato per ${newName}`);
       } catch (error) {
-        console.error("Errore nell'aggiornamento del nome:", error);
-        setStatus("err", "❌ Errore nell'aggiornamento del nome.");
+        setStatus("error", "Errore nell'aggiornamento del nome");
       }
     };
 
-    // ========== GESTIONE RUBRICA ==========
-    
-    // Funzioni per gestire i contatti della rubrica
+    // Gestione rubrica
     async function addOrEditContact() {
       const nome = $("rubrica-nome").value.trim();
       const telefono = $("rubrica-telefono").value.trim();
@@ -334,37 +603,28 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
       const note = $("rubrica-note").value.trim();
 
       if (!nome) {
-        alert("Inserisci almeno il nome/azienda.");
+        alert("Inserisci almeno il nome/azienda");
         return;
       }
 
-      const contactData = {
-        nome,
-        telefono,
-        email,
-        note,
-        updatedAt: serverTimestamp()
-      };
+      const contactData = { nome, telefono, email, note, updatedAt: serverTimestamp() };
 
       try {
         if (editingContactId) {
-          // Modifica contatto esistente
           await updateDoc(doc(db, "rubrica", editingContactId), contactData);
-          setStatus("ok", "✅ Contatto aggiornato.");
+          setStatus("success", "Contatto aggiornato");
           cancelEditContact();
         } else {
-          // Aggiungi nuovo contatto
           await addDoc(collection(db, "rubrica"), {
             ...contactData,
             createdAt: serverTimestamp(),
             createdBy: "admin"
           });
-          setStatus("ok", "✅ Contatto aggiunto alla rubrica.");
+          setStatus("success", "Contatto aggiunto");
         }
         clearContactForm();
       } catch (error) {
-        console.error("Errore nella gestione del contatto:", error);
-        setStatus("err", "❌ Errore nella gestione del contatto.");
+        setStatus("error", "Errore nella gestione del contatto");
       }
     }
 
@@ -381,196 +641,449 @@ button:disabled{ opacity:.6; cursor:not-allowed; }
       $("rubrica-telefono").value = contact.telefono || "";
       $("rubrica-email").value = contact.email || "";
       $("rubrica-note").value = contact.note || "";
-      $("btn-add-contact").textContent = "Aggiorna contatto";
+      $("btn-add-contact").textContent = "Aggiorna Contatto";
       $("btn-cancel-contact").style.display = "inline-block";
-      
-      // Scroll verso il form per una migliore UX
-      $("rubrica-nome").scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function cancelEditContact() {
       editingContactId = null;
-      $("btn-add-contact").textContent = "Aggiungi contatto";
+      $("btn-add-contact").textContent = "Aggiungi Contatto";
       $("btn-cancel-contact").style.display = "none";
       clearContactForm();
     }
 
     async function deleteContact(id, nome) {
       if (!confirm(`Eliminare il contatto "${nome}"?`)) return;
+      
       try {
         await deleteDoc(doc(db, "rubrica", id));
-        setStatus("ok", "🗑️ Contatto eliminato.");
+        setStatus("success", "Contatto eliminato");
       } catch (error) {
-        console.error("Errore nell'eliminazione del contatto:", error);
-        setStatus("err", "❌ Errore nell'eliminazione del contatto.");
+        setStatus("error", "Errore nell'eliminazione del contatto");
       }
     }
 
+    // Render functions
     function renderContacts(snapshot) {
       const container = $("contacts-list");
       const count = $("count-contacts");
+      
       container.innerHTML = "";
       count.textContent = String(snapshot.size);
 
       if (snapshot.empty) {
-        container.innerHTML = "<div class='muted'>Nessun contatto in rubrica.</div>";
+        container.innerHTML = '<div class="empty-state">Nessun contatto in rubrica</div>';
         return;
       }
 
       snapshot.forEach(docSnap => {
         const contact = docSnap.data();
         const id = docSnap.id;
+        
         const card = document.createElement("div");
         card.className = "card";
-
         card.innerHTML = `
-          <div class="row">
-            <div>
-              <strong>${contact.nome || "(senza nome)"}</strong>
-              <br>
-              ${contact.telefono ? `📞 ${contact.telefono}` : ""}
-              ${contact.telefono && contact.email ? " • " : ""}
-              ${contact.email ? `📧 ${contact.email}` : ""}
-              ${contact.note ? `<br><em style="color:#666; font-size:13px;">${contact.note}</em>` : ""}
+          <div class="card-header">
+            <div class="card-info">
+              <h3>${contact.nome || "(senza nome)"}</h3>
+              <p>
+                ${contact.telefono ? `📞 ${contact.telefono}` : ""}
+                ${contact.telefono && contact.email ? " • " : ""}
+                ${contact.email ? `📧 ${contact.email}` : ""}
+              </p>
+              ${contact.note ? `<p><em>${contact.note}</em></p>` : ""}
             </div>
-            <div class="action-buttons">
+            <div class="card-actions">
               <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
-                      class="btn-secondary">Modifica</button>
+                      class="btn btn-secondary btn-sm">Modifica</button>
               <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
-                      class="btn-danger">Elimina</button>
+                      class="btn btn-danger btn-sm">Elimina</button>
             </div>
-          </div>`;
+          </div>
+        `;
         container.appendChild(card);
       });
     }
 
-    // Event listeners per la rubrica
-    $("btn-add-contact").addEventListener("click", addOrEditContact);
-    $("btn-cancel-contact").addEventListener("click", cancelEditContact);
-
-    // Espone le funzioni globalmente per i bottoni inline
-    window.editContact = editContact;
-    window.deleteContact = deleteContact;
-
-    function renderUsers(containerId, countId, snap, type){
+    function renderUsers(containerId, countId, snap, type) {
       const container = $(containerId);
       const count = $(countId);
-      container.innerHTML = ""; count.textContent = String(snap.size);
-      if (snap.empty) { container.innerHTML = `<div class='muted'>Nessun utente ${type}.</div>`; return; }
+      
+      container.innerHTML = "";
+      count.textContent = String(snap.size);
+
+      if (snap.empty) {
+        container.innerHTML = `<div class="empty-state">Nessun utente ${type}</div>`;
+        return;
+      }
 
       snap.forEach(d => {
         const u = d.data();
         const uid = d.id;
+        
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
-          <div class="row">
-            <div>
-              <strong>${u.name || "(senza nome)"} </strong>
-              ${ type !== "in attesa" ? `<span class="badge badge-gray badge-unread" data-uid="${uid}" title="Messaggi non letti">0</span>` : "" }
-              <br><span class="muted">${u.email || ""}</span>
-              ${ type !== "in attesa" ? `
-                <div class="name-edit-row">
-                  <input type="text" placeholder="Modifica nome" value="${u.name || ""}" 
-                         class="name-input" id="name-input-${uid}">
-                  <button onclick="updateDriverName('${uid}')" class="name-btn">
-                    Aggiorna nome
+          <div class="card-header">
+            <div class="card-info">
+              <h3>
+                ${u.name || "(senza nome)"}
+                ${type !== "in attesa" ? `<span class="badge badge-gray badge-unread" data-uid="${uid}">0</span>` : ""}
+              </h3>
+              <p>${u.email || ""}</p>
+              ${type !== "in attesa" ? `
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                  <input type="text" placeholder="Nuovo nome" value="${u.name || ""}" 
+                         style="width: auto; flex: 1;" id="name-input-${uid}">
+                  <button onclick="updateDriverName('${uid}')" class="btn btn-secondary btn-sm">
+                    Aggiorna
                   </button>
                 </div>
-              ` : "" }
+              ` : ""}
             </div>
-            <div class="action-buttons">
-              ${
-                type === "in attesa"
-                ? `<button data-uid="${uid}" class="approve btn-primary">Approva</button>`
-                : `
-                  <button data-uid="${uid}" class="revoke btn-secondary">Revoca accesso</button>
-                  <button data-uid="${uid}" class="remove btn-danger">Elimina record</button>
-                  <a class="btn-secondary" href="chat.html?uid=${uid}" target="_blank" title="Apri chat in nuova pagina">🔗 Chat</a>
-                  <button data-uid="${uid}" data-name="${u.name || uid}" class="open-inline btn-secondary" title="Apri chat nel pannello">🗂 Apri qui</button>
-                `
-              }
-            </div>
-          </div>`;
+          </div>
+          <div class="card-actions">
+            ${type === "in attesa" 
+              ? `<button data-uid="${uid}" class="approve btn btn-success btn-sm">Approva</button>`
+              : `
+                <button data-uid="${uid}" class="revoke btn btn-secondary btn-sm">Revoca</button>
+                <button data-uid="${uid}" class="remove btn btn-danger btn-sm">Elimina</button>
+                <a class="btn btn-primary btn-sm" href="chat.html?uid=${uid}" target="_blank">Chat</a>
+                <button data-uid="${uid}" data-name="${u.name || uid}" class="open-inline btn btn-secondary btn-sm">Chat qui</button>
+              `
+            }
+          </div>
+        `;
         container.appendChild(card);
 
         if (type !== "in attesa") {
           watchUnreadBadgeForDriver(uid);
-          ensureThreadForDriver(uid, u.name || "", u.email || "");
         }
       });
 
-      // attach handlers
+      // Attach event handlers
       attachInlineChatHandlers(container);
 
-      // azioni
       container.querySelectorAll(".approve").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           const uid = e.currentTarget.getAttribute("data-uid");
-          await updateDoc(doc(db,"users", uid), { approved: true, role: "driver" });
-          setStatus("ok","✅ Utente approvato.");
+          await updateDoc(doc(db, "users", uid), { approved: true, role: "driver" });
+          setStatus("success", "Utente approvato");
         });
       });
+
       container.querySelectorAll(".revoke").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           const uid = e.currentTarget.getAttribute("data-uid");
           if (!confirm("Revocare l'accesso?")) return;
-          await updateDoc(doc(db,"users", uid), { approved: false });
-          setStatus("ok","✅ Accesso revocato.");
+          
+          await updateDoc(doc(db, "users", uid), { approved: false });
+          setStatus("success", "Accesso revocato");
         });
       });
+
       container.querySelectorAll(".remove").forEach(btn => {
         btn.addEventListener("click", async (e) => {
           const uid = e.currentTarget.getAttribute("data-uid");
-          if (!confirm("Eliminare il record utente in Firestore?")) return;
-          await deleteDoc(doc(db,"users", uid));
-          setStatus("ok","🗑️ Record utente eliminato.");
+          if (!confirm("Eliminare il record utente?")) return;
+          
+          await deleteDoc(doc(db, "users", uid));
+          setStatus("success", "Record utente eliminato");
         });
       });
     }
 
-    function startListeners(){
+    // Importazione clienti
+    $("btn-load-file").addEventListener("click", async () => {
+      const fileInput = $("clientFile");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        showImportStatus("Seleziona un file", "error");
+        return;
+      }
+
+      showImportStatus("Analisi in corso...", "");
+
+      try {
+        if (file.name.endsWith('.json')) {
+          await parseJSONFile(file);
+        } else if (file.name.endsWith('.csv')) {
+          await parseCSVFile(file);
+        } else {
+          showImportStatus("Formato non supportato", "error");
+          return;
+        }
+
+        validateAndShowPreview();
+      } catch (error) {
+        showImportStatus(`Errore: ${error.message}`, "error");
+      }
+    });
+
+    $("btn-import-sample").addEventListener("click", () => {
+      parsedClienti = [
+        {
+          nome: "Casa", indirizzo: "Vicolo Mercanti, 50B/1, 46019 Viadana MN",
+          coordinate: "44.932604, 10.531342", note: "Residenza principale"
+        },
+        {
+          nome: "Lavoro", indirizzo: "Via Werter Asseverati, 1, 42122 Reggio nell'Emilia RE",
+          coordinate: "44.67239, 10.71315", note: "Ufficio"
+        },
+        {
+          nome: "Bignotti", indirizzo: "Localita' Casa Nuova, 51, 43039 Salsominore PR",
+          coordinate: "44.79644, 9.93591", note: "Cliente agricolo"
+        }
+      ];
+      validateAndShowPreview();
+    });
+
+    $("btn-confirm-import").addEventListener("click", async () => {
+      if (validClienti.length === 0) return;
+
+      showImportStatus(`Importazione ${validClienti.length} clienti...`, "");
+
+      try {
+        const clientiRef = collection(db, "clienti");
+        let imported = 0;
+
+        for (const cliente of validClienti) {
+          await addDoc(clientiRef, {
+            ...cliente,
+            createdAt: serverTimestamp(),
+            createdBy: { uid: "admin", name: "Amministratore", email: "admin@sistema.com" }
+          });
+          imported++;
+        }
+
+        showImportStatus(`Importati ${imported} clienti`, "success");
+        resetImportForm();
+      } catch (error) {
+        showImportStatus(`Errore importazione: ${error.message}`, "error");
+      }
+    });
+
+    $("btn-cancel-import").addEventListener("click", resetImportForm);
+
+    // Parser functions
+    async function parseJSONFile(file) {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      if (data.features && Array.isArray(data.features)) {
+        parsedClienti = data.features.map(feature => ({
+          nome: feature.properties.name || feature.properties.nome || 'Cliente senza nome',
+          indirizzo: feature.properties.address || feature.properties.indirizzo || '',
+          coordinate: feature.geometry.coordinates && feature.geometry.coordinates.length >= 2 ?
+            `${feature.geometry.coordinates[1]}, ${feature.geometry.coordinates[0]}` : '',
+          note: feature.properties.note || ''
+        }));
+      } else if (Array.isArray(data)) {
+        parsedClienti = data.map(item => ({
+          nome: item.nome || item.name || 'Cliente senza nome',
+          indirizzo: item.indirizzo || item.address || '',
+          coordinate: item.coordinate || item.coordinates || '',
+          note: item.note || item.notes || ''
+        }));
+      } else {
+        throw new Error('Formato JSON non riconosciuto');
+      }
+    }
+
+    async function parseCSVFile(file) {
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+
+      if (lines.length < 2) {
+        throw new Error('File CSV vuoto');
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/['"]/g, ''));
+
+      parsedClienti = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''));
+        const obj = {};
+
+        headers.forEach((header, index) => {
+          obj[header.toLowerCase()] = values[index] || '';
+        });
+
+        return {
+          nome: obj.nome || obj.name || 'Cliente senza nome',
+          indirizzo: obj.indirizzo || obj.address || '',
+          coordinate: obj.coordinate || obj.coordinates || '',
+          note: obj.note || obj.notes || ''
+        };
+      });
+    }
+
+    function validateAndShowPreview() {
+      validClienti = [];
+      const errors = [];
+
+      parsedClienti.forEach((item, index) => {
+        if (!item.nome || item.nome.trim() === '') {
+          errors.push(`Riga ${index + 1}: Nome mancante`);
+          return;
+        }
+
+        validClienti.push({
+          nome: item.nome.trim(),
+          indirizzo: (item.indirizzo || '').trim(),
+          coordinate: (item.coordinate || '').trim(),
+          note: (item.note || '').trim()
+        });
+      });
+
+      if (validClienti.length > 0) {
+        showImportStatus(`Trovati ${validClienti.length} clienti validi`, "success");
+        showPreview(validClienti.slice(0, 10));
+      } else {
+        showImportStatus("Nessun cliente valido trovato", "error");
+      }
+    }
+
+    function showPreview(clienti) {
+      const preview = $("import-preview");
+      const content = $("preview-content");
+
+      let html = `<div><strong>Anteprima ${validClienti.length} clienti:</strong></div>`;
+
+      clienti.forEach(cliente => {
+        html += `
+          <div class="preview-item">
+            <strong>${cliente.nome}</strong><br>
+            <small style="color: var(--gray-500);">${cliente.indirizzo || 'Nessun indirizzo'}</small><br>
+            ${cliente.coordinate ? `<small>📍 ${cliente.coordinate}</small><br>` : ''}
+            ${cliente.note ? `<em><small>${cliente.note}</small></em>` : ''}
+          </div>
+        `;
+      });
+
+      if (validClienti.length > 10) {
+        html += `<div style="text-align: center; color: var(--gray-500); margin-top: 1rem;">...e altri ${validClienti.length - 10} clienti</div>`;
+      }
+
+      content.innerHTML = html;
+      preview.style.display = "block";
+    }
+
+    function showImportStatus(message, type) {
+      const status = $("import-status");
+      status.textContent = message;
+      status.style.display = "block";
+
+      status.className = `status-bar status-${type}`;
+    }
+
+    function resetImportForm() {
+      $("clientFile").value = '';
+      $("import-preview").style.display = "none";
+      $("import-status").style.display = "none";
+      parsedClienti = [];
+      validClienti = [];
+    }
+
+    // Event listeners
+    $("btn-add-contact").addEventListener("click", addOrEditContact);
+    $("btn-cancel-contact").addEventListener("click", cancelEditContact);
+
+    // Global functions
+    window.editContact = editContact;
+    window.deleteContact = deleteContact;
+
+    // Main listeners management
+    function startListeners() {
       if (!pendingUnsub) {
-        const qPending = query(collection(db,"users"),
-                               where("role","==","driver"),
-                               where("approved","==",false));
-        pendingUnsub = onSnapshot(qPending, (snap) => renderUsers("pending","count-pending",snap,"in attesa"));
+        const qPending = query(collection(db, "users"),
+          where("role", "==", "driver"),
+          where("approved", "==", false));
+        pendingUnsub = onSnapshot(qPending, (snap) => renderUsers("pending", "count-pending", snap, "in attesa"));
       }
+
       if (!approvedUnsub) {
-        const qApproved = query(collection(db,"users"),
-                                where("role","==","driver"),
-                                where("approved","==",true));
-        approvedUnsub = onSnapshot(qApproved, (snap) => renderUsers("approved","count-approved",snap,"approvati"));
+        const qApproved = query(collection(db, "users"),
+          where("role", "==", "driver"),
+          where("approved", "==", true));
+        approvedUnsub = onSnapshot(qApproved, (snap) => renderUsers("approved", "count-approved", snap, "approvati"));
       }
+
       if (!contactsUnsub) {
-        const qContacts = query(collection(db,"rubrica"), orderBy("nome","asc"));
+        const qContacts = query(collection(db, "rubrica"), orderBy("nome", "asc"));
         contactsUnsub = onSnapshot(qContacts, renderContacts);
       }
-      // Mostra sezione rubrica
+
       $("rubrica-section").style.display = "block";
+      $("import-section").style.display = "block";
     }
-    function stopListeners(){
-      if (pendingUnsub) { pendingUnsub(); pendingUnsub=null; }
-      if (approvedUnsub) { approvedUnsub(); approvedUnsub=null; }
-      if (contactsUnsub) { contactsUnsub(); contactsUnsub=null; }
+
+    function stopListeners() {
+      if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
+      if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
+      if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
+
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
       $("count-contacts").textContent = "0";
-      $("pending").innerHTML  = "<div class='muted'>Effettua il login come admin per vedere gli utenti in attesa.</div>";
-      $("approved").innerHTML = "<div class='muted'>Effettua il login come admin per vedere gli utenti approvati.</div>";
+      $("pending").innerHTML = '<div class="empty-state">Effettua il login per vedere gli utenti in attesa</div>';
+      $("approved").innerHTML = '<div class="empty-state">Effettua il login per vedere gli utenti approvati</div>';
       $("contacts-list").innerHTML = "";
-      // Nascondi sezione rubrica
+
       $("rubrica-section").style.display = "none";
+      $("import-section").style.display = "none";
       cancelEditContact();
+      resetImportForm();
     }
 
+    // Auth state changes
     onAuthStateChanged(auth, (user) => {
-      if (!user) { setStatus("warn","🔒 Non loggato."); stopListeners(); setLoginDisabled(false); return; }
-      setLoginDisabled(true);
-      if (user.uid === ADMIN_UID) { setStatus("ok",`✅ Loggato come ${user.email} (ADMIN)`); startListeners(); }
-      else { setStatus("warn",`⚠️ Loggato come ${user.email}, ma non sei admin.`); stopListeners(); }
-    });
-  </script>
+      if (!user) {
+        setStatus("warning", "Accesso necessario");
+        stopListeners();
+        $("email").disabled = false;
+        $("pass").disabled = false;
+        $("btn-login").disabled = false;
+        return;
+      }
 
+      $("email").disabled = true;
+      $("pass").disabled = true;
+      $("btn-login").disabled = true;
+
+      if (user.uid === ADMIN_UID) {
+        setStatus("success", `Benvenuto ${user.email}`);
+        startListeners();
+      } else {
+        setStatus("warning", `${user.email} - Non hai permessi admin`);
+        stopListeners();
+      }
+    });
+
+    // Test function for deleting admin clients
+    window.eliminaClientiTest = async function() {
+      const conferma = confirm("Eliminare tutti i clienti importati dall'admin?");
+      if (!conferma) return;
+
+      try {
+        const clientiRef = collection(db, "clienti");
+        const snapshot = await getDocs(clientiRef);
+
+        let eliminati = 0;
+        for (const docSnap of snapshot.docs) {
+          const cliente = docSnap.data();
+          if (cliente.createdBy?.uid === "admin" || cliente.createdBy?.name === "Amministratore") {
+            await deleteDoc(doc(db, "clienti", docSnap.id));
+            eliminati++;
+          }
+        }
+
+        alert(`Eliminati ${eliminati} clienti!`);
+        setStatus("success", `Eliminati ${eliminati} clienti importati`);
+      } catch (error) {
+        alert("Errore: " + error.message);
+      }
+    };
+  </script>
 </body>
 </html>
