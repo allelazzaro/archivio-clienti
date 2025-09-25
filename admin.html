@@ -20,546 +20,337 @@
       --gray-900: #111827;
     }
 
-```
-* { box-sizing: border-box; }
-
-body { 
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  margin: 0; 
-  background: var(--gray-50); 
-  color: var(--gray-900);
-  line-height: 1.6;
-}
-
-/* Header */
-.header {
-  background: white;
-  border-bottom: 1px solid var(--gray-200);
-  padding: 0.75rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-.header h1 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--gray-900);
-}
-
-.status-bar {
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.status-success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
-.status-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fed7aa; }
-.status-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
-
-.login-form {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* Container principale */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-/* Sezioni */
-.section {
-  background: white;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid var(--gray-200);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.section-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-  color: var(--gray-900);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.section-subtitle {
-  font-size: 1rem;
-  font-weight: 500;
-  margin: 1.5rem 0 0.75rem 0;
-  color: var(--gray-700);
-}
-
-/* Cards */
-.card {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.card-info h3 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.card-info p {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.875rem;
-  color: var(--gray-500);
-}
-
-.card-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-top: 0.75rem;
-}
-
-.name-update {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.name-update input {
-  flex: 1;
-  min-width: 150px;
-  padding: 0.5rem;
-  border: 1px solid var(--gray-300);
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-}
-
-/* Form elements */
-input, textarea, select {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid var(--gray-300);
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  transition: border-color 0.15s;
-}
-
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-  color: var(--gray-700);
-}
-
-/* Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.625rem 1rem;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.15s;
-  gap: 0.25rem;
-  text-align: center;
-  justify-content: center;
-  white-space: nowrap;
-  min-height: 44px; /* Miglior tocco su mobile */
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.btn-primary { background: var(--primary); color: white; }
-.btn-primary:hover { background: #1d4ed8; }
-
-.btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); }
-.btn-secondary:hover { background: var(--gray-200); }
-
-.btn-success { background: var(--success); color: white; }
-.btn-success:hover { background: #15803d; }
-
-.btn-danger { background: var(--danger); color: white; }
-.btn-danger:hover { background: #b91c1c; }
-
-.btn-sm {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.75rem;
-  min-height: 36px;
-}
-
-/* Badge */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  min-width: 1.25rem;
-  text-align: center;
-  justify-content: center;
-}
-
-.badge-gray { background: var(--gray-100); color: var(--gray-700); }
-.badge-red { background: #fee2e2; color: var(--danger); }
-.badge-green { background: #dcfce7; color: var(--success); }
-
-/* Grid layouts - mobile first */
-.users-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-/* Preview area */
-.preview-area {
-  background: var(--gray-50);
-  border: 1px solid var(--gray-200);
-  border-radius: 0.5rem;
-  padding: 1rem;
-  max-height: 300px;
-  overflow-y: auto;
-  margin: 1rem 0;
-}
-
-.preview-item {
-  background: white;
-  border: 1px solid var(--gray-200);
-  border-radius: 0.375rem;
-  padding: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Empty states */
-.empty-state {
-  text-align: center;
-  padding: 2rem 1rem;
-  color: var(--gray-500);
-  font-size: 0.875rem;
-}
-
-/* Toast notifiche */
-.toast-container { 
-  position: fixed; 
-  top: 20px; 
-  right: 20px; 
-  z-index: 10000; 
-  max-width: 320px; 
-}
-
-.toast {
-  background:#fff; border:1px solid #e0e0e0; border-radius:12px;
-  box-shadow:0 8px 24px rgba(0,0,0,.15);
-  padding:16px; margin-bottom:12px;
-  transform:translateX(100%); transition:all .3s cubic-bezier(.4,0,.2,1);
-  cursor:pointer; position:relative; overflow:hidden;
-}
-.toast.show { transform:translateX(0); }
-.toast.hide { transform:translateX(100%); opacity:0; }
-.toast::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--primary); }
-.toast-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:600; font-size:14px; color:var(--primary); }
-.toast-body { color:#333; font-size:14px; line-height:1.4; margin-left:24px; }
-.toast-close {
-  position:absolute; top:8px; right:8px; width:24px; height:24px;
-  background:none; border:none; font-size:18px; color:#999; cursor:pointer;
-  display:flex; align-items:center; justify-content:center; border-radius:50%;
-  transition: background-color .2s;
-}
-.toast-close:hover { background-color:#f0f0f0; }
-
-/* Advanced toast */
-.advanced-toast {
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-left: 4px solid var(--primary);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.15);
-  padding: 0;
-  margin-bottom: 12px;
-  transform: translateX(100%);
-  transition: all .3s cubic-bezier(.4,0,.2,1);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  min-width: 320px;
-  max-width: 400px;
-}
-
-.advanced-toast.show { transform: translateX(0); }
-.advanced-toast.hide { transform: translateX(100%); opacity: 0; }
-
-.advanced-toast .toast-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px 8px;
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--primary);
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.advanced-toast .toast-body {
-  color: #333;
-  font-size: 14px;
-  line-height: 1.4;
-  padding: 8px 16px;
-}
-
-.advanced-toast .toast-actions {
-  padding: 8px 16px 12px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.advanced-toast .toast-action-btn {
-  background: var(--primary);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.advanced-toast .toast-action-btn:hover {
-  background: #1d4ed8;
-}
-
-.advanced-toast .toast-close {
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  width: 20px;
-  height: 20px;
-  background: none;
-  border: none;
-  font-size: 16px;
-  color: #999;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: background-color .2s;
-}
-
-.advanced-toast .toast-close:hover {
-  background-color: #f0f0f0;
-}
-
-/* Chat panel */
-.chat-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: min(560px, 100%);
-  height: 100vh;
-  background: white;
-  border-left: 1px solid var(--gray-200);
-  box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  z-index: 100;
-  display: flex;
-  flex-direction: column;
-}
-
-.chat-panel.open {
-  transform: translateX(0);
-}
-
-.chat-panel-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--gray-200);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-weight: 500;
-}
-
-.chat-iframe {
-  border: 0;
-  width: 100%;
-  height: calc(100vh - 60px);
-  display: block;
-}
-
-/* Desktop media query */
-@media (min-width: 768px) {
-  .header-content {
-    padding: 0 1.5rem;
-  }
-  
-  .container {
-    padding: 1.5rem;
-  }
-  
-  .section {
-    padding: 2rem;
-  }
-
-  .users-grid {
-    grid-template-columns: 2fr 1fr;
-  }
-
-  .form-row {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-
-  .card-header {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  .card-actions {
-    justify-content: flex-start;
-  }
-
-  .name-update {
-    flex-wrap: nowrap;
-  }
-
-  .name-update input {
-    min-width: 200px;
-  }
-}
-
-/* Large desktop */
-@media (min-width: 1024px) {
-  .section-title {
-    flex-wrap: nowrap;
-  }
-  
-  .btn {
-    white-space: nowrap;
-  }
-}
-
-/* Mobile-specific improvements */
-@media (max-width: 767px) {
-  .login-form {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .login-form input {
-    margin-bottom: 0.5rem;
-  }
-
-  .login-form button {
-    width: 100%;
-  }
-
-  .section-title {
-    font-size: 1.125rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .section-title .btn {
-    width: 100%;
-  }
-
-  .card-actions {
-    flex-direction: column;
-  }
-
-  .card-actions .btn {
-    width: 100%;
-  }
-
-  .name-update {
-    flex-direction: column;
-  }
-
-  .name-update input {
-    min-width: unset;
-  }
-
-  .toast-container {
-    left: 10px;
-    right: 10px;
-    top: 10px;
-    max-width: unset;
-  }
-
-  .advanced-toast {
-    min-width: unset;
-    max-width: unset;
-  }
-}
-
-/* Toast su mobile */
-@media (max-width: 480px) {
-  .toast-container {
-    left: 10px;
-    right: 10px;
-    top: 80px; /* Sotto l'header sticky */
-  }
-}
-```
-
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0; 
+      background: var(--gray-50); 
+      color: var(--gray-900);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: 0.75rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+
+    .status-bar {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
+    .status-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fed7aa; }
+    .status-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+
+    .login-form {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    /* Container principale */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem;
+    }
+
+    /* Sezioni */
+    .section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid var(--gray-200);
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0 0 1rem 0;
+      color: var(--gray-900);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-subtitle {
+      font-size: 1rem;
+      font-weight: 500;
+      margin: 1.5rem 0 0.75rem 0;
+      color: var(--gray-700);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-info h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .card-info p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--gray-500);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    /* Form elements */
+    input, textarea, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      color: var(--gray-700);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+      gap: 0.25rem;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary:hover { background: var(--gray-200); }
+
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #15803d; }
+
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    .btn-sm {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.75rem;
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      min-width: 1.25rem;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .badge-gray { background: var(--gray-100); color: var(--gray-700); }
+    .badge-red { background: #fee2e2; color: var(--danger); }
+
+    /* Grid layouts */
+    .users-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Priorità visiva per utenti approvati */
+    .approved-section {
+      order: 1;
+    }
+    
+    .pending-section {
+      order: 2;
+    }
+
+    /* Preview area */
+    .preview-area {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: 1rem 0;
+    }
+
+    .preview-item {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: 0.375rem;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Empty states */
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gray-500);
+      font-size: 0.875rem;
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 0 0.75rem;
+      }
+      
+      .container {
+        padding: 1rem 0.75rem;
+      }
+      
+      .section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .login-form {
+        gap: 0.5rem;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .card-actions {
+        justify-content: flex-start;
+      }
+
+      .users-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .approved-section {
+        order: 1;
+      }
+      
+      .pending-section {
+        order: 2;
+      }
+    }
+
+    /* Chat panel */
+    .chat-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(560px, 100%);
+      height: 100vh;
+      background: white;
+      border-left: 1px solid var(--gray-200);
+      box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-panel.open {
+      transform: translateX(0);
+    }
+
+    .chat-panel-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 500;
+    }
+
+    .chat-iframe {
+      border: 0;
+      width: 100%;
+      height: calc(100vh - 60px);
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -567,19 +358,17 @@ input:focus, textarea:focus, select:focus {
   <header class="header">
     <div class="header-content">
       <h1>Pannello Amministratore</h1>
-
-```
-  <div id="status" class="status-bar status-warning">Accesso necessario</div>
-  
-  <div class="login-form">
-    <input id="email" placeholder="Email admin" type="email">
-    <input id="pass" placeholder="Password" type="password">
-    <button id="btn-login" class="btn btn-primary">Accedi</button>
-    <button id="btn-logout" class="btn btn-secondary">Esci</button>
-  </div>
-</div>
-```
-
+      
+      <div id="status" class="status-bar status-warning">Accesso necessario</div>
+      
+      <div class="login-form">
+        <input id="email" placeholder="Email admin" type="email">
+        <input id="pass" placeholder="Password" type="password">
+        <button id="btn-login" class="btn btn-primary">Accedi</button>
+        <button id="btn-logout" class="btn btn-secondary">Esci</button>
+        <a href="console.html" class="btn btn-primary">Console Chat</a>
+      </div>
+    </div>
   </header>
 
   <div class="container">
@@ -588,87 +377,82 @@ input:focus, textarea:focus, select:focus {
       <div class="section approved-section">
         <h2 class="section-title">
           Utenti Approvati  
-          <span id="count-approved" class="badge badge-green">0</span>
-          <a href="console.html" class="btn btn-primary btn-sm">Apri Chat Driver</a>
+          <span id="count-approved" class="badge badge-gray">0</span>
         </h2>
         <div id="approved" class="empty-state">
           Effettua il login per vedere gli utenti approvati
         </div>
       </div>
 
-```
-  <div class="section pending-section">
-    <h2 class="section-title">
-      In Attesa di Approvazione
-      <span id="count-pending" class="badge badge-gray">0</span>
-    </h2>
-    <div id="pending" class="empty-state">
-      Effettua il login per vedere gli utenti in attesa
+      <div class="section pending-section">
+        <h2 class="section-title">
+          In Attesa di Approvazione
+          <span id="count-pending" class="badge badge-gray">0</span>
+        </h2>
+        <div id="pending" class="empty-state">
+          Effettua il login per vedere gli utenti in attesa
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<!-- Gestione Rubrica -->
-<div id="rubrica-section" class="section" style="display:none;">
-  <h2 class="section-title">Gestione Rubrica Aziendale</h2>
-  
-  <h3 class="section-subtitle">Aggiungi Nuovo Contatto</h3>
-  <div class="form-row">
-    <input id="rubrica-nome" placeholder="Nome/Azienda">
-    <input id="rubrica-telefono" placeholder="Telefono">
-    <input id="rubrica-email" placeholder="Email">
-  </div>
-  
-  <div class="form-group">
-    <textarea id="rubrica-note" placeholder="Note aggiuntive" rows="3"></textarea>
-  </div>
-  
-  <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap;">
-    <button id="btn-add-contact" class="btn btn-success">Aggiungi Contatto</button>
-    <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
-  </div>
+    <!-- Gestione Rubrica -->
+    <div id="rubrica-section" class="section" style="display:none;">
+      <h2 class="section-title">Gestione Rubrica Aziendale</h2>
+      
+      <h3 class="section-subtitle">Aggiungi Nuovo Contatto</h3>
+      <div class="form-row">
+        <input id="rubrica-nome" placeholder="Nome/Azienda">
+        <input id="rubrica-telefono" placeholder="Telefono">
+        <input id="rubrica-email" placeholder="Email">
+      </div>
+      
+      <div class="form-group">
+        <textarea id="rubrica-note" placeholder="Note aggiuntive" rows="3"></textarea>
+      </div>
+      
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem;">
+        <button id="btn-add-contact" class="btn btn-success">Aggiungi Contatto</button>
+        <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
+      </div>
 
-  <h3 class="section-subtitle">
-    Contatti Esistenti 
-    <span id="count-contacts" class="badge badge-gray">0</span>
-  </h3>
-  <div id="contacts-list"></div>
-</div>
-
-<!-- Importazione Clienti -->
-<div id="import-section" class="section" style="display:none;">
-  <h2 class="section-title">Importazione Clienti</h2>
-  
-  <div class="form-group">
-    <label>File Clienti</label>
-    <input type="file" id="clientFile" accept=".csv,.xlsx,.xls,.json">
-    <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
-      Formati supportati: CSV, Excel, JSON/GeoJSON
+      <h3 class="section-subtitle">
+        Contatti Esistenti 
+        <span id="count-contacts" class="badge badge-gray">0</span>
+      </h3>
+      <div id="contacts-list"></div>
     </div>
-  </div>
-  
-  <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
-    <button id="btn-load-file" class="btn btn-primary">Analizza File</button>
-    <button id="btn-import-sample" class="btn btn-secondary">Usa Dati Esempio</button>
-  </div>
-  
-  <div id="import-status" style="display: none;"></div>
-  
-  <div id="import-preview" style="display: none;">
-    <h3 class="section-subtitle">Anteprima Importazione</h3>
-    <div id="preview-content" class="preview-area"></div>
-    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-      <button id="btn-confirm-import" class="btn btn-success">Conferma Importazione</button>
-      <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
-    </div>
-  </div>
-</div>
-```
 
+    <!-- Importazione Clienti -->
+    <div id="import-section" class="section" style="display:none;">
+      <h2 class="section-title">Importazione Clienti</h2>
+      
+      <div class="form-group">
+        <label>File Clienti</label>
+        <input type="file" id="clientFile" accept=".csv,.xlsx,.xls,.json">
+        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+          Formati supportati: CSV, Excel, JSON/GeoJSON
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+        <button id="btn-load-file" class="btn btn-primary">Analizza File</button>
+        <button id="btn-import-sample" class="btn btn-secondary">Usa Dati Esempio</button>
+      </div>
+      
+      <div id="import-status" style="display: none;"></div>
+      
+      <div id="import-preview" style="display: none;">
+        <h3 class="section-subtitle">Anteprima Importazione</h3>
+        <div id="preview-content" class="preview-area"></div>
+        <div style="display: flex; gap: 0.75rem;">
+          <button id="btn-confirm-import" class="btn btn-success">Conferma Importazione</button>
+          <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Chat Panel -->
-
   <div id="chatPanel" class="chat-panel">
     <div class="chat-panel-header">
       <strong id="chatTitle">Chat</strong>
@@ -676,10 +460,6 @@ input:focus, textarea:focus, select:focus {
     </div>
     <iframe id="chatFrame" class="chat-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
   </div>
-
-  <!-- Container toast -->
-
-  <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
     const firebaseConfig = {
@@ -716,152 +496,6 @@ input:focus, textarea:focus, select:focus {
       status.textContent = msg;
     };
 
-    // ======= FUNZIONI NOTIFICHE ADMIN =======
-    
-    function createToast(title, message, onClick) {
-      const container = document.getElementById('toast-container') || createToastContainer();
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.innerHTML = `
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-        <div class="toast-header"><span>💬</span>${title}</div>
-        <div class="toast-body">${message}</div>
-      `;
-      if (onClick) {
-        toast.addEventListener('click', (e) => {
-          if (e.target.classList.contains('toast-close')) return;
-          onClick(); hideToast(toast);
-        });
-      }
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 100);
-      setTimeout(() => hideToast(toast), 6000);
-      return toast;
-    }
-
-    function hideToast(toast) { 
-      toast.classList.add('hide'); 
-      setTimeout(() => { if(toast.parentElement) toast.remove(); }, 300); 
-    }
-
-    function createAdvancedToast(title, message, onClick) {
-      const container = document.getElementById('toast-container') || createToastContainer();
-      
-      const toast = document.createElement('div');
-      toast.className = 'toast advanced-toast';
-      toast.innerHTML = `
-        <div class="toast-header">
-          <span>🔔</span>
-          <strong>${title}</strong>
-          <button class="toast-close">×</button>
-        </div>
-        <div class="toast-body">${message.length > 150 ? message.substring(0, 147) + '...' : message}</div>
-        <div class="toast-actions">
-          <button class="toast-action-btn">Apri Chat</button>
-        </div>
-      `;
-      
-      const closeBtn = toast.querySelector('.toast-close');
-      const actionBtn = toast.querySelector('.toast-action-btn');
-      
-      closeBtn.onclick = () => hideAdvancedToast(toast);
-      actionBtn.onclick = () => { if (onClick) onClick(); hideAdvancedToast(toast); };
-      
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 100);
-      setTimeout(() => hideAdvancedToast(toast), 10000);
-      
-      return toast;
-    }
-
-    function createToastContainer() {
-      let container = document.getElementById('toast-container');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-      }
-      return container;
-    }
-
-    function hideAdvancedToast(toast) {
-      toast.classList.remove('show');
-      toast.classList.add('hide');
-      setTimeout(() => {
-        if (toast.parentElement) {
-          toast.remove();
-        }
-      }, 300);
-    }
-
-    function playNotificationSound() {
-      try {
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 800;
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-      } catch (error) {
-        console.log('Suono notifica non disponibile');
-      }
-    }
-
-    function showNewMessageNotification(senderName, messageText, driverUid) {
-      // Notifica browser nativa
-      if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
-        const notification = new Notification(`Nuovo messaggio da ${senderName}`, {
-          body: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
-          icon: './icon192.png',
-          tag: 'new-admin-message',
-          requireInteraction: false,
-          silent: false
-        });
-        
-        notification.onclick = () => {
-          window.focus();
-          openInlineChat(driverUid, senderName);
-          notification.close();
-        };
-        
-        setTimeout(() => notification.close(), 8000);
-      }
-      
-      // Toast visivo sempre
-      createAdvancedToast(
-        `💬 Nuovo messaggio da ${senderName}`, 
-        messageText, 
-        () => { openInlineChat(driverUid, senderName); }
-      );
-      
-      // Suono notifica
-      playNotificationSound();
-    }
-
-    function requestNotificationPermissionForAdmin() {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') {
-            console.log('✅ Notifiche admin autorizzate');
-            createToast('🔔 Notifiche attivate', 'Riceverai notifiche per i nuovi messaggi dai driver');
-          }
-        });
-      }
-    }
-
-    // ======= FINE FUNZIONI NOTIFICHE =======
-
     // Chat panel
     const chatPanel = $("chatPanel");
     const chatFrame = $("chatFrame");
@@ -871,17 +505,6 @@ input:focus, textarea:focus, select:focus {
       chatPanel.classList.remove("open");
       chatFrame.src = "about:blank";
     });
-
-    function openInlineChat(uid, name) {
-      if (!uid) {
-        alert("Impossibile aprire la chat: UID mancante");
-        return;
-      }
-      
-      chatTitle.textContent = `Chat con: ${name}`;
-      chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
-      chatPanel.classList.add("open");
-    }
 
     // Login/Logout
     $("btn-login").addEventListener("click", async () => {
@@ -907,44 +530,20 @@ input:focus, textarea:focus, select:focus {
     let editingContactId = null;
     let parsedClienti = [];
     let validClienti = [];
-    let adminNotificationListeners = new Map(); // Per tracciare i listener delle notifiche
 
-    // Funzioni per badge messaggi non letti CON NOTIFICHE
+    // Funzioni per badge messaggi non letti
     function watchUnreadBadgeForDriver(uid) {
       const msgsRef = collection(db, "threads", uid, "messages");
       const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
       
-      const unsub = onSnapshot(qRecent, (snap) => {
+      return onSnapshot(qRecent, (snap) => {
         let count = 0;
-        let latestUnreadMessage = null;
-        const now = Date.now();
-        
         snap.forEach(d => {
           const m = d.data();
           const rb = Array.isArray(m.readBy) ? m.readBy : [];
-          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) {
-            count++;
-            // Trova il messaggio più recente (ultimi 30 secondi)
-            if (!latestUnreadMessage) {
-              const msgTime = m.createdAt?.toDate?.()?.getTime() || 0;
-              if (now - msgTime < 30000) { // 30 secondi
-                latestUnreadMessage = m;
-              }
-            }
-          }
+          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) count++;
         });
         
-        // Se c'è un nuovo messaggio molto recente, mostra notifica
-        const existingCount = adminNotificationListeners.get(uid)?.lastCount || 0;
-        if (latestUnreadMessage && count > existingCount && existingCount >= 0) {
-          // Ottieni il nome del driver
-          const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
-          const driverName = badge?.closest('.card')?.querySelector('h3')?.textContent?.split('\n')[0]?.trim() || 'Driver';
-          
-          showNewMessageNotification(driverName, latestUnreadMessage.text || 'Nuovo messaggio', uid);
-        }
-        
-        // Aggiorna il badge
         const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
         if (badge) {
           if (count > 0) {
@@ -955,21 +554,7 @@ input:focus, textarea:focus, select:focus {
             badge.className = "badge badge-gray badge-unread";
           }
         }
-        
-        // Salva il conteggio per il prossimo confronto
-        if (!adminNotificationListeners.has(uid)) {
-          adminNotificationListeners.set(uid, { unsub, lastCount: count });
-        } else {
-          adminNotificationListeners.get(uid).lastCount = count;
-        }
       });
-      
-      // Se è un nuovo listener, salvalo
-      if (!adminNotificationListeners.has(uid)) {
-        adminNotificationListeners.set(uid, { unsub, lastCount: 0 });
-      }
-      
-      return unsub;
     }
 
     // Gestione chat inline
@@ -978,7 +563,15 @@ input:focus, textarea:focus, select:focus {
         btn.addEventListener("click", (e) => {
           const uid = e.currentTarget.dataset.uid;
           const name = e.currentTarget.dataset.name || uid;
-          openInlineChat(uid, name);
+          
+          if (!uid) {
+            alert("Impossibile aprire la chat: UID mancante");
+            return;
+          }
+          
+          chatTitle.textContent = `Chat con: ${name}`;
+          chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
+          chatPanel.classList.add("open");
         });
       });
     }
@@ -1100,12 +693,12 @@ input:focus, textarea:focus, select:focus {
               </p>
               ${contact.note ? `<p><em>${contact.note}</em></p>` : ""}
             </div>
-          </div>
-          <div class="card-actions">
-            <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
-                    class="btn btn-secondary btn-sm">Modifica</button>
-            <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
-                    class="btn btn-danger btn-sm">Elimina</button>
+            <div class="card-actions">
+              <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
+                      class="btn btn-secondary btn-sm">Modifica</button>
+              <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
+                      class="btn btn-danger btn-sm">Elimina</button>
+            </div>
           </div>
         `;
         container.appendChild(card);
@@ -1139,9 +732,9 @@ input:focus, textarea:focus, select:focus {
               </h3>
               <p>${u.email || ""}</p>
               ${type !== "in attesa" ? `
-                <div class="name-update">
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
                   <input type="text" placeholder="Nuovo nome" value="${u.name || ""}" 
-                         id="name-input-${uid}">
+                         style="width: auto; flex: 1;" id="name-input-${uid}">
                   <button onclick="updateDriverName('${uid}')" class="btn btn-secondary btn-sm">
                     Aggiorna
                   </button>
@@ -1151,7 +744,7 @@ input:focus, textarea:focus, select:focus {
           </div>
           <div class="card-actions">
             ${type === "in attesa" 
-              ? `<button data-uid="${uid}" class="approve btn btn-success">Approva</button>`
+              ? `<button data-uid="${uid}" class="approve btn btn-success btn-sm">Approva</button>`
               : `
                 <button data-uid="${uid}" class="revoke btn btn-secondary btn-sm">Revoca</button>
                 <button data-uid="${uid}" class="remove btn btn-danger btn-sm">Elimina</button>
@@ -1200,7 +793,7 @@ input:focus, textarea:focus, select:focus {
       });
     }
 
-    // Importazione clienti (codice esistente...)
+    // Importazione clienti
     $("btn-load-file").addEventListener("click", async () => {
       const fileInput = $("clientFile");
       const file = fileInput.files[0];
@@ -1273,7 +866,7 @@ input:focus, textarea:focus, select:focus {
 
     $("btn-cancel-import").addEventListener("click", resetImportForm);
 
-    // Parser functions (codice esistente...)
+    // Parser functions
     async function parseJSONFile(file) {
       const text = await file.text();
       const data = JSON.parse(text);
@@ -1430,12 +1023,6 @@ input:focus, textarea:focus, select:focus {
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
 
-      // Ferma tutti i listener delle notifiche
-      adminNotificationListeners.forEach((listener) => {
-        if (listener.unsub) listener.unsub();
-      });
-      adminNotificationListeners.clear();
-
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
       $("count-contacts").textContent = "0";
@@ -1467,8 +1054,6 @@ input:focus, textarea:focus, select:focus {
       if (user.uid === ADMIN_UID) {
         setStatus("success", `Benvenuto ${user.email}`);
         startListeners();
-        // Richiedi permessi notifiche per admin
-        requestNotificationPermissionForAdmin();
       } else {
         setStatus("warning", `${user.email} - Non hai permessi admin`);
         stopListeners();
@@ -1500,6 +1085,5 @@ input:focus, textarea:focus, select:focus {
       }
     };
   </script>
-
 </body>
 </html>
