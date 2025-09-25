@@ -20,355 +20,467 @@
       --gray-900: #111827;
     }
 
-    * { box-sizing: border-box; }
-    
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 0; 
-      background: var(--gray-50); 
-      color: var(--gray-900);
-      line-height: 1.6;
-    }
+```
+* { box-sizing: border-box; }
 
-    /* Header */
-    .header {
-      background: white;
-      border-bottom: 1px solid var(--gray-200);
-      padding: 0.75rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0; 
+  background: var(--gray-50); 
+  color: var(--gray-900);
+  line-height: 1.6;
+}
 
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
+/* Header - Ottimizzato per mobile */
+.header {
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0.5rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
 
-    .header h1 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--gray-900);
-    }
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
 
-    .status-bar {
-      margin-bottom: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
+.header h1 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
 
-    .status-success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
-    .status-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fed7aa; }
-    .status-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+.status-bar {
+  margin-bottom: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
 
-    .login-form {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+.status-success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
+.status-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fed7aa; }
+.status-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
 
-    /* Container principale */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1.5rem 1rem;
-    }
+.login-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.375rem;
+  align-items: center;
+}
 
-    /* Sezioni */
-    .section {
-      background: white;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      border: 1px solid var(--gray-200);
-    }
+.login-inputs {
+  display: flex;
+  gap: 0.375rem;
+  grid-column: span 2;
+}
 
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin: 0 0 1rem 0;
-      color: var(--gray-900);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+.login-buttons {
+  display: flex;
+  gap: 0.375rem;
+  grid-column: span 2;
+}
 
-    .section-subtitle {
-      font-size: 1rem;
-      font-weight: 500;
-      margin: 1.5rem 0 0.75rem 0;
-      color: var(--gray-700);
-    }
+/* Container principale */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 0.75rem;
+}
 
-    /* Cards */
-    .card {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-    }
+/* Sezioni */
+.section {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--gray-200);
+}
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--gray-900);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-    .card-info h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-      font-weight: 500;
-    }
+.section-subtitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 1.25rem 0 0.75rem 0;
+  color: var(--gray-700);
+}
 
-    .card-info p {
-      margin: 0;
-      font-size: 0.875rem;
-      color: var(--gray-500);
-    }
+/* Cards */
+.card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  padding: 0.875rem;
+  margin-bottom: 0.75rem;
+}
 
-    .card-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 0.75rem;
-    }
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
-    /* Form elements */
-    input, textarea, select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--gray-300);
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      transition: border-color 0.15s;
-    }
+.card-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
 
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
+.card-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  line-height: 1.3;
+}
 
-    .form-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
+.card-actions {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
 
-    .form-group {
-      margin-bottom: 1rem;
-    }
+/* Form elements */
+input, textarea, select {
+  width: 100%;
+  padding: 0.625rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+  font-size: 0.8rem;
+  transition: border-color 0.15s;
+}
 
-    .form-group label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-      color: var(--gray-700);
-    }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
 
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.15s;
-      gap: 0.25rem;
-    }
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
 
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+.form-group {
+  margin-bottom: 1rem;
+}
 
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: #1d4ed8; }
+.form-group label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--gray-700);
+}
 
-    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
-    .btn-secondary:hover { background: var(--gray-200); }
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  gap: 0.25rem;
+  min-height: 36px;
+  justify-content: center;
+}
 
-    .btn-success { background: var(--success); color: white; }
-    .btn-success:hover { background: #15803d; }
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { background: #b91c1c; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #1d4ed8; }
 
-    .btn-sm {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.75rem;
-    }
+.btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+.btn-secondary:hover { background: var(--gray-200); }
 
-    /* Badge */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.125rem 0.5rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      min-width: 1.25rem;
-      text-align: center;
-      justify-content: center;
-    }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #15803d; }
 
-    .badge-gray { background: var(--gray-100); color: var(--gray-700); }
-    .badge-red { background: #fee2e2; color: var(--danger); }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #b91c1c; }
 
-    /* Grid layouts */
-    .users-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
+.btn-sm {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.7rem;
+  min-height: 32px;
+}
 
-    /* Priorità visiva per utenti approvati */
-    .approved-section {
-      order: 1;
-    }
-    
-    .pending-section {
-      order: 2;
-    }
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  min-width: 1rem;
+  text-align: center;
+  justify-content: center;
+}
 
-    /* Preview area */
-    .preview-area {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      max-height: 300px;
-      overflow-y: auto;
-      margin: 1rem 0;
-    }
+.badge-gray { background: var(--gray-100); color: var(--gray-700); }
+.badge-red { background: #fee2e2; color: var(--danger); }
 
-    .preview-item {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: 0.375rem;
-      padding: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
+/* Grid layouts */
+.users-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
 
-    /* Empty states */
-    .empty-state {
-      text-align: center;
-      padding: 2rem;
-      color: var(--gray-500);
-      font-size: 0.875rem;
-    }
+/* Preview area */
+.preview-area {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  padding: 0.875rem;
+  max-height: 250px;
+  overflow-y: auto;
+  margin: 1rem 0;
+}
 
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-      .header-content {
-        padding: 0 0.75rem;
-      }
-      
-      .container {
-        padding: 1rem 0.75rem;
-      }
-      
-      .section {
-        padding: 1rem;
-        margin-bottom: 1rem;
-      }
+.preview-item {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 0.375rem;
+  padding: 0.625rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+}
 
-      .login-form {
-        gap: 0.5rem;
-      }
+/* Empty states */
+.empty-state {
+  text-align: center;
+  padding: 1.5rem;
+  color: var(--gray-500);
+  font-size: 0.8rem;
+}
 
-      .card-header {
-        flex-direction: column;
-        align-items: stretch;
-      }
+/* Mobile specific optimizations */
+@media (max-width: 480px) {
+  .header {
+    padding: 0.375rem 0;
+  }
+  
+  .header-content {
+    padding: 0 0.75rem;
+  }
+  
+  .header h1 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .status-bar {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.375rem;
+    margin-bottom: 0.375rem;
+  }
+  
+  .login-inputs {
+    flex-direction: column;
+  }
+  
+  .login-inputs input {
+    font-size: 0.8rem;
+    padding: 0.5rem;
+  }
+  
+  .login-buttons .btn {
+    flex: 1;
+    font-size: 0.7rem;
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .container {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .section {
+    padding: 0.875rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .card {
+    padding: 0.75rem;
+  }
+  
+  .card-actions .btn {
+    flex: 1;
+  }
+  
+  .form-row {
+    gap: 0.5rem;
+  }
+  
+  input, textarea, select {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+}
 
-      .card-actions {
-        justify-content: flex-start;
-      }
+@media (min-width: 481px) and (max-width: 768px) {
+  .login-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
-      .users-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .approved-section {
-        order: 1;
-      }
-      
-      .pending-section {
-        order: 2;
-      }
-    }
+@media (min-width: 769px) {
+  .login-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .login-inputs, .login-buttons {
+    display: contents;
+  }
+  
+  .users-grid {
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  .form-row {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
 
-    /* Chat panel */
-    .chat-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: min(560px, 100%);
-      height: 100vh;
-      background: white;
-      border-left: 1px solid var(--gray-200);
-      box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-    }
+/* Chat panel ottimizzato per mobile */
+.chat-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100vh;
+  background: white;
+  border-left: 1px solid var(--gray-200);
+  box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
 
-    .chat-panel.open {
-      transform: translateX(0);
-    }
+.chat-panel.open {
+  transform: translateX(0);
+}
 
-    .chat-panel-header {
-      padding: 1rem;
-      border-bottom: 1px solid var(--gray-200);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-weight: 500;
-    }
+.chat-panel-header {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+  font-size: 0.9rem;
+  background: var(--gray-50);
+}
 
-    .chat-iframe {
-      border: 0;
-      width: 100%;
-      height: calc(100vh - 60px);
-      display: block;
-    }
+.chat-iframe {
+  border: 0;
+  width: 100%;
+  height: calc(100vh - 50px);
+  display: block;
+}
+
+@media (min-width: 769px) {
+  .chat-panel {
+    width: min(560px, 100%);
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+    font-size: 0.8rem;
+  }
+  
+  .btn-sm {
+    min-height: 36px;
+  }
+  
+  input, textarea, select {
+    min-height: 44px;
+    font-size: 16px; /* Previene zoom su iOS */
+  }
+}
+
+/* Priorità visiva per utenti approvati */
+.approved-section {
+  order: 1;
+}
+
+.pending-section {
+  order: 2;
+}
+```
+
   </style>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Header compatto per mobile -->
   <header class="header">
     <div class="header-content">
-      <h1>Pannello Amministratore</h1>
-      
-      <div id="status" class="status-bar status-warning">Accesso necessario</div>
-      
-      <div class="login-form">
-        <input id="email" placeholder="Email admin" type="email">
-        <input id="pass" placeholder="Password" type="password">
-        <button id="btn-login" class="btn btn-primary">Accedi</button>
-        <button id="btn-logout" class="btn btn-secondary">Esci</button>
-        <a href="console.html" class="btn btn-primary">Console Chat</a>
-      </div>
+      <h1>Admin Panel</h1>
+
+```
+  <div id="status" class="status-bar status-warning">Accesso necessario</div>
+  
+  <div class="login-form">
+    <div class="login-inputs">
+      <input id="email" placeholder="Email" type="email">
+      <input id="pass" placeholder="Password" type="password">
     </div>
+    <div class="login-buttons">
+      <button id="btn-login" class="btn btn-primary">Login</button>
+      <button id="btn-logout" class="btn btn-secondary">Esci</button>
+      <a href="console.html" class="btn btn-primary">Chat</a>
+    </div>
+  </div>
+</div>
+```
+
   </header>
 
   <div class="container">
@@ -384,79 +496,86 @@
         </div>
       </div>
 
-      <div class="section pending-section">
-        <h2 class="section-title">
-          In Attesa di Approvazione
-          <span id="count-pending" class="badge badge-gray">0</span>
-        </h2>
-        <div id="pending" class="empty-state">
-          Effettua il login per vedere gli utenti in attesa
-        </div>
-      </div>
+```
+  <div class="section pending-section">
+    <h2 class="section-title">
+      In Attesa
+      <span id="count-pending" class="badge badge-gray">0</span>
+    </h2>
+    <div id="pending" class="empty-state">
+      Effettua il login per vedere gli utenti in attesa
     </div>
+  </div>
+</div>
 
-    <!-- Gestione Rubrica -->
-    <div id="rubrica-section" class="section" style="display:none;">
-      <h2 class="section-title">Gestione Rubrica Aziendale</h2>
-      
-      <h3 class="section-subtitle">Aggiungi Nuovo Contatto</h3>
-      <div class="form-row">
-        <input id="rubrica-nome" placeholder="Nome/Azienda">
-        <input id="rubrica-telefono" placeholder="Telefono">
-        <input id="rubrica-email" placeholder="Email">
-      </div>
-      
-      <div class="form-group">
-        <textarea id="rubrica-note" placeholder="Note aggiuntive" rows="3"></textarea>
-      </div>
-      
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem;">
-        <button id="btn-add-contact" class="btn btn-success">Aggiungi Contatto</button>
-        <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
-      </div>
+<!-- Gestione Rubrica -->
+<div id="rubrica-section" class="section" style="display:none;">
+  <h2 class="section-title">Rubrica Aziendale</h2>
+  
+  <h3 class="section-subtitle">Nuovo Contatto</h3>
+  <div class="form-row">
+    <input id="rubrica-nome" placeholder="Nome/Azienda">
+    <input id="rubrica-telefono" placeholder="Telefono">
+  </div>
+  
+  <div class="form-row">
+    <input id="rubrica-email" placeholder="Email">
+  </div>
+  
+  <div class="form-group">
+    <textarea id="rubrica-note" placeholder="Note" rows="2"></textarea>
+  </div>
+  
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+    <button id="btn-add-contact" class="btn btn-success">Aggiungi</button>
+    <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
+  </div>
 
-      <h3 class="section-subtitle">
-        Contatti Esistenti 
-        <span id="count-contacts" class="badge badge-gray">0</span>
-      </h3>
-      <div id="contacts-list"></div>
+  <h3 class="section-subtitle">
+    Contatti 
+    <span id="count-contacts" class="badge badge-gray">0</span>
+  </h3>
+  <div id="contacts-list"></div>
+</div>
+
+<!-- Importazione Clienti -->
+<div id="import-section" class="section" style="display:none;">
+  <h2 class="section-title">Import Clienti</h2>
+  
+  <div class="form-group">
+    <label>File Clienti</label>
+    <input type="file" id="clientFile" accept=".csv,.xlsx,.xls,.json">
+    <div style="font-size: 0.7rem; color: var(--gray-500); margin-top: 0.25rem;">
+      CSV, Excel, JSON/GeoJSON
     </div>
-
-    <!-- Importazione Clienti -->
-    <div id="import-section" class="section" style="display:none;">
-      <h2 class="section-title">Importazione Clienti</h2>
-      
-      <div class="form-group">
-        <label>File Clienti</label>
-        <input type="file" id="clientFile" accept=".csv,.xlsx,.xls,.json">
-        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
-          Formati supportati: CSV, Excel, JSON/GeoJSON
-        </div>
-      </div>
-      
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-        <button id="btn-load-file" class="btn btn-primary">Analizza File</button>
-        <button id="btn-import-sample" class="btn btn-secondary">Usa Dati Esempio</button>
-      </div>
-      
-      <div id="import-status" style="display: none;"></div>
-      
-      <div id="import-preview" style="display: none;">
-        <h3 class="section-subtitle">Anteprima Importazione</h3>
-        <div id="preview-content" class="preview-area"></div>
-        <div style="display: flex; gap: 0.75rem;">
-          <button id="btn-confirm-import" class="btn btn-success">Conferma Importazione</button>
-          <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
-        </div>
-      </div>
+  </div>
+  
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+    <button id="btn-load-file" class="btn btn-primary">Analizza</button>
+    <button id="btn-import-sample" class="btn btn-secondary">Esempio</button>
+  </div>
+  
+  <div id="import-status" style="display: none;"></div>
+  
+  <div id="import-preview" style="display: none;">
+    <h3 class="section-subtitle">Anteprima</h3>
+    <div id="preview-content" class="preview-area"></div>
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+      <button id="btn-confirm-import" class="btn btn-success">Conferma</button>
+      <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
     </div>
+  </div>
+</div>
+```
+
   </div>
 
   <!-- Chat Panel -->
+
   <div id="chatPanel" class="chat-panel">
     <div class="chat-panel-header">
       <strong id="chatTitle">Chat</strong>
-      <button id="closeChat" class="btn btn-secondary btn-sm">Chiudi</button>
+      <button id="closeChat" class="btn btn-secondary btn-sm">×</button>
     </div>
     <iframe id="chatFrame" class="chat-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
   </div>
@@ -569,7 +688,7 @@
             return;
           }
           
-          chatTitle.textContent = `Chat con: ${name}`;
+          chatTitle.textContent = `Chat: ${name}`;
           chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
           chatPanel.classList.add("open");
         });
@@ -641,19 +760,19 @@
       $("rubrica-telefono").value = contact.telefono || "";
       $("rubrica-email").value = contact.email || "";
       $("rubrica-note").value = contact.note || "";
-      $("btn-add-contact").textContent = "Aggiorna Contatto";
+      $("btn-add-contact").textContent = "Aggiorna";
       $("btn-cancel-contact").style.display = "inline-block";
     }
 
     function cancelEditContact() {
       editingContactId = null;
-      $("btn-add-contact").textContent = "Aggiungi Contatto";
+      $("btn-add-contact").textContent = "Aggiungi";
       $("btn-cancel-contact").style.display = "none";
       clearContactForm();
     }
 
     async function deleteContact(id, nome) {
-      if (!confirm(`Eliminare il contatto "${nome}"?`)) return;
+      if (!confirm(`Eliminare "${nome}"?`)) return;
       
       try {
         await deleteDoc(doc(db, "rubrica", id));
@@ -672,7 +791,7 @@
       count.textContent = String(snapshot.size);
 
       if (snapshot.empty) {
-        container.innerHTML = '<div class="empty-state">Nessun contatto in rubrica</div>';
+        container.innerHTML = '<div class="empty-state">Nessun contatto</div>';
         return;
       }
 
@@ -693,12 +812,12 @@
               </p>
               ${contact.note ? `<p><em>${contact.note}</em></p>` : ""}
             </div>
-            <div class="card-actions">
-              <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
-                      class="btn btn-secondary btn-sm">Modifica</button>
-              <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
-                      class="btn btn-danger btn-sm">Elimina</button>
-            </div>
+          </div>
+          <div class="card-actions">
+            <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
+                    class="btn btn-secondary btn-sm">Edit</button>
+            <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
+                    class="btn btn-danger btn-sm">Del</button>
           </div>
         `;
         container.appendChild(card);
@@ -732,11 +851,11 @@
               </h3>
               <p>${u.email || ""}</p>
               ${type !== "in attesa" ? `
-                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                  <input type="text" placeholder="Nuovo nome" value="${u.name || ""}" 
-                         style="width: auto; flex: 1;" id="name-input-${uid}">
+                <div style="display: flex; gap: 0.375rem; margin-top: 0.5rem;">
+                  <input type="text" placeholder="Nome" value="${u.name || ""}" 
+                         style="flex: 1; font-size: 0.75rem;" id="name-input-${uid}">
                   <button onclick="updateDriverName('${uid}')" class="btn btn-secondary btn-sm">
-                    Aggiorna
+                    ✓
                   </button>
                 </div>
               ` : ""}
@@ -747,7 +866,7 @@
               ? `<button data-uid="${uid}" class="approve btn btn-success btn-sm">Approva</button>`
               : `
                 <button data-uid="${uid}" class="revoke btn btn-secondary btn-sm">Revoca</button>
-                <button data-uid="${uid}" class="remove btn btn-danger btn-sm">Elimina</button>
+                <button data-uid="${uid}" class="remove btn btn-danger btn-sm">Del</button>
                 <a class="btn btn-primary btn-sm" href="chat.html?uid=${uid}" target="_blank">Chat</a>
                 <button data-uid="${uid}" data-name="${u.name || uid}" class="open-inline btn btn-secondary btn-sm">Chat qui</button>
               `
@@ -938,7 +1057,7 @@
 
       if (validClienti.length > 0) {
         showImportStatus(`Trovati ${validClienti.length} clienti validi`, "success");
-        showPreview(validClienti.slice(0, 10));
+        showPreview(validClienti.slice(0, 5));
       } else {
         showImportStatus("Nessun cliente valido trovato", "error");
       }
@@ -948,7 +1067,7 @@
       const preview = $("import-preview");
       const content = $("preview-content");
 
-      let html = `<div><strong>Anteprima ${validClienti.length} clienti:</strong></div>`;
+      let html = `<div><strong>Preview ${validClienti.length} clienti:</strong></div>`;
 
       clienti.forEach(cliente => {
         html += `
@@ -961,8 +1080,8 @@
         `;
       });
 
-      if (validClienti.length > 10) {
-        html += `<div style="text-align: center; color: var(--gray-500); margin-top: 1rem;">...e altri ${validClienti.length - 10} clienti</div>`;
+      if (validClienti.length > 5) {
+        html += `<div style="text-align: center; color: var(--gray-500); margin-top: 0.75rem;">...e altri ${validClienti.length - 5} clienti</div>`;
       }
 
       content.innerHTML = html;
@@ -1085,5 +1204,6 @@
       }
     };
   </script>
+
 </body>
 </html>
