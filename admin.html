@@ -20,337 +20,455 @@
       --gray-900: #111827;
     }
 
-    * { box-sizing: border-box; }
-    
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      margin: 0; 
-      background: var(--gray-50); 
-      color: var(--gray-900);
-      line-height: 1.6;
-    }
+```
+* { box-sizing: border-box; }
 
-    /* Header */
-    .header {
-      background: white;
-      border-bottom: 1px solid var(--gray-200);
-      padding: 0.75rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
+body { 
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0; 
+  background: var(--gray-50); 
+  color: var(--gray-900);
+  line-height: 1.6;
+}
 
-    .header-content {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-    }
+/* Header */
+.header {
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0.25rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
 
-    .header h1 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--gray-900);
-    }
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
 
-    .status-bar {
-      margin-bottom: 0.75rem;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
+.header h1 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
 
-    .status-success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
-    .status-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fed7aa; }
-    .status-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+.status-bar {
+  margin-bottom: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
 
-    .login-form {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
+.status-success { background: #ecfdf5; color: var(--success); border: 1px solid #bbf7d0; }
+.status-warning { background: #fffbeb; color: var(--warning); border: 1px solid #fed7aa; }
+.status-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
 
-    /* Container principale */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1.5rem 1rem;
-    }
+.login-form {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
 
-    /* Sezioni */
-    .section {
-      background: white;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      border: 1px solid var(--gray-200);
-    }
+/* Container principale */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
 
-    .section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin: 0 0 1rem 0;
-      color: var(--gray-900);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
+/* Sezioni */
+.section {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--gray-200);
+}
 
-    .section-subtitle {
-      font-size: 1rem;
-      font-weight: 500;
-      margin: 1.5rem 0 0.75rem 0;
-      color: var(--gray-700);
-    }
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--gray-900);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-    /* Cards */
-    .card {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-    }
+.section-subtitle {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 1.5rem 0 0.75rem 0;
+  color: var(--gray-700);
+}
 
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
+/* Cards */
+.card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
 
-    .card-info h3 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
-      font-weight: 500;
-    }
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
 
-    .card-info p {
-      margin: 0;
-      font-size: 0.875rem;
-      color: var(--gray-500);
-    }
+.card-info h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
 
-    .card-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 0.75rem;
-    }
+.card-info p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gray-500);
+}
 
-    /* Form elements */
-    input, textarea, select {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--gray-300);
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      transition: border-color 0.15s;
-    }
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
 
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
+/* Form elements */
+input, textarea, select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: border-color 0.15s;
+}
 
-    .form-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
 
-    .form-group {
-      margin-bottom: 1rem;
-    }
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
 
-    .form-group label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.25rem;
-      color: var(--gray-700);
-    }
+.form-group {
+  margin-bottom: 1rem;
+}
 
-    /* Buttons */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all 0.15s;
-      gap: 0.25rem;
-    }
+.form-group label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--gray-700);
+}
 
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  gap: 0.25rem;
+}
 
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: #1d4ed8; }
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
-    .btn-secondary:hover { background: var(--gray-200); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #1d4ed8; }
 
-    .btn-success { background: var(--success); color: white; }
-    .btn-success:hover { background: #15803d; }
+.btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+.btn-secondary:hover { background: var(--gray-200); }
 
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-danger:hover { background: #b91c1c; }
+.btn-success { background: var(--success); color: white; }
+.btn-success:hover { background: #15803d; }
 
-    .btn-sm {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.75rem;
-    }
+.btn-danger { background: var(--danger); color: white; }
+.btn-danger:hover { background: #b91c1c; }
 
-    /* Badge */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.125rem 0.5rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      min-width: 1.25rem;
-      text-align: center;
-      justify-content: center;
-    }
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+}
 
-    .badge-gray { background: var(--gray-100); color: var(--gray-700); }
-    .badge-red { background: #fee2e2; color: var(--danger); }
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  min-width: 1.25rem;
+  text-align: center;
+  justify-content: center;
+}
 
-    /* Grid layouts */
-    .users-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
-    }
+.badge-gray { background: var(--gray-100); color: var(--gray-700); }
+.badge-red { background: #fee2e2; color: var(--danger); }
 
-    /* Priorità visiva per utenti approvati */
-    .approved-section {
-      order: 1;
-    }
-    
-    .pending-section {
-      order: 2;
-    }
+/* Grid layouts */
+.users-grid {
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
 
-    /* Preview area */
-    .preview-area {
-      background: var(--gray-50);
-      border: 1px solid var(--gray-200);
-      border-radius: 0.5rem;
-      padding: 1rem;
-      max-height: 300px;
-      overflow-y: auto;
-      margin: 1rem 0;
-    }
+/* Priorità visiva per utenti approvati */
+.approved-section {
+  order: 1;
+}
 
-    .preview-item {
-      background: white;
-      border: 1px solid var(--gray-200);
-      border-radius: 0.375rem;
-      padding: 0.75rem;
-      margin-bottom: 0.5rem;
-    }
+.pending-section {
+  order: 2;
+}
 
-    /* Empty states */
-    .empty-state {
-      text-align: center;
-      padding: 2rem;
-      color: var(--gray-500);
-      font-size: 0.875rem;
-    }
+/* Preview area */
+.preview-area {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 1rem 0;
+}
 
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-      .header-content {
-        padding: 0 0.75rem;
-      }
-      
-      .container {
-        padding: 1rem 0.75rem;
-      }
-      
-      .section {
-        padding: 1rem;
-        margin-bottom: 1rem;
-      }
+.preview-item {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
 
-      .login-form {
-        gap: 0.5rem;
-      }
+/* Empty states */
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray-500);
+  font-size: 0.875rem;
+}
 
-      .card-header {
-        flex-direction: column;
-        align-items: stretch;
-      }
+/* Toast notifiche */
+.toast-container { 
+  position: fixed; 
+  top: 20px; 
+  right: 20px; 
+  z-index: 10000; 
+  max-width: 400px; 
+}
 
-      .card-actions {
-        justify-content: flex-start;
-      }
+.toast {
+  background: #fff; 
+  border: 1px solid #e0e0e0; 
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  padding: 16px; 
+  margin-bottom: 12px;
+  transform: translateX(100%); 
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  cursor: pointer; 
+  position: relative; 
+  overflow: hidden;
+}
 
-      .users-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .approved-section {
-        order: 1;
-      }
-      
-      .pending-section {
-        order: 2;
-      }
-    }
+.toast.show { transform: translateX(0); }
+.toast.hide { transform: translateX(100%); opacity: 0; }
+.toast::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); }
+.toast-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--primary); }
+.toast-body { color: #333; font-size: 14px; line-height: 1.4; margin-left: 24px; }
+.toast-close {
+  position: absolute; top: 8px; right: 8px; width: 24px; height: 24px;
+  background: none; border: none; font-size: 18px; color: #999; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  transition: background-color .2s;
+}
+.toast-close:hover { background-color: #f0f0f0; }
 
-    /* Chat panel */
-    .chat-panel {
-      position: fixed;
-      top: 0;
-      right: 0;
-      width: min(560px, 100%);
-      height: 100vh;
-      background: white;
-      border-left: 1px solid var(--gray-200);
-      box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-      z-index: 100;
-      display: flex;
-      flex-direction: column;
-    }
+/* Toast avanzati per notifiche */
+.advanced-toast {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-left: 4px solid var(--primary);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.15);
+  padding: 0;
+  margin-bottom: 12px;
+  transform: translateX(100%);
+  transition: all .3s cubic-bezier(.4,0,.2,1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  min-width: 320px;
+  max-width: 400px;
+}
 
-    .chat-panel.open {
-      transform: translateX(0);
-    }
+.advanced-toast.show { transform: translateX(0); }
+.advanced-toast.hide { transform: translateX(100%); opacity: 0; }
 
-    .chat-panel-header {
-      padding: 1rem;
-      border-bottom: 1px solid var(--gray-200);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-weight: 500;
-    }
+.advanced-toast .toast-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--primary);
+  border-bottom: 1px solid #f0f0f0;
+}
 
-    .chat-iframe {
-      border: 0;
-      width: 100%;
-      height: calc(100vh - 60px);
-      display: block;
-    }
+.advanced-toast .toast-body {
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 8px 16px;
+}
+
+.advanced-toast .toast-actions {
+  padding: 8px 16px 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.advanced-toast .toast-action-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.advanced-toast .toast-action-btn:hover { background: #1d4ed8; }
+
+.advanced-toast .toast-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color .2s;
+}
+
+.advanced-toast .toast-close:hover { background-color: #f0f0f0; }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 0.75rem;
+  }
+  
+  .container {
+    padding: 1rem 0.75rem;
+  }
+  
+  .section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .login-form {
+    gap: 0.5rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions {
+    justify-content: flex-start;
+  }
+
+  .users-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .approved-section {
+    order: 1;
+  }
+  
+  .pending-section {
+    order: 2;
+  }
+}
+
+/* Chat panel */
+.chat-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(560px, 100%);
+  height: 100vh;
+  background: white;
+  border-left: 1px solid var(--gray-200);
+  box-shadow: -10px 0 25px rgba(0, 0, 0, 0.1);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-panel.open {
+  transform: translateX(0);
+}
+
+.chat-panel-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 500;
+}
+
+.chat-iframe {
+  border: 0;
+  width: 100%;
+  height: calc(100vh - 60px);
+  display: block;
+}
+```
+
   </style>
 </head>
 <body>
@@ -358,17 +476,19 @@
   <header class="header">
     <div class="header-content">
       <h1>Pannello Amministratore</h1>
-      
-      <div id="status" class="status-bar status-warning">Accesso necessario</div>
-      
-      <div class="login-form">
-        <input id="email" placeholder="Email admin" type="email">
-        <input id="pass" placeholder="Password" type="password">
-        <button id="btn-login" class="btn btn-primary">Accedi</button>
-        <button id="btn-logout" class="btn btn-secondary">Esci</button>
-        <a href="console.html" class="btn btn-primary">Console Chat</a>
-      </div>
-    </div>
+
+```
+  <div id="status" class="status-bar status-warning">Accesso necessario</div>
+  
+  <div class="login-form">
+    <input id="email" placeholder="Email admin" type="email">
+    <input id="pass" placeholder="Password" type="password">
+    <button id="btn-login" class="btn btn-primary">Accedi</button>
+    <button id="btn-logout" class="btn btn-secondary">Esci</button>
+  </div>
+</div>
+```
+
   </header>
 
   <div class="container">
@@ -378,81 +498,86 @@
         <h2 class="section-title">
           Utenti Approvati  
           <span id="count-approved" class="badge badge-gray">0</span>
+          <a href="console.html" class="btn btn-primary btn-sm" style="margin-left: auto;">Apri Chat Driver</a>
         </h2>
         <div id="approved" class="empty-state">
           Effettua il login per vedere gli utenti approvati
         </div>
       </div>
 
-      <div class="section pending-section">
-        <h2 class="section-title">
-          In Attesa di Approvazione
-          <span id="count-pending" class="badge badge-gray">0</span>
-        </h2>
-        <div id="pending" class="empty-state">
-          Effettua il login per vedere gli utenti in attesa
-        </div>
-      </div>
+```
+  <div class="section pending-section">
+    <h2 class="section-title">
+      In Attesa di Approvazione
+      <span id="count-pending" class="badge badge-gray">0</span>
+    </h2>
+    <div id="pending" class="empty-state">
+      Effettua il login per vedere gli utenti in attesa
     </div>
+  </div>
+</div>
 
-    <!-- Gestione Rubrica -->
-    <div id="rubrica-section" class="section" style="display:none;">
-      <h2 class="section-title">Gestione Rubrica Aziendale</h2>
-      
-      <h3 class="section-subtitle">Aggiungi Nuovo Contatto</h3>
-      <div class="form-row">
-        <input id="rubrica-nome" placeholder="Nome/Azienda">
-        <input id="rubrica-telefono" placeholder="Telefono">
-        <input id="rubrica-email" placeholder="Email">
-      </div>
-      
-      <div class="form-group">
-        <textarea id="rubrica-note" placeholder="Note aggiuntive" rows="3"></textarea>
-      </div>
-      
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem;">
-        <button id="btn-add-contact" class="btn btn-success">Aggiungi Contatto</button>
-        <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
-      </div>
+<!-- Gestione Rubrica -->
+<div id="rubrica-section" class="section" style="display:none;">
+  <h2 class="section-title">Gestione Rubrica Aziendale</h2>
+  
+  <h3 class="section-subtitle">Aggiungi Nuovo Contatto</h3>
+  <div class="form-row">
+    <input id="rubrica-nome" placeholder="Nome/Azienda">
+    <input id="rubrica-telefono" placeholder="Telefono">
+    <input id="rubrica-email" placeholder="Email">
+  </div>
+  
+  <div class="form-group">
+    <textarea id="rubrica-note" placeholder="Note aggiuntive" rows="3"></textarea>
+  </div>
+  
+  <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem;">
+    <button id="btn-add-contact" class="btn btn-success">Aggiungi Contatto</button>
+    <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
+  </div>
 
-      <h3 class="section-subtitle">
-        Contatti Esistenti 
-        <span id="count-contacts" class="badge badge-gray">0</span>
-      </h3>
-      <div id="contacts-list"></div>
+  <h3 class="section-subtitle">
+    Contatti Esistenti 
+    <span id="count-contacts" class="badge badge-gray">0</span>
+  </h3>
+  <div id="contacts-list"></div>
+</div>
+
+<!-- Importazione Clienti -->
+<div id="import-section" class="section" style="display:none;">
+  <h2 class="section-title">Importazione Clienti</h2>
+  
+  <div class="form-group">
+    <label>File Clienti</label>
+    <input type="file" id="clientFile" accept=".csv,.xlsx,.xls,.json">
+    <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+      Formati supportati: CSV, Excel, JSON/GeoJSON
     </div>
-
-    <!-- Importazione Clienti -->
-    <div id="import-section" class="section" style="display:none;">
-      <h2 class="section-title">Importazione Clienti</h2>
-      
-      <div class="form-group">
-        <label>File Clienti</label>
-        <input type="file" id="clientFile" accept=".csv,.xlsx,.xls,.json">
-        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
-          Formati supportati: CSV, Excel, JSON/GeoJSON
-        </div>
-      </div>
-      
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
-        <button id="btn-load-file" class="btn btn-primary">Analizza File</button>
-        <button id="btn-import-sample" class="btn btn-secondary">Usa Dati Esempio</button>
-      </div>
-      
-      <div id="import-status" style="display: none;"></div>
-      
-      <div id="import-preview" style="display: none;">
-        <h3 class="section-subtitle">Anteprima Importazione</h3>
-        <div id="preview-content" class="preview-area"></div>
-        <div style="display: flex; gap: 0.75rem;">
-          <button id="btn-confirm-import" class="btn btn-success">Conferma Importazione</button>
-          <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
-        </div>
-      </div>
+  </div>
+  
+  <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+    <button id="btn-load-file" class="btn btn-primary">Analizza File</button>
+    <button id="btn-import-sample" class="btn btn-secondary">Usa Dati Esempio</button>
+  </div>
+  
+  <div id="import-status" style="display: none;"></div>
+  
+  <div id="import-preview" style="display: none;">
+    <h3 class="section-subtitle">Anteprima Importazione</h3>
+    <div id="preview-content" class="preview-area"></div>
+    <div style="display: flex; gap: 0.75rem;">
+      <button id="btn-confirm-import" class="btn btn-success">Conferma Importazione</button>
+      <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
     </div>
+  </div>
+</div>
+```
+
   </div>
 
   <!-- Chat Panel -->
+
   <div id="chatPanel" class="chat-panel">
     <div class="chat-panel-header">
       <strong id="chatTitle">Chat</strong>
@@ -460,6 +585,10 @@
     </div>
     <iframe id="chatFrame" class="chat-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
   </div>
+
+  <!-- Container per toast messaggi -->
+
+  <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
     const firebaseConfig = {
@@ -496,6 +625,167 @@
       status.textContent = msg;
     };
 
+    // ======= FUNZIONI NOTIFICHE AVANZATE =======
+    
+    function createToast(title, message, onClick) {
+      const container = document.getElementById('toast-container') || createToastContainer();
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        <div class="toast-header"><span>💬</span>${title}</div>
+        <div class="toast-body">${message}</div>
+      `;
+      if (onClick) {
+        toast.addEventListener('click', (e) => {
+          if (e.target.classList.contains('toast-close')) return;
+          onClick(); hideToast(toast);
+        });
+      }
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.add('show'), 100);
+      setTimeout(() => hideToast(toast), 6000);
+      return toast;
+    }
+
+    function hideToast(toast) { 
+      toast.classList.add('hide'); 
+      setTimeout(() => { if(toast.parentElement) toast.remove(); }, 300); 
+    }
+
+    function showNewMessageNotification(senderName, messageText, driverUid) {
+      // Notifica browser nativa (se app non ha focus)
+      if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
+        const notification = new Notification(`Nuovo messaggio da ${senderName}`, {
+          body: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
+          icon: './icon192.png',
+          tag: `chat-${driverUid}`,
+          requireInteraction: false,
+          silent: false
+        });
+        
+        // Click per aprire chat
+        notification.onclick = () => {
+          window.focus();
+          openInlineChat(driverUid, senderName);
+          notification.close();
+        };
+        
+        // Auto-chiudi dopo 8 secondi
+        setTimeout(() => notification.close(), 8000);
+      }
+      
+      // Toast visivo sempre (anche se app ha focus)
+      createAdvancedToast(
+        `💬 Nuovo messaggio da ${senderName}`, 
+        messageText, 
+        () => { openInlineChat(driverUid, senderName); }
+      );
+      
+      // Suono notifica
+      playNotificationSound();
+    }
+
+    function playNotificationSound() {
+      try {
+        // Crea un suono di notifica semplice
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 600; // Frequenza leggermente diversa per admin
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.4);
+      } catch (error) {
+        console.log('Suono notifica non disponibile');
+      }
+    }
+
+    function createAdvancedToast(title, message, onClick) {
+      const container = document.getElementById('toast-container') || createToastContainer();
+      
+      const toast = document.createElement('div');
+      toast.className = 'toast advanced-toast';
+      toast.innerHTML = `
+        <div class="toast-header">
+          <span>🔔</span>
+          <strong>${title}</strong>
+          <button class="toast-close">×</button>
+        </div>
+        <div class="toast-body">${message.length > 150 ? message.substring(0, 147) + '...' : message}</div>
+        <div class="toast-actions">
+          <button class="toast-action-btn">Apri Chat</button>
+        </div>
+      `;
+      
+      // Gestori eventi
+      const closeBtn = toast.querySelector('.toast-close');
+      const actionBtn = toast.querySelector('.toast-action-btn');
+      
+      closeBtn.onclick = () => hideAdvancedToast(toast);
+      actionBtn.onclick = () => { if (onClick) onClick(); hideAdvancedToast(toast); };
+      
+      container.appendChild(toast);
+      setTimeout(() => toast.classList.add('show'), 100);
+      
+      // Auto-hide dopo 10 secondi
+      setTimeout(() => hideAdvancedToast(toast), 10000);
+      
+      return toast;
+    }
+
+    function createToastContainer() {
+      let container = document.getElementById('toast-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+      }
+      return container;
+    }
+
+    function hideAdvancedToast(toast) {
+      toast.classList.remove('show');
+      toast.classList.add('hide');
+      setTimeout(() => {
+        if (toast.parentElement) {
+          toast.remove();
+        }
+      }, 300);
+    }
+
+    function requestNotificationPermissionForAdmin() {
+      // Solo se non è mai stato chiesto prima
+      if (Notification.permission === 'default') {
+        // Mostra un piccolo prompt prima di chiedere il permesso ufficiale
+        const userWantsNotifications = confirm(
+          "Vuoi ricevere notifiche quando arrivano messaggi dai driver?\n\n" +
+          "Le notifiche ti aiuteranno a rispondere tempestivamente."
+        );
+        
+        if (userWantsNotifications) {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+              console.log('✅ Notifiche admin autorizzate');
+              createToast('🔔 Notifiche attivate', 'Riceverai notifiche per i messaggi dai driver');
+            } else {
+              console.log('❌ Notifiche admin rifiutate');
+            }
+          });
+        }
+      }
+    }
+
     // Chat panel
     const chatPanel = $("chatPanel");
     const chatFrame = $("chatFrame");
@@ -505,6 +795,17 @@
       chatPanel.classList.remove("open");
       chatFrame.src = "about:blank";
     });
+
+    function openInlineChat(uid, name) {
+      if (!uid) {
+        alert("Impossibile aprire la chat: UID mancante");
+        return;
+      }
+      
+      chatTitle.textContent = `Chat con: ${name || uid}`;
+      chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
+      chatPanel.classList.add("open");
+    }
 
     // Login/Logout
     $("btn-login").addEventListener("click", async () => {
@@ -530,19 +831,50 @@
     let editingContactId = null;
     let parsedClienti = [];
     let validClienti = [];
+    let messageListeners = new Map(); // Per tenere traccia dei listener per ogni driver
 
-    // Funzioni per badge messaggi non letti
+    // Funzioni per badge messaggi non letti CON NOTIFICHE
     function watchUnreadBadgeForDriver(uid) {
+      // Se già stiamo ascoltando questo driver, non creare un nuovo listener
+      if (messageListeners.has(uid)) {
+        return messageListeners.get(uid);
+      }
+
       const msgsRef = collection(db, "threads", uid, "messages");
       const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
       
-      return onSnapshot(qRecent, (snap) => {
+      let lastMessageCount = 0;
+      
+      const unsubscribe = onSnapshot(qRecent, (snap) => {
         let count = 0;
+        let latestUnreadMessage = null;
+        const now = Date.now();
+        
         snap.forEach(d => {
           const m = d.data();
           const rb = Array.isArray(m.readBy) ? m.readBy : [];
-          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) count++;
+          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) {
+            count++;
+            // Trova il messaggio più recente (ultimi 30 secondi)
+            if (!latestUnreadMessage) {
+              const msgTime = m.createdAt?.toDate?.()?.getTime() || 0;
+              if (now - msgTime < 30000) { // 30 secondi
+                latestUnreadMessage = m;
+              }
+            }
+          }
         });
+        
+        // Se c'è un nuovo messaggio molto recente da questo driver, mostra notifica
+        if (latestUnreadMessage && lastMessageCount < count && lastMessageCount > 0) {
+          // Trova il nome del driver
+          const driverElement = document.getElementById(`name-input-${uid}`);
+          const driverName = driverElement ? driverElement.value.trim() || `Driver ${uid.slice(0, 8)}` : `Driver ${uid.slice(0, 8)}`;
+          
+          showNewMessageNotification(driverName, latestUnreadMessage.text || 'Nuovo messaggio', uid);
+        }
+        
+        lastMessageCount = count;
         
         const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
         if (badge) {
@@ -555,6 +887,9 @@
           }
         }
       });
+
+      messageListeners.set(uid, unsubscribe);
+      return unsubscribe;
     }
 
     // Gestione chat inline
@@ -563,15 +898,7 @@
         btn.addEventListener("click", (e) => {
           const uid = e.currentTarget.dataset.uid;
           const name = e.currentTarget.dataset.name || uid;
-          
-          if (!uid) {
-            alert("Impossibile aprire la chat: UID mancante");
-            return;
-          }
-          
-          chatTitle.textContent = `Chat con: ${name}`;
-          chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
-          chatPanel.classList.add("open");
+          openInlineChat(uid, name);
         });
       });
     }
@@ -787,13 +1114,19 @@
           const uid = e.currentTarget.getAttribute("data-uid");
           if (!confirm("Eliminare il record utente?")) return;
           
+          // Rimuovi anche il listener per questo driver
+          if (messageListeners.has(uid)) {
+            messageListeners.get(uid)();
+            messageListeners.delete(uid);
+          }
+          
           await deleteDoc(doc(db, "users", uid));
           setStatus("success", "Record utente eliminato");
         });
       });
     }
 
-    // Importazione clienti
+    // Importazione clienti (funzioni esistenti rimangono invariate)
     $("btn-load-file").addEventListener("click", async () => {
       const fileInput = $("clientFile");
       const file = fileInput.files[0];
@@ -866,7 +1199,7 @@
 
     $("btn-cancel-import").addEventListener("click", resetImportForm);
 
-    // Parser functions
+    // Parser functions (invariate)
     async function parseJSONFile(file) {
       const text = await file.text();
       const data = JSON.parse(text);
@@ -1022,6 +1355,12 @@
       if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
+      
+      // Ferma tutti i listener dei messaggi
+      messageListeners.forEach((unsubscribe) => {
+        unsubscribe();
+      });
+      messageListeners.clear();
 
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
@@ -1054,6 +1393,8 @@
       if (user.uid === ADMIN_UID) {
         setStatus("success", `Benvenuto ${user.email}`);
         startListeners();
+        // Richiedi permessi notifiche per admin
+        requestNotificationPermissionForAdmin();
       } else {
         setStatus("warning", `${user.email} - Non hai permessi admin`);
         stopListeners();
@@ -1085,5 +1426,6 @@
       }
     };
   </script>
+
 </body>
 </html>
