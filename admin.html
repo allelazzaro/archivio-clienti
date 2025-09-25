@@ -866,7 +866,7 @@ input:focus, textarea:focus, select:focus {
         });
         
         // Se c'è un nuovo messaggio molto recente da questo driver, mostra notifica
-        if (latestUnreadMessage && lastMessageCount < count && lastMessageCount > 0) {
+        if (latestUnreadMessage && lastMessageCount < count) {
           // Trova il nome del driver
           const driverElement = document.getElementById(`name-input-${uid}`);
           const driverName = driverElement ? driverElement.value.trim() || `Driver ${uid.slice(0, 8)}` : `Driver ${uid.slice(0, 8)}`;
@@ -1429,3 +1429,4 @@ input:focus, textarea:focus, select:focus {
 
 </body>
 </html>
+
