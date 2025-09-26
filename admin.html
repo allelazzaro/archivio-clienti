@@ -849,7 +849,155 @@
       }
     }
 
-    // ======= FINE FUNZIONI NOTIFICHE =======
+    // ======= SISTEMA BADGE POLLING PER SAFARI MOBILE =======
+    let pollingInterval = null;
+    let lastBadgeCounts = new Map();
+
+    // Sistema di polling che controlla ogni 10 secondi
+    function startBadgePollingForSafari() {
+      if (pollingInterval) return; // Già attivo
+      
+      console.log('🍎 Avviato polling badge per Safari mobile');
+      
+      pollingInterval = setInterval(async () => {
+        // Trova tutti i badge nella pagina
+        const badges = document.querySelectorAll('.badge-unread[data-uid]');
+        
+        for (const badge of badges) {
+          const uid = badge.dataset.uid;
+          if (!uid) continue;
+          
+          try {
+            // Controlla manualmente i messaggi non letti per questo driver
+            const unreadCount = await getUnreadCountForDriver(uid);
+            const previousCount = lastBadgeCounts.get(uid) || 0;
+            
+            // Aggiorna il badge
+            updateBadgeVisually(badge, unreadCount);
+            
+            // Se ci sono nuovi messaggi, evidenzia
+            if (unreadCount > previousCount && previousCount >= 0) {
+              highlightNewMessage(badge, uid, unreadCount);
+            }
+            
+            lastBadgeCounts.set(uid, unreadCount);
+            
+          } catch (error) {
+            console.warn(`Errore polling per ${uid}:`, error);
+          }
+        }
+      }, 10000); // Controlla ogni 10 secondi
+    }
+
+    function stopBadgePolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+        lastBadgeCounts.clear();
+        console.log('❌ Polling badge fermato');
+      }
+    }
+
+    // Funzione per contare messaggi non letti
+    async function getUnreadCountForDriver(uid) {
+      try {
+        const msgsRef = collection(db, "threads", uid, "messages");
+        const q = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
+        const snapshot = await getDocs(q);
+        
+        let count = 0;
+        let latestMessage = null;
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
+          if (!readBy.includes(ADMIN_UID) && msg.sender !== ADMIN_UID) {
+            count++;
+            if (!latestMessage) {
+              latestMessage = msg;
+            }
+          }
+        });
+        
+        // Salva ultimo messaggio per notifiche
+        if (latestMessage) {
+          lastBadgeCounts.set(`${uid}_lastMsg`, latestMessage.text || '');
+        }
+        
+        return count;
+      } catch (error) {
+        console.warn('Errore conteggio messaggi:', error);
+        return 0;
+      }
+    }
+
+    // Aggiorna visivamente il badge
+    function updateBadgeVisually(badge, count) {
+      if (count > 0) {
+        badge.textContent = String(count);
+        badge.className = "badge badge-red badge-unread";
+        badge.style.display = "inline-flex";
+      } else {
+        badge.textContent = "0";
+        badge.className = "badge badge-gray badge-unread";
+      }
+    }
+
+    // Evidenzia nuovo messaggio con animazione
+    function highlightNewMessage(badge, uid, newCount) {
+      const card = badge.closest('.card');
+      if (card) {
+        // Animazione lampeggio
+        card.style.border = '2px solid #ff4757';
+        card.style.boxShadow = '0 0 10px rgba(255, 71, 87, 0.5)';
+        
+        setTimeout(() => {
+          card.style.border = '';
+          card.style.boxShadow = '';
+        }, 3000);
+        
+        // Nome del driver
+        const driverName = card.querySelector('h3').textContent.split('\n')[0].trim();
+        const lastMsg = lastBadgeCounts.get(`${uid}_lastMsg`) || 'Nuovo messaggio';
+        
+        // Su Safari mobile usa confirm invece dei toast
+        setTimeout(() => {
+          if (confirm(`📱 Nuovo messaggio da ${driverName}: "${lastMsg}". Aprire chat?`)) {
+            openInlineChat(uid, driverName);
+          }
+        }, 500);
+      }
+    }
+
+    // Auto-avvio quando la pagina torna in primo piano (per Safari mobile)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && auth.currentUser?.uid === ADMIN_UID) {
+        // Forza un controllo immediato quando torni sulla pagina
+        setTimeout(() => {
+          document.querySelectorAll('.badge-unread[data-uid]').forEach(badge => {
+            const uid = badge.dataset.uid;
+            getUnreadCountForDriver(uid).then(count => {
+              updateBadgeVisually(badge, count);
+              lastBadgeCounts.set(uid, count);
+            });
+          });
+        }, 1000);
+      }
+    });
+
+    // Controllo immediato all'avvio per caricare i badge
+    function loadInitialBadgeCounts() {
+      setTimeout(() => {
+        document.querySelectorAll('.badge-unread[data-uid]').forEach(badge => {
+          const uid = badge.dataset.uid;
+          getUnreadCountForDriver(uid).then(count => {
+            updateBadgeVisually(badge, count);
+            lastBadgeCounts.set(uid, count);
+          });
+        });
+      }, 2000);
+    }
+
+    // ======= FINE SISTEMA BADGE POLLING =======
 
     // Chat panel
     const chatPanel = $("chatPanel");
@@ -896,70 +1044,6 @@
     let editingContactId = null;
     let parsedClienti = [];
     let validClienti = [];
-    let adminNotificationListeners = new Map(); // Per tracciare i listener delle notifiche
-
-    // Funzioni per badge messaggi non letti CON NOTIFICHE
-    function watchUnreadBadgeForDriver(uid) {
-      const msgsRef = collection(db, "threads", uid, "messages");
-      const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
-      
-      const unsub = onSnapshot(qRecent, (snap) => {
-        let count = 0;
-        let latestUnreadMessage = null;
-        const now = Date.now();
-        
-        snap.forEach(d => {
-          const m = d.data();
-          const rb = Array.isArray(m.readBy) ? m.readBy : [];
-          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) {
-            count++;
-            // Trova il messaggio più recente (ultimi 30 secondi)
-            if (!latestUnreadMessage) {
-              const msgTime = m.createdAt?.toDate?.()?.getTime() || 0;
-              if (now - msgTime < 30000) { // 30 secondi
-                latestUnreadMessage = m;
-              }
-            }
-          }
-        });
-        
-        // Se c'è un nuovo messaggio molto recente, mostra notifica
-        const existingCount = adminNotificationListeners.get(uid)?.lastCount || 0;
-        if (latestUnreadMessage && count > existingCount && existingCount >= 0) {
-          // Ottieni il nome del driver
-          const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
-          const driverName = badge?.closest('.card')?.querySelector('h3')?.textContent?.split('\n')[0]?.trim() || 'Driver';
-          
-          showNewMessageNotification(driverName, latestUnreadMessage.text || 'Nuovo messaggio', uid);
-        }
-        
-        // Aggiorna il badge
-        const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
-        if (badge) {
-          if (count > 0) {
-            badge.textContent = String(count);
-            badge.className = "badge badge-red badge-unread";
-          } else {
-            badge.textContent = "0";
-            badge.className = "badge badge-gray badge-unread";
-          }
-        }
-        
-        // Salva il conteggio per il prossimo confronto
-        if (!adminNotificationListeners.has(uid)) {
-          adminNotificationListeners.set(uid, { unsub, lastCount: count });
-        } else {
-          adminNotificationListeners.get(uid).lastCount = count;
-        }
-      });
-      
-      // Se è un nuovo listener, salvalo
-      if (!adminNotificationListeners.has(uid)) {
-        adminNotificationListeners.set(uid, { unsub, lastCount: 0 });
-      }
-      
-      return unsub;
-    }
 
     // Gestione chat inline
     function attachInlineChatHandlers(container) {
@@ -1151,10 +1235,6 @@
           </div>
         `;
         container.appendChild(card);
-
-        if (type !== "in attesa") {
-          watchUnreadBadgeForDriver(uid);
-        }
       });
 
       // Attach event handlers
@@ -1187,6 +1267,11 @@
           setStatus("success", "Record utente eliminato");
         });
       });
+
+      // Carica badge iniziali per i nuovi utenti
+      if (type !== "in attesa") {
+        setTimeout(loadInitialBadgeCounts, 1000);
+      }
     }
 
     // Importazione clienti (codice esistente...)
@@ -1410,6 +1495,9 @@
         contactsUnsub = onSnapshot(qContacts, renderContacts);
       }
 
+      // AVVIA IL POLLING PER SAFARI MOBILE
+      startBadgePollingForSafari();
+
       $("rubrica-section").style.display = "block";
       $("import-section").style.display = "block";
     }
@@ -1419,11 +1507,8 @@
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
 
-      // Ferma tutti i listener delle notifiche
-      adminNotificationListeners.forEach((listener) => {
-        if (listener.unsub) listener.unsub();
-      });
-      adminNotificationListeners.clear();
+      // FERMA IL POLLING
+      stopBadgePolling();
 
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
