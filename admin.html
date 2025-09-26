@@ -1433,10 +1433,23 @@ if (user.uid === ADMIN_UID) {
   startListeners();
   requestNotificationPermissionForAdmin();
   // Setup notifiche dopo un piccolo delay per assicurarsi che tutto sia pronto
-  setTimeout(() => {
-    setupAdminNotifications();
-  }, 1000);
-} else {
+// Setup notifiche dopo un piccolo delay per assicurarsi che tutto sia pronto
+setTimeout(async () => {
+  // Prima verifica che il Service Worker sia disponibile
+  try {
+    const response = await fetch('./firebase-messaging-sw.js');
+    if (response.ok) {
+      console.log('✅ Service Worker file accessibile');
+      setupAdminNotifications();
+    } else {
+      console.warn('⚠️ Service Worker non ancora disponibile, riprovo...');
+      setTimeout(() => setupAdminNotifications(), 2000);
+    }
+  } catch (error) {
+    console.warn('⚠️ Errore verifica SW:', error.message);
+    setTimeout(() => setupAdminNotifications(), 2000);
+  }
+}, 1000);} else {
   setStatus("warning", `${user.email} - Non hai permessi admin`);
   stopListeners();
 }
