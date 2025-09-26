@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -6,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Manifest: percorso per Netlify -->
+
   <link rel="manifest" href="./manifest.json">
 
   <style>
@@ -370,37 +372,81 @@
     .client-list-container.expanded::-webkit-scrollbar-thumb:hover {
       background: #a8a8a8;
     }
+
+    /* STILI PER PULSANTE RESET */
+    .form-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-reset {
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      margin: 6px 0;
+    }
+
+    .btn-reset:hover {
+      background-color: #5a6268;
+      transform: scale(1.1);
+    }
+
+    .btn-reset:active {
+      transform: scale(0.95);
+    }
+
+    #nome {
+      flex: 1;
+    }
   </style>
+
 </head>
 <body>
 
   <!-- OVERLAY AUTH -->
+
   <div id="auth-overlay">
     <div id="auth-box">
       <div id="auth-header">Accesso</div>
 
-      <div class="tabs">
-        <button id="tab-login" class="tab active">Accedi</button>
-        <button id="tab-register" class="tab">Registrati</button>
-      </div>
+```
+  <div class="tabs">
+    <button id="tab-login" class="tab active">Accedi</button>
+    <button id="tab-register" class="tab">Registrati</button>
+  </div>
 
-      <div id="pane-login" class="pane">
-        <input id="log-email" placeholder="Email">
-        <input id="log-password" placeholder="Password" type="password">
-        <button id="btn-login">Accedi</button>
-      </div>
+  <div id="pane-login" class="pane">
+    <input id="log-email" placeholder="Email">
+    <input id="log-password" placeholder="Password" type="password">
+    <button id="btn-login">Accedi</button>
+  </div>
 
-      <div id="pane-register" class="pane" style="display:none;">
-        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
-        <input id="reg-email" placeholder="Email" required>
-        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
-        <button id="btn-register">Crea account</button>
-        <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
-      </div>
-    </div>
+  <div id="pane-register" class="pane" style="display:none;">
+    <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
+    <input id="reg-email" placeholder="Email" required>
+    <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
+    <button id="btn-register">Crea account</button>
+    <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
+  </div>
+</div>
+```
+
   </div>
 
   <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
+
   <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
     <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
     <div>Sei registrato ma non ancora approvato. Quando l'amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
@@ -408,6 +454,7 @@
   </div>
 
   <!-- MODAL RUBRICA -->
+
   <div id="rubrica-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; display:none; align-items:center; justify-content:center; padding:20px;">
     <div style="width:100%; max-width:500px; background:white; border-radius:12px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column;">
       <div style="padding:16px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
@@ -422,105 +469,115 @@
   </div>
 
   <!-- APP -->
+
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-    <!-- 📱 Attivazione push (solo se necessario) -->
-    <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
-      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
-    </div>
+```
+<!-- 📱 Attivazione push (solo se necessario) -->
+<div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
+  <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
+</div>
 
-    <div class="avviso">
-      ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
-    </div>
+<div class="avviso">
+  ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
+</div>
 
-    <div class="row" style="align-items:center;">
-      <a class="link-pill" href="chat.html" id="chat-link">
-        💬 Chat con Admin
-        <span class="chat-counter hidden" id="chat-counter">0</span>
-      </a>
-      <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
-        📞 Rubrica agenti
-      </button>
-      <button id="btn-logout" style="max-width:160px;">Esci</button>
-    </div>
+<div class="row" style="align-items:center;">
+  <a class="link-pill" href="chat.html" id="chat-link">
+    💬 Chat con Admin
+    <span class="chat-counter hidden" id="chat-counter">0</span>
+  </a>
+  <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
+    📞 Rubrica agenti
+  </button>
+  <button id="btn-logout" style="max-width:160px;">Esci</button>
+</div>
 
-    <!-- FORM INSERIMENTO CLIENTI CON CAMPO INDIRIZZO MIGLIORATO -->
-    <div>
-      <input id="nome" placeholder="Nome cliente">
-      
-      <!-- Campo indirizzo NON editabile con toggle -->
-      <input id="indirizzo" 
-             placeholder="Clicca 'Usa la mia posizione attuale' per compilare automaticamente" 
-             readonly
-             style="background-color: #f8f9fa; color: #6c757d; cursor: not-allowed;">
-      
-      <div class="address-note">
-        💡 L'indirizzo viene compilato automaticamente quando usi la geolocalizzazione
-        <button id="btn-manual-address" type="button" class="toggle-btn">
-          Inserimento manuale
-        </button>
+<!-- FORM INSERIMENTO CLIENTI CON CAMPO INDIRIZZO MIGLIORATO E PULSANTE RESET -->
+<div>
+  <!-- Nome cliente con pulsante reset -->
+  <div class="form-row">
+    <input id="nome" placeholder="Nome cliente">
+    <button id="btn-reset" type="button" class="btn-reset" title="Cancella tutti i campi">×</button>
+  </div>
+  
+  <!-- Campo indirizzo NON editabile con toggle -->
+  <input id="indirizzo" 
+         placeholder="Clicca 'Usa la mia posizione attuale' per compilare automaticamente" 
+         readonly
+         style="background-color: #f8f9fa; color: #6c757d; cursor: not-allowed;">
+  
+  <div class="address-note">
+    💡 L'indirizzo viene compilato automaticamente quando usi la geolocalizzazione
+    <button id="btn-manual-address" type="button" class="toggle-btn">
+      Inserimento manuale
+    </button>
+  </div>
+  
+  <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
+  <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
+  
+  <textarea id="note" placeholder="Note per la consegna"></textarea>
+  <button id="btn-aggiungi">Aggiungi cliente</button>
+  <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
+</div>
+
+<!-- NUOVA SEZIONE CLIENTI COMPRIMIBILE -->
+<div>
+  <input id="cerca" placeholder="Cerca cliente" style="margin-bottom: 8px;">
+  
+  <!-- Header comprimibile -->
+  <div id="client-list-header" class="client-list-header" onclick="toggleClientList()">
+    <div class="client-list-title">
+      📋 Lista Clienti
+      <span id="client-count" class="client-count">0</span>
+    </div>
+    <span id="expand-icon" class="expand-icon">▼</span>
+  </div>
+  
+  <!-- Container comprimibile -->
+  <div id="client-list-container" class="client-list-container">
+    <!-- Statistiche rapide -->
+    <div id="client-stats" class="client-stats" style="display: none;">
+      <div class="stat-item">
+        <span class="stat-number" id="stat-total">0</span>
+        Totale
       </div>
-      
-      <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
-      <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
-      
-      <textarea id="note" placeholder="Note per la consegna"></textarea>
-      <button id="btn-aggiungi">Aggiungi cliente</button>
-      <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
-    </div>
-
-    <!-- NUOVA SEZIONE CLIENTI COMPRIMIBILE -->
-    <div>
-      <input id="cerca" placeholder="Cerca cliente" style="margin-bottom: 8px;">
-      
-      <!-- Header comprimibile -->
-      <div id="client-list-header" class="client-list-header" onclick="toggleClientList()">
-        <div class="client-list-title">
-          📋 Lista Clienti
-          <span id="client-count" class="client-count">0</span>
-        </div>
-        <span id="expand-icon" class="expand-icon">▼</span>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-with-coords">0</span>
+        Con GPS
       </div>
-      
-      <!-- Container comprimibile -->
-      <div id="client-list-container" class="client-list-container">
-        <!-- Statistiche rapide -->
-        <div id="client-stats" class="client-stats" style="display: none;">
-          <div class="stat-item">
-            <span class="stat-number" id="stat-total">0</span>
-            Totale
-          </div>
-          <div class="stat-item">
-            <span class="stat-number" id="stat-with-coords">0</span>
-            Con GPS
-          </div>
-          <div class="stat-item">
-            <span class="stat-number" id="stat-with-notes">0</span>
-            Con Note
-          </div>
-          <div class="stat-item">
-            <span class="stat-number" id="stat-recent">0</span>
-            Recenti
-          </div>
-        </div>
-        
-        <!-- Lista clienti -->
-        <div id="clienti"></div>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-with-notes">0</span>
+        Con Note
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" id="stat-recent">0</span>
+        Recenti
       </div>
     </div>
+    
+    <!-- Lista clienti -->
+    <div id="clienti"></div>
+  </div>
+</div>
 
-    <hr>
-    <h2>📡 Tracciamento automatico</h2>
-    <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
-    <div id="status"></div>
+<hr>
+<h2>📡 Tracciamento automatico</h2>
+<button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+<div id="status"></div>
+```
+
   </div>
 
   <!-- 🍞 Container per toast messaggi -->
+
   <div id="toast-container" class="toast-container"></div>
 
   <!-- APP LOGIC -->
+
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -1147,7 +1204,31 @@
         });
       }
 
-      el("nome").value=""; el("indirizzo").value=""; el("coordinate").value=""; el("note").value="";
+      resetForm();
+    }
+
+    // ✅ NUOVA FUNZIONE RESET FORM
+    function resetForm() {
+      el("nome").value=""; 
+      el("indirizzo").value=""; 
+      el("coordinate").value=""; 
+      el("note").value="";
+      
+      // Ripristina il campo indirizzo come readonly
+      const indirizzoField = el("indirizzo");
+      const toggleBtn = el("btn-manual-address");
+      indirizzoField.readOnly = true;
+      indirizzoField.style.backgroundColor = '#f8f9fa';
+      indirizzoField.style.color = '#6c757d';
+      indirizzoField.style.cursor = 'not-allowed';
+      indirizzoField.placeholder = "Clicca 'Usa la mia posizione attuale' per compilare automaticamente";
+      toggleBtn.textContent = 'Inserimento manuale';
+      toggleBtn.style.backgroundColor = '#e9ecef';
+      
+      // Ripristina stato modifica
+      clienteDaModificare = null;
+      el("btn-aggiungi").innerText = "Aggiungi cliente";
+      el("btn-annulla").style.display = "none";
     }
 
     async function eliminaCliente(id) {
@@ -1173,20 +1254,7 @@
     }
 
     function annullaModifica() {
-      clienteDaModificare = null;
-      el("nome").value = ""; el("indirizzo").value = ""; el("coordinate").value = ""; el("note").value = "";
-      el("btn-aggiungi").innerText = "Aggiungi cliente"; el("btn-annulla").style.display = "none";
-      
-      // Ripristina il campo indirizzo come readonly
-      const indirizzoField = el("indirizzo");
-      const toggleBtn = el("btn-manual-address");
-      indirizzoField.readOnly = true;
-      indirizzoField.style.backgroundColor = '#f8f9fa';
-      indirizzoField.style.color = '#6c757d';
-      indirizzoField.style.cursor = 'not-allowed';
-      indirizzoField.placeholder = "Clicca 'Usa la mia posizione attuale' per compilare automaticamente";
-      toggleBtn.textContent = 'Inserimento manuale';
-      toggleBtn.style.backgroundColor = '#e9ecef';
+      resetForm();
     }
 
     // FUNZIONE mostraClienti CON ORDINAMENTO ALFABETICO E FIX NOTE
@@ -1302,44 +1370,49 @@
     }
 
     // MODIFICA ANCHE LA FUNZIONE filtraClienti PER SUPPORTARE LA RICERCA NEI GRUPPI
-// Sostituisci la funzione filtraClienti esistente con questa versione migliorata
-function filtraClienti() {
-  const queryTxt = el("cerca").value.toLowerCase().trim();
-  
-  // Se la ricerca è vuota, mostra tutti i clienti e i divisori alfabetici
-  if (!queryTxt) {
-    document.querySelectorAll(".alphabet-divider").forEach(divider => {
-      divider.style.display = "block";
-    });
-    document.querySelectorAll(".cliente").forEach(cliente => {
-      cliente.style.display = "block";
-    });
-    return;
-  }
-  
-  // Nascondi divisori alfabetici durante la ricerca
-  document.querySelectorAll(".alphabet-divider").forEach(divider => {
-    divider.style.display = "none";
-  });
-  
-  // Filtra clienti basandosi SOLO sul nome del cliente
-  document.querySelectorAll(".cliente").forEach(cliente => {
-    // Estrae il nome del cliente dal primo elemento <strong>
-    const nomeElement = cliente.querySelector('strong');
-    const nomeCliente = nomeElement ? nomeElement.textContent.toLowerCase() : '';
-    
-    // Verifica se il nome del cliente contiene la query di ricerca
-    const visible = nomeCliente.includes(queryTxt);
-    cliente.style.display = visible ? "block" : "none";
-  });
-  
-  // Se c'è una ricerca attiva, espandi automaticamente la lista
-  if (!isClientListExpanded) {
-    toggleClientList();
-  }
-}
+    // Sostituisci la funzione filtraClienti esistente con questa versione migliorata
+    function filtraClienti() {
+      const queryTxt = el("cerca").value.toLowerCase().trim();
+      
+      // Se la ricerca è vuota, mostra tutti i clienti e i divisori alfabetici
+      if (!queryTxt) {
+        document.querySelectorAll(".alphabet-divider").forEach(divider => {
+          divider.style.display = "block";
+        });
+        document.querySelectorAll(".cliente").forEach(cliente => {
+          cliente.style.display = "block";
+        });
+        return;
+      }
+      
+      // Nascondi divisori alfabetici durante la ricerca
+      document.querySelectorAll(".alphabet-divider").forEach(divider => {
+        divider.style.display = "none";
+      });
+      
+      // Filtra clienti basandosi SOLO sul nome del cliente
+      document.querySelectorAll(".cliente").forEach(cliente => {
+        // Estrae il nome del cliente dal primo elemento <strong>
+        const nomeElement = cliente.querySelector('strong');
+        const nomeCliente = nomeElement ? nomeElement.textContent.toLowerCase() : '';
+        
+        // Verifica se il nome del cliente contiene la query di ricerca
+        const visible = nomeCliente.includes(queryTxt);
+        cliente.style.display = visible ? "block" : "none";
+      });
+      
+      // Se c'è una ricerca attiva, espandi automaticamente la lista
+      if (!isClientListExpanded) {
+        toggleClientList();
+      }
+    }
+
     el("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
     el("btn-annulla").addEventListener("click", annullaModifica);
+    
+    // ✅ AGGIUNGI EVENT LISTENER PER PULSANTE RESET
+    el("btn-reset").addEventListener("click", resetForm);
+    
     el("cerca").addEventListener("input", filtraClienti);
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
@@ -1552,6 +1625,7 @@ function filtraClienti() {
   </script>
 
   <!-- 📱 Registrazione UNICA del Service Worker con path relativo per Netlify -->
+
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./firebase-messaging-sw.js', {
@@ -1561,5 +1635,6 @@ function filtraClienti() {
       .catch(err => console.warn('SW registration failed', err));
     }
   </script>
+
 </body>
 </html>
