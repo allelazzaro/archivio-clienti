@@ -185,6 +185,151 @@
     .toggle-btn:hover {
       background: #dee2e6;
     }
+
+    /* NUOVI STILI PER LISTA CLIENTI COMPRIMIBILE */
+    
+    /* Header lista clienti comprimibile */
+    .client-list-header {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 16px 0 8px 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+    }
+
+    .client-list-header:hover {
+      background: linear-gradient(135deg, #0056b3, #004085);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    .client-list-title {
+      font-weight: 600;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .client-count {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .expand-icon {
+      font-size: 18px;
+      transition: transform 0.3s ease;
+      font-weight: bold;
+    }
+
+    .expand-icon.expanded {
+      transform: rotate(180deg);
+    }
+
+    /* Container lista clienti */
+    .client-list-container {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out, opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .client-list-container.expanded {
+      max-height: 2000px; /* Valore alto per animazione fluida */
+      opacity: 1;
+      transition: max-height 0.4s ease-in, opacity 0.3s ease;
+    }
+
+    /* Stili migliorati per i clienti */
+    .cliente {
+      border: 1px solid #e0e0e0;
+      padding: 14px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffffff, #f8f9fa);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .cliente:hover {
+      border-color: #007bff;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .cliente strong {
+      color: #2c3e50;
+      font-size: 16px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .btn-azione {
+      margin: 4px 2px;
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    /* Indicatore alfabetico */
+    .alphabet-divider {
+      background: #f8f9fa;
+      color: #6c757d;
+      padding: 8px 12px;
+      margin: 12px 0 8px 0;
+      border-left: 4px solid #007bff;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    /* Animazione di caricamento */
+    .loading-clients {
+      text-align: center;
+      padding: 20px;
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    /* Statistiche rapide */
+    .client-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .stat-item {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px 12px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 12px;
+      color: #495057;
+      border: 1px solid rgba(0, 123, 255, 0.1);
+    }
+
+    .stat-number {
+      display: block;
+      font-weight: bold;
+      font-size: 16px;
+      color: #007bff;
+    }
   </style>
 </head>
 <body>
@@ -286,8 +431,45 @@
       <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
     </div>
 
-    <div><input id="cerca" placeholder="Cerca cliente"></div>
-    <div id="clienti"></div>
+    <!-- NUOVA SEZIONE CLIENTI COMPRIMIBILE -->
+    <div>
+      <input id="cerca" placeholder="Cerca cliente" style="margin-bottom: 8px;">
+      
+      <!-- Header comprimibile -->
+      <div id="client-list-header" class="client-list-header" onclick="toggleClientList()">
+        <div class="client-list-title">
+          📋 Lista Clienti
+          <span id="client-count" class="client-count">0</span>
+        </div>
+        <span id="expand-icon" class="expand-icon">▼</span>
+      </div>
+      
+      <!-- Container comprimibile -->
+      <div id="client-list-container" class="client-list-container">
+        <!-- Statistiche rapide -->
+        <div id="client-stats" class="client-stats" style="display: none;">
+          <div class="stat-item">
+            <span class="stat-number" id="stat-total">0</span>
+            Totale
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-with-coords">0</span>
+            Con GPS
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-with-notes">0</span>
+            Con Note
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-recent">0</span>
+            Recenti
+          </div>
+        </div>
+        
+        <!-- Lista clienti -->
+        <div id="clienti"></div>
+      </div>
+    </div>
 
     <hr>
     <h2>📡 Tracciamento automatico</h2>
@@ -339,6 +521,9 @@
     // Variabili rubrica
     let clientiUnsub = null;
     let rubricaUnsub = null;
+
+    // Stato di espansione della lista clienti
+    let isClientListExpanded = false;
 
     // 🍞 Toast
     function createToast(title, message, onClick) {
@@ -500,6 +685,81 @@
             }
           });
         }
+      }
+    }
+
+    // ======= FUNZIONI LISTA CLIENTI COMPRIMIBILE =======
+
+    // Toggle della lista clienti
+    function toggleClientList() {
+      const container = document.getElementById('client-list-container');
+      const icon = document.getElementById('expand-icon');
+      
+      isClientListExpanded = !isClientListExpanded;
+      
+      if (isClientListExpanded) {
+        container.classList.add('expanded');
+        icon.classList.add('expanded');
+        // Carica statistiche se non sono già state caricate
+        updateClientStats();
+      } else {
+        container.classList.remove('expanded');
+        icon.classList.remove('expanded');
+      }
+    }
+
+    // Aggiorna statistiche clienti
+    function updateClientStats() {
+      const clientiDiv = document.getElementById("clienti");
+      const clientCards = clientiDiv.querySelectorAll('.cliente');
+      
+      const total = clientCards.length;
+      let withCoords = 0;
+      let withNotes = 0;
+      let recent = 0;
+      
+      const oneWeekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+      
+      clientCards.forEach(card => {
+        const content = card.innerHTML;
+        if (content.includes('maps.google.com')) withCoords++;
+        if (content.includes('<em>') && !content.includes('<em></em>')) withNotes++;
+        
+        // Controlla se è recente (approssimativo basato sul testo)
+        const timeText = card.textContent;
+        if (timeText.includes('ore fa') || timeText.includes('minuti fa') || 
+            timeText.includes('oggi') || timeText.includes('ieri')) {
+          recent++;
+        }
+      });
+      
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-with-coords').textContent = withCoords;
+      document.getElementById('stat-with-notes').textContent = withNotes;
+      document.getElementById('stat-recent').textContent = recent;
+      
+      // Mostra le statistiche
+      document.getElementById('client-stats').style.display = total > 0 ? 'grid' : 'none';
+    }
+
+    // Funzione helper per formattare date relative
+    function formatDateRelative(date) {
+      const now = new Date();
+      const diffMs = now - date;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      
+      if (diffMinutes < 60) {
+        return `${diffMinutes} minuti fa`;
+      } else if (diffHours < 24) {
+        return `${diffHours} ore fa`;
+      } else if (diffDays === 1) {
+        return "ieri";
+      } else if (diffDays < 7) {
+        return `${diffDays} giorni fa`;
+      } else {
+        return date.toLocaleDateString('it-IT');
       }
     }
 
@@ -889,29 +1149,131 @@
       toggleBtn.style.backgroundColor = '#e9ecef';
     }
 
+    // NUOVA FUNZIONE mostraClienti CON ORDINAMENTO ALFABETICO
     function mostraClienti(snapshot) {
-      const clientiDiv = el("clienti"); clientiDiv.innerHTML = "";
+      const clientiDiv = el("clienti");
+      const countElement = el("client-count");
+      
+      clientiDiv.innerHTML = "";
+      
+      if (snapshot.empty) {
+        clientiDiv.innerHTML = '<div class="loading-clients">Nessun cliente trovato</div>';
+        countElement.textContent = "0";
+        document.getElementById('client-stats').style.display = 'none';
+        return;
+      }
+      
+      // Converti snapshot in array e ordina alfabeticamente
+      const clientiArray = [];
       snapshot.forEach(docSnap => {
-        const c = docSnap.data();
-        const div = document.createElement("div");
-        div.className = "cliente";
-        const inseritoDa = c.createdBy ? `<div class="muted">Inserito da: <strong>${c.createdBy.name || "sconosciuto"}</strong>${c.createdAt?.toDate ? " • " + c.createdAt.toDate().toLocaleString() : ""}</div>` : "";
-        div.innerHTML = `<strong>${c.nome || "(senza nome)"}</strong><br>
-                         ${c.indirizzo || ""}<br>
-                         ${c.coordinate ? `<a href='https://maps.google.com/?q=${c.coordinate}' target='_blank'>Vai a Google Maps</a><br>` : ""}
-                         ${c.note ? `<em>${c.note}</em><br>` : ""}
-                         ${inseritoDa}
-                         <button class='btn-azione' onclick='eliminaCliente("${docSnap.id}")'>🗑️ Elimina</button>
-                         <button class='btn-azione' onclick='preparaModificaCliente("${docSnap.id}", ${JSON.stringify(c).replace(/"/g, '&quot;')})'>✏️ Modifica</button>`;
-        clientiDiv.appendChild(div);
+        const cliente = docSnap.data();
+        cliente.id = docSnap.id;
+        clientiArray.push(cliente);
       });
+      
+      // Ordinamento alfabetico per nome (case-insensitive)
+      clientiArray.sort((a, b) => {
+        const nomeA = (a.nome || "").toLowerCase().trim();
+        const nomeB = (b.nome || "").toLowerCase().trim();
+        return nomeA.localeCompare(nomeB, 'it', { numeric: true });
+      });
+      
+      // Aggiorna contatore
+      countElement.textContent = clientiArray.length.toString();
+      
+      // Raggruppa per lettera iniziale
+      const gruppi = {};
+      clientiArray.forEach(cliente => {
+        const primaLettera = (cliente.nome || "?").charAt(0).toUpperCase();
+        if (!gruppi[primaLettera]) {
+          gruppi[primaLettera] = [];
+        }
+        gruppi[primaLettera].push(cliente);
+      });
+      
+      // Ordina le lettere
+      const lettereOrdinate = Object.keys(gruppi).sort();
+      
+      // Renderizza per gruppi alfabetici
+      lettereOrdinate.forEach(lettera => {
+        // Aggiungi divisore alfabetico solo se ci sono più di 10 clienti
+        if (clientiArray.length > 10) {
+          const divider = document.createElement("div");
+          divider.className = "alphabet-divider";
+          divider.textContent = `${lettera} (${gruppi[lettera].length})`;
+          clientiDiv.appendChild(divider);
+        }
+        
+        // Aggiungi clienti di questo gruppo
+        gruppi[lettera].forEach(cliente => {
+          const div = document.createElement("div");
+          div.className = "cliente";
+          
+          const inseritoDa = cliente.createdBy ? 
+            `<div style="font-size: 12px; color: #666; margin-top: 8px;">
+              📍 Inserito da: <strong>${cliente.createdBy.name || "sconosciuto"}</strong>
+              ${cliente.createdAt?.toDate ? " • " + formatDateRelative(cliente.createdAt.toDate()) : ""}
+            </div>` : "";
+          
+          div.innerHTML = `
+            <strong>${cliente.nome || "(senza nome)"}</strong><br>
+            <div style="color: #6c757d; font-size: 14px; margin: 4px 0;">
+              ${cliente.indirizzo || ""}
+            </div>
+            ${cliente.coordinate ? 
+              `<div style="margin: 6px 0;">
+                <a href='https://maps.google.com/?q=${cliente.coordinate}' target='_blank' 
+                   style="color: #007bff; text-decoration: none; font-size: 13px;">
+                  🗺️ Vai a Google Maps
+                </a>
+              </div>` : ""
+            }
+            ${cliente.note ? 
+              `<div style="margin: 6px 0;">
+                <em style="color: #495057; font-size: 13px;">${cliente.note}</em>
+              </div>` : ""
+            }
+            ${inseritoDa}
+            <div style="margin-top: 10px;">
+              <button class='btn-azione' onclick='eliminaCliente("${cliente.id}")' 
+                      style="background-color: #dc3545; color: white; border: none;">
+                🗑️ Elimina
+              </button>
+              <button class='btn-azione' onclick='preparaModificaCliente("${cliente.id}", ${JSON.stringify(cliente).replace(/"/g, '&quot;')})' 
+                      style="background-color: #28a745; color: white; border: none;">
+                ✏️ Modifica
+              </button>
+            </div>
+          `;
+          clientiDiv.appendChild(div);
+        });
+      });
+      
+      // Aggiorna statistiche se la lista è espansa
+      if (isClientListExpanded) {
+        updateClientStats();
+      }
     }
 
+    // MODIFICA ANCHE LA FUNZIONE filtraClienti PER SUPPORTARE LA RICERCA NEI GRUPPI
     function filtraClienti() {
       const queryTxt = el("cerca").value.toLowerCase();
-      document.querySelectorAll(".cliente").forEach(c=>{
-        c.style.display = c.innerText.toLowerCase().includes(queryTxt) ? "block" : "none";
+      
+      // Nascondi/mostra divisori alfabetici
+      document.querySelectorAll(".alphabet-divider").forEach(divider => {
+        divider.style.display = queryTxt ? "none" : "block";
       });
+      
+      // Filtra clienti
+      document.querySelectorAll(".cliente").forEach(cliente => {
+        const visible = cliente.textContent.toLowerCase().includes(queryTxt);
+        cliente.style.display = visible ? "block" : "none";
+      });
+      
+      // Se c'è una ricerca attiva, espandi automaticamente la lista
+      if (queryTxt && !isClientListExpanded) {
+        toggleClientList();
+      }
     }
 
     el("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
@@ -1124,6 +1486,7 @@
     // Espone funzioni globali per i bottoni inline
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
+    window.toggleClientList = toggleClientList;
   </script>
 
   <!-- 📱 Registrazione UNICA del Service Worker con path relativo per Netlify -->
