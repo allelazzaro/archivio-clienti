@@ -899,7 +899,7 @@
     let adminNotificationListeners = new Map(); // Per tracciare i listener delle notifiche
 
     // Funzioni per badge messaggi non letti CON NOTIFICHE
-    function startBadgePollingForSafari() {
+    function watchUnreadBadgeForDriver(uid) {
       const msgsRef = collection(db, "threads", uid, "messages");
       const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
       
@@ -1124,7 +1124,7 @@
             <div class="card-info">
               <h3>
                 ${u.name || "(senza nome)"}
-                ${type !== "in attesa" ? `<span class="badge badge-gray badge-unread" data-uid="${uid}">0</span>}
+                ${type !== "in attesa" ? `<span class="badge badge-gray badge-unread" data-uid="${uid}">0</span>` : ""}
               </h3>
               <p>${u.email || ""}</p>
               ${type !== "in attesa" ? `
