@@ -592,19 +592,22 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc,
-      orderBy, limit, addDoc, serverTimestamp, getDocs
+      orderBy, limit, addDoc, serverTimestamp, getDocs, setDoc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
       setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
     const app = initializeApp(firebaseConfig, "adminApp");
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const messaging = getMessaging(app);
     await setPersistence(auth, browserLocalPersistence);
 
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
+    const VAPID_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
     const $ = id => document.getElementById(id);
     
@@ -613,6 +616,36 @@
       status.className = `status-bar status-${type}`;
       status.textContent = msg;
     };
+
+    // Setup notifiche admin
+    async function setupAdminNotifications() {
+      try {
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+          console.warn('Notifiche non supportate');
+          return;
+        }
+
+        if (Notification.permission === 'granted') {
+          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+          if (token && auth.currentUser) {
+            await setDoc(doc(db, "users", auth.currentUser.uid), {
+              fcmTokens: { [token]: true }
+            }, { merge: true });
+            console.log('Token FCM salvato per admin');
+          }
+        }
+      } catch (error) {
+        console.error('Errore setup notifiche admin:', error);
+      }
+    }
+
+    // Gestione notifiche in foreground
+    onMessage(messaging, (payload) => {
+      console.log('Notifica ricevuta:', payload);
+      const title = payload.notification?.title || 'Nuovo messaggio';
+      const body = payload.notification?.body || '';
+      showNewMessageNotification('Driver', body, '');
+    });
 
     // ======= FUNZIONI NOTIFICHE AVANZATE =======
     
@@ -1365,7 +1398,7 @@
     }
 
     // Auth state changes
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         setStatus("warning", "Accesso necessario");
         stopListeners();
@@ -1382,8 +1415,8 @@
       if (user.uid === ADMIN_UID) {
         setStatus("success", `Benvenuto ${user.email}`);
         startListeners();
-        // Richiedi permessi notifiche per admin
         requestNotificationPermissionForAdmin();
+        setupAdminNotifications(); // ✅ AGGIUNTA QUESTA RIGA
       } else {
         setStatus("warning", `${user.email} - Non hai permessi admin`);
         stopListeners();
@@ -1414,18 +1447,6 @@
         alert("Errore: " + error.message);
       }
     };
-  </script>
-<!-- Service Worker per notifiche push -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./firebase-messaging-sw.js')
-        .then(registration => {
-          console.log('✅ Service Worker registrato:', registration.scope);
-        })
-        .catch(err => {
-          console.error('❌ Errore registrazione Service Worker:', err);
-        });
-    }
   </script>
 </body>
 </html>
