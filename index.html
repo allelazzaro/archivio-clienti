@@ -380,10 +380,10 @@
     }
 
     .search-container input {
-      background: #2c2c2e;
-      border: 1px solid #48484a;
+      background: #eef6ff;
+      border: 1px solid #cfe3ff;
       border-radius: 12px;
-      color: #ffffff;
+      color: #0b3d91;
       font-size: 16px;
       padding: 12px 45px 12px 45px;
       width: 100%;
@@ -399,7 +399,7 @@
     }
 
     .search-container input::placeholder {
-      color: #8e8e93;
+      color: #6c9bd1;
     }
 
     .search-icon {
@@ -417,7 +417,7 @@
     .search-icon svg {
       width: 100%;
       height: 100%;
-      fill: #8e8e93;
+      fill: #6c9bd1;
     }
 
     .clear-search-btn {
@@ -425,12 +425,12 @@
       right: 12px;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(142, 142, 147, 0.3);
+      background: rgba(108, 155, 209, 0.3);
       border: none;
       border-radius: 50%;
       width: 22px;
       height: 22px;
-      color: #8e8e93;
+      color: #6c9bd1;
       font-size: 14px;
       font-weight: bold;
       cursor: pointer;
@@ -443,11 +443,73 @@
     }
 
     .clear-search-btn:hover {
-      background: rgba(142, 142, 147, 0.5);
-      color: #ffffff;
+      background: rgba(108, 155, 209, 0.5);
+      color: #0b3d91;
     }
 
     .clear-search-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    /* STILI PER CAMPO NOME CON X */
+    .input-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 6px 0;
+    }
+
+    .input-container input {
+      background: #eef6ff;
+      border: 1px solid #cfe3ff;
+      border-radius: 12px;
+      color: #0b3d91;
+      font-size: 16px;
+      padding: 12px 45px 12px 15px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      margin: 0;
+    }
+
+    .input-container input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .input-container input::placeholder {
+      color: #6c9bd1;
+    }
+
+    .clear-input-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(108, 155, 209, 0.3);
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      color: #6c9bd1;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      margin: 0;
+      padding: 0;
+    }
+
+    .clear-input-btn:hover {
+      background: rgba(108, 155, 209, 0.5);
+      color: #0b3d91;
+    }
+
+    .clear-input-btn:active {
       transform: translateY(-50%) scale(0.95);
     }
 
@@ -575,10 +637,10 @@
 
 <!-- FORM INSERIMENTO CLIENTI CON CAMPO INDIRIZZO MIGLIORATO E PULSANTE RESET -->
 <div>
-  <!-- Nome cliente con pulsante reset -->
-  <div class="form-row">
+  <!-- Nome cliente con pulsante X integrato -->
+  <div class="input-container">
     <input id="nome" placeholder="Nome cliente">
-    <button id="btn-reset" type="button" class="btn-reset" title="Cancella tutti i campi">×</button>
+    <button id="clear-nome" class="clear-input-btn">×</button>
   </div>
   
   <!-- Campo indirizzo NON editabile con toggle -->
@@ -1496,9 +1558,6 @@
     el("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
     el("btn-annulla").addEventListener("click", annullaModifica);
     
-    // ✅ AGGIUNGI EVENT LISTENER PER PULSANTE RESET
-    el("btn-reset").addEventListener("click", resetForm);
-    
     el("cerca").addEventListener("input", function() {
       filtraClienti();
       // Mostra/nasconde il pulsante clear
@@ -1516,6 +1575,24 @@
       searchInput.value = '';
       this.style.display = 'none';
       filtraClienti(); // Aggiorna la visualizzazione
+    });
+
+    // Gestione campo nome con pulsante X
+    el("nome").addEventListener("input", function() {
+      const clearBtn = document.getElementById('clear-nome');
+      if (this.value.trim()) {
+        clearBtn.style.display = 'flex';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+    });
+
+    // Gestione pulsante clear nome
+    document.getElementById('clear-nome').addEventListener('click', function() {
+      const nomeInput = document.getElementById('nome');
+      nomeInput.value = '';
+      this.style.display = 'none';
+      nomeInput.focus(); // Riporta il focus sul campo
     });
     
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
