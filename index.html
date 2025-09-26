@@ -238,20 +238,26 @@
       transform: rotate(180deg);
     }
 
-    /* Container lista clienti */
-    .client-list-container {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s ease-out, opacity 0.3s ease;
-      opacity: 0;
-    }
+/* Container lista clienti - FIX per scroll completo */
+.client-list-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease-out, opacity 0.3s ease;
+  opacity: 0;
+}
 
-    .client-list-container.expanded {
-      max-height: 2000px; /* Valore alto per animazione fluida */
-      opacity: 1;
-      transition: max-height 0.4s ease-in, opacity 0.3s ease;
-    }
-
+.client-list-container.expanded {
+  max-height: none; /* Rimuove la limitazione di altezza */
+  height: auto; /* Permette altezza automatica */
+  max-height: 80vh; /* Massimo 80% della viewport height */
+  opacity: 1;
+  overflow-y: auto; /* Abilita scroll verticale */
+  transition: opacity 0.3s ease;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+  padding: 8px;
+}
     /* Stili migliorati per i clienti */
     .cliente {
       border: 1px solid #e0e0e0;
