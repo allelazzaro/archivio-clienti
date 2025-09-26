@@ -238,26 +238,28 @@
       transform: rotate(180deg);
     }
 
-/* Container lista clienti - FIX per scroll completo */
-.client-list-container {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease-out, opacity 0.3s ease;
-  opacity: 0;
-}
+    /* Container lista clienti - FIX SCROLL */
+    .client-list-container {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out, opacity 0.3s ease;
+      opacity: 0;
+    }
 
-.client-list-container.expanded {
-  max-height: none; /* Rimuove la limitazione di altezza */
-  height: auto; /* Permette altezza automatica */
-  max-height: 80vh; /* Massimo 80% della viewport height */
-  opacity: 1;
-  overflow-y: auto; /* Abilita scroll verticale */
-  transition: opacity 0.3s ease;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  background: #fafafa;
-  padding: 8px;
-}
+    .client-list-container.expanded {
+      max-height: calc(100vh - 300px); /* Altezza viewport meno spazio per header/form */
+      opacity: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: opacity 0.3s ease;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background: #fafafa;
+      padding: 8px;
+      /* Assicura che lo scroll funzioni su iOS */
+      -webkit-overflow-scrolling: touch;
+    }
+
     /* Stili migliorati per i clienti */
     .cliente {
       border: 1px solid #e0e0e0;
@@ -335,6 +337,38 @@
       font-weight: bold;
       font-size: 16px;
       color: #007bff;
+    }
+
+    /* Assicura che il container padre non limiti l'altezza */
+    #app-wrapper {
+      min-height: 100vh;
+      overflow: visible;
+    }
+
+    /* Fix per dispositivi mobile */
+    @media (max-width: 768px) {
+      .client-list-container.expanded {
+        max-height: calc(100vh - 400px); /* Più spazio per interfaccia mobile */
+      }
+    }
+
+    /* Stile per indicare che l'area è scrollabile */
+    .client-list-container.expanded::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .client-list-container.expanded::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+
+    .client-list-container.expanded::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+
+    .client-list-container.expanded::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
     }
   </style>
 </head>
@@ -729,7 +763,7 @@
       clientCards.forEach(card => {
         const content = card.innerHTML;
         if (content.includes('maps.google.com')) withCoords++;
-        if (content.includes('<em>') && !content.includes('<em></em>')) withNotes++;
+        if (content.includes('📝 Note:')) withNotes++;
         
         // Controlla se è recente (approssimativo basato sul testo)
         const timeText = card.textContent;
@@ -1155,7 +1189,7 @@
       toggleBtn.style.backgroundColor = '#e9ecef';
     }
 
-    // NUOVA FUNZIONE mostraClienti CON ORDINAMENTO ALFABETICO
+    // FUNZIONE mostraClienti CON ORDINAMENTO ALFABETICO E FIX NOTE
     function mostraClienti(snapshot) {
       const clientiDiv = el("clienti");
       const countElement = el("client-count");
@@ -1221,6 +1255,16 @@
               ${cliente.createdAt?.toDate ? " • " + formatDateRelative(cliente.createdAt.toDate()) : ""}
             </div>` : "";
           
+          // FIX NOTE - controllo più robusto
+          const noteCliente = cliente.note || cliente.notes || "";
+          const noteHtml = noteCliente && String(noteCliente).trim() ? 
+            `<div style="margin: 6px 0;">
+              <strong style="color: #007bff;">📝 Note:</strong><br>
+              <em style="color: #495057; font-size: 13px; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; display: block; margin-top: 4px;">
+                ${String(noteCliente).trim()}
+              </em>
+            </div>` : "";
+          
           div.innerHTML = `
             <strong>${cliente.nome || "(senza nome)"}</strong><br>
             <div style="color: #6c757d; font-size: 14px; margin: 4px 0;">
@@ -1234,11 +1278,7 @@
                 </a>
               </div>` : ""
             }
-            ${cliente.note ? 
-              `<div style="margin: 6px 0;">
-                <em style="color: #495057; font-size: 13px;">${cliente.note}</em>
-              </div>` : ""
-            }
+            ${noteHtml}
             ${inseritoDa}
             <div style="margin-top: 10px;">
               <button class='btn-azione' onclick='eliminaCliente("${cliente.id}")' 
