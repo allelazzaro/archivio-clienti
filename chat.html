@@ -377,69 +377,68 @@
       }, { passive: false });
     }
 
-    // NOTIFICHE PUSH
-// SOSTITUISCI la funzione setupNotifications() in chat.html con questa versione corretta:
+    // NOTIFICHE PUSH - VERSIONE CORRETTA
+    async function setupNotifications() {
+      try {
+        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+          console.warn('Notifiche non supportate');
+          return;
+        }
 
-async function setupNotifications() {
-  try {
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-      console.warn('Notifiche non supportate');
-      return;
-    }
+        // Controlla se il permesso è già stato concesso
+        if (Notification.permission === 'granted') {
+          console.log('Notifiche già autorizzate, procedo con la configurazione');
+          
+          // Procedi direttamente con la configurazione del token FCM
+          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+          if (!token) {
+            console.warn('Token FCM non ricevuto');
+            return;
+          }
 
-    // ✅ CORREZIONE: Controlla prima se il permesso è già stato concesso
-    if (Notification.permission === 'granted') {
-      console.log('Notifiche già autorizzate, procedo con la configurazione');
-      
-      // Procedi direttamente con la configurazione del token FCM
-      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-      if (!token) {
-        console.warn('Token FCM non ricevuto');
-        return;
+          if (currentUser) {
+            await setDoc(doc(db, "users", currentUser.uid), {
+              fcmTokens: { [token]: true }
+            }, { merge: true });
+            console.log('Token FCM salvato per', currentUser.uid);
+          }
+          return;
+        }
+
+        // Se il permesso è stato esplicitamente negato, non chiedere di nuovo
+        if (Notification.permission === 'denied') {
+          console.warn('Notifiche negate dall\'utente');
+          return;
+        }
+
+        // Solo se il permesso non è mai stato richiesto (default), chiedi il permesso
+        console.log('Richiedo permesso notifiche per la prima volta');
+        const permission = await Notification.requestPermission();
+        
+        if (permission !== 'granted') {
+          console.warn('Permesso notifiche negato');
+          return;
+        }
+
+        // Configurazione dopo aver ottenuto il permesso
+        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        if (!token) {
+          console.warn('Token FCM non ricevuto');
+          return;
+        }
+
+        if (currentUser) {
+          await setDoc(doc(db, "users", currentUser.uid), {
+            fcmTokens: { [token]: true }
+          }, { merge: true });
+          console.log('Token FCM salvato per', currentUser.uid);
+        }
+
+      } catch (error) {
+        console.error('Errore setup notifiche:', error);
       }
-
-      if (currentUser) {
-        await setDoc(doc(db, "users", currentUser.uid), {
-          fcmTokens: { [token]: true }
-        }, { merge: true });
-        console.log('Token FCM salvato per', currentUser.uid);
-      }
-      return;
     }
 
-    // Se il permesso è stato esplicitamente negato, non chiedere di nuovo
-    if (Notification.permission === 'denied') {
-      console.warn('Notifiche negate dall\'utente');
-      return;
-    }
-
-    // Solo se il permesso non è mai stato richiesto (default), chiedi il permesso
-    console.log('Richiedo permesso notifiche per la prima volta');
-    const permission = await Notification.requestPermission();
-    
-    if (permission !== 'granted') {
-      console.warn('Permesso notifiche negato');
-      return;
-    }
-
-    // Configurazione dopo aver ottenuto il permesso
-    const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-    if (!token) {
-      console.warn('Token FCM non ricevuto');
-      return;
-    }
-
-    if (currentUser) {
-      await setDoc(doc(db, "users", currentUser.uid), {
-        fcmTokens: { [token]: true }
-      }, { merge: true });
-      console.log('Token FCM salvato per', currentUser.uid);
-    }
-
-  } catch (error) {
-    console.error('Errore setup notifiche:', error);
-  }
-}
     // Toast notifiche in-app
     function showNotificationToast(title, body) {
       const toast = document.createElement('div');
