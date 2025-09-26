@@ -373,112 +373,84 @@
       background: #a8a8a8;
     }
 
-    /* STILI PER CAMPO RICERCA MODERNO */
-    .search-container {
+    /* STILI PER CAMPO CON PULSANTE RESET INTEGRATO */
+    .input-with-clear {
       position: relative;
-      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
     }
 
-    .search-container input {
-      background: #2c2c2e;
-      border: 1px solid #48484a;
-      border-radius: 12px;
-      color: #ffffff;
-      font-size: 16px;
-      padding: 12px 40px 12px 40px;
-      width: 100%;
-      box-sizing: border-box;
-      transition: all 0.3s ease;
-      margin: 0;
+    .input-with-clear input {
+      padding-right: 45px !important;
+      margin: 6px 0;
     }
 
-    .search-container input:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    }
-
-    .search-container input::placeholder {
-      color: #8e8e93;
-    }
-
-    .search-container::before {
-      content: "🔍";
-      position: absolute;
-      left: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 16px;
-      color: #8e8e93;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .clear-search-btn {
+    .btn-clear {
       position: absolute;
       right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(142, 142, 147, 0.3);
+      background: rgba(108, 117, 125, 0.1);
       border: none;
       border-radius: 50%;
       width: 24px;
       height: 24px;
-      color: #8e8e93;
+      cursor: pointer;
+      font-size: 14px;
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .btn-clear.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .btn-clear:hover {
+      background: rgba(108, 117, 125, 0.2);
+      color: #495057;
+    }
+
+    .btn-clear:active {
+      transform: scale(0.9);
+    }
+
+    /* Pulsante reset generale del form */
+    .form-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .form-title {
       font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
+      font-weight: 600;
+      color: #495057;
       margin: 0;
-      padding: 0;
     }
 
-    .clear-search-btn:hover {
-      background: rgba(142, 142, 147, 0.5);
-      color: #ffffff;
-    }
-
-    .clear-search-btn:active {
-      transform: translateY(-50%) scale(0.95);
-    }
-    .form-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .btn-reset {
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      min-width: 40px;
+    .btn-reset-all {
+      background: rgba(108, 117, 125, 0.1);
+      border: 1px solid rgba(108, 117, 125, 0.3);
+      border-radius: 6px;
+      padding: 6px 12px;
       cursor: pointer;
-      font-size: 18px;
-      font-weight: bold;
+      font-size: 12px;
+      color: #6c757d;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
-      margin: 6px 0;
+      gap: 4px;
     }
 
-    .btn-reset:hover {
-      background-color: #5a6268;
-      transform: scale(1.1);
-    }
-
-    .btn-reset:active {
-      transform: scale(0.95);
-    }
-
-    #nome {
-      flex: 1;
+    .btn-reset-all:hover {
+      background: rgba(108, 117, 125, 0.15);
+      border-color: rgba(108, 117, 125, 0.5);
+      color: #495057;
     }
   </style>
 
@@ -1483,24 +1455,7 @@
     // ✅ AGGIUNGI EVENT LISTENER PER PULSANTE RESET
     el("btn-reset").addEventListener("click", resetForm);
     
-    el("cerca").addEventListener("input", function() {
-      filtraClienti();
-      // Mostra/nasconde il pulsante clear
-      const clearBtn = document.getElementById('clear-search');
-      if (this.value.trim()) {
-        clearBtn.style.display = 'flex';
-      } else {
-        clearBtn.style.display = 'none';
-      }
-    });
-
-    // Gestione pulsante clear ricerca
-    document.getElementById('clear-search').addEventListener('click', function() {
-      const searchInput = document.getElementById('cerca');
-      searchInput.value = '';
-      this.style.display = 'none';
-      filtraClienti(); // Aggiorna la visualizzazione
-    });
+    el("cerca").addEventListener("input", filtraClienti);
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
     // Modal rubrica
