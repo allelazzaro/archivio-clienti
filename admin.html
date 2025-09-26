@@ -1415,5 +1415,17 @@
       }
     };
   </script>
+<!-- Service Worker per notifiche push -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./firebase-messaging-sw.js')
+        .then(registration => {
+          console.log('✅ Service Worker registrato:', registration.scope);
+        })
+        .catch(err => {
+          console.error('❌ Errore registrazione Service Worker:', err);
+        });
+    }
+  </script>
 </body>
 </html>
