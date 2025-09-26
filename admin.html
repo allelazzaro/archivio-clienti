@@ -1436,6 +1436,9 @@ if (user.uid === ADMIN_UID) {
   setTimeout(() => {
     setupAdminNotifications();
   }, 1000);
+} else {
+  setStatus("warning", `${user.email} - Non hai permessi admin`);
+  stopListeners();
 }
     });
 
