@@ -618,35 +618,51 @@
     };
 
     // Setup notifiche admin
-    async function setupAdminNotifications() {
-      try {
-        if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-          console.warn('Notifiche non supportate');
-          return;
-        }
-
-        if (Notification.permission === 'granted') {
-          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-          if (token && auth.currentUser) {
-            await setDoc(doc(db, "users", auth.currentUser.uid), {
-              fcmTokens: { [token]: true }
-            }, { merge: true });
-            console.log('Token FCM salvato per admin');
-          }
-        }
-      } catch (error) {
-        console.error('Errore setup notifiche admin:', error);
-      }
+// Setup notifiche admin
+async function setupAdminNotifications() {
+  try {
+    // Controlli preliminari più rigorosi
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+      console.warn('Notifiche non supportate');
+      return;
     }
 
-    // Gestione notifiche in foreground
-    onMessage(messaging, (payload) => {
-      console.log('Notifica ricevuta:', payload);
-      const title = payload.notification?.title || 'Nuovo messaggio';
-      const body = payload.notification?.body || '';
-      showNewMessageNotification('Driver', body, '');
-    });
+    // Verifica che l'utente sia loggato
+    if (!auth.currentUser) {
+      console.warn('Utente non loggato, skip setup notifiche');
+      return;
+    }
 
+    // Solo se le notifiche sono già autorizzate
+    if (Notification.permission === 'granted') {
+      // Aspetta che il Service Worker sia pronto
+      await navigator.serviceWorker.ready;
+      
+      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+      if (token) {
+        await setDoc(doc(db, "users", auth.currentUser.uid), {
+          fcmTokens: { [token]: true }
+        }, { merge: true });
+        console.log('✅ Token FCM salvato per admin');
+      }
+    } else {
+      console.log('ℹ️ Notifiche non ancora autorizzate');
+    }
+  } catch (error) {
+    console.warn('Setup notifiche saltato:', error.message);
+    // Non loggare come errore, è normale durante il caricamento iniziale
+  }
+}
+
+// Gestione notifiche in foreground (solo se supportate)
+if (typeof messaging !== 'undefined') {
+  onMessage(messaging, (payload) => {
+    console.log('Notifica ricevuta:', payload);
+    const title = payload.notification?.title || 'Nuovo messaggio';
+    const body = payload.notification?.body || '';
+    showNewMessageNotification('Driver', body, '');
+  });
+}
     // ======= FUNZIONI NOTIFICHE AVANZATE =======
     
     function createToast(title, message, onClick) {
@@ -1412,15 +1428,15 @@
       $("pass").disabled = true;
       $("btn-login").disabled = true;
 
-      if (user.uid === ADMIN_UID) {
-        setStatus("success", `Benvenuto ${user.email}`);
-        startListeners();
-        requestNotificationPermissionForAdmin();
-        setupAdminNotifications(); // ✅ AGGIUNTA QUESTA RIGA
-      } else {
-        setStatus("warning", `${user.email} - Non hai permessi admin`);
-        stopListeners();
-      }
+if (user.uid === ADMIN_UID) {
+  setStatus("success", `Benvenuto ${user.email}`);
+  startListeners();
+  requestNotificationPermissionForAdmin();
+  // Setup notifiche dopo un piccolo delay per assicurarsi che tutto sia pronto
+  setTimeout(() => {
+    setupAdminNotifications();
+  }, 1000);
+}
     });
 
     // Test function for deleting admin clients
