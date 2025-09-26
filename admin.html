@@ -34,10 +34,11 @@
     .header {
       background: white;
       border-bottom: 1px solid var(--gray-200);
-      padding: 0.25rem 0;
+      padding: 0.75rem 0;
       position: sticky;
       top: 0;
       z-index: 50;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .header-content {
@@ -47,17 +48,17 @@
     }
 
     .header h1 {
-      margin: 0 0 0.25rem 0;
-      font-size: 1rem;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
       font-weight: 600;
       color: var(--gray-900);
     }
 
     .status-bar {
-      margin-bottom: 0.25rem;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
       font-weight: 500;
     }
 
@@ -67,7 +68,7 @@
 
     .login-form {
       display: flex;
-      gap: 0.375rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -76,7 +77,7 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0.75rem 1rem;
+      padding: 1rem;
     }
 
     /* Sezioni */
@@ -84,8 +85,9 @@
       background: white;
       border-radius: 0.75rem;
       padding: 1.5rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       border: 1px solid var(--gray-200);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
     .section-title {
@@ -96,6 +98,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .section-subtitle {
@@ -111,7 +114,7 @@
       border: 1px solid var(--gray-200);
       border-radius: 0.5rem;
       padding: 1rem;
-      margin-bottom: 0.75rem;
+      margin-bottom: 1rem;
     }
 
     .card-header {
@@ -119,17 +122,21 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 1rem;
-      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
     }
 
     .card-info h3 {
       margin: 0 0 0.25rem 0;
       font-size: 1rem;
       font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
 
     .card-info p {
-      margin: 0;
+      margin: 0 0 0.5rem 0;
       font-size: 0.875rem;
       color: var(--gray-500);
     }
@@ -139,6 +146,23 @@
       gap: 0.5rem;
       flex-wrap: wrap;
       margin-top: 0.75rem;
+    }
+
+    .name-update {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .name-update input {
+      flex: 1;
+      min-width: 150px;
+      padding: 0.5rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
     }
 
     /* Form elements */
@@ -159,7 +183,7 @@
 
     .form-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: 1fr;
       gap: 0.75rem;
       margin-bottom: 1rem;
     }
@@ -180,7 +204,7 @@
     .btn {
       display: inline-flex;
       align-items: center;
-      padding: 0.5rem 1rem;
+      padding: 0.625rem 1rem;
       border: none;
       border-radius: 0.375rem;
       font-size: 0.875rem;
@@ -189,6 +213,10 @@
       text-decoration: none;
       transition: all 0.15s;
       gap: 0.25rem;
+      text-align: center;
+      justify-content: center;
+      white-space: nowrap;
+      min-height: 44px; /* Miglior tocco su mobile */
     }
 
     .btn:disabled {
@@ -199,7 +227,7 @@
     .btn-primary { background: var(--primary); color: white; }
     .btn-primary:hover { background: #1d4ed8; }
 
-    .btn-secondary { background: var(--gray-100); color: var(--gray-700); }
+    .btn-secondary { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); }
     .btn-secondary:hover { background: var(--gray-200); }
 
     .btn-success { background: var(--success); color: white; }
@@ -209,15 +237,16 @@
     .btn-danger:hover { background: #b91c1c; }
 
     .btn-sm {
-      padding: 0.375rem 0.75rem;
+      padding: 0.5rem 0.75rem;
       font-size: 0.75rem;
+      min-height: 36px;
     }
 
     /* Badge */
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 0.125rem 0.5rem;
+      padding: 0.25rem 0.5rem;
       border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 500;
@@ -228,22 +257,14 @@
 
     .badge-gray { background: var(--gray-100); color: var(--gray-700); }
     .badge-red { background: #fee2e2; color: var(--danger); }
+    .badge-green { background: #dcfce7; color: var(--success); }
 
-    /* Grid layouts */
+    /* Grid layouts - mobile first */
     .users-grid {
       display: grid;
-      grid-template-columns: 4fr 1fr;
+      grid-template-columns: 1fr;
       gap: 1rem;
       margin-bottom: 2rem;
-    }
-
-    /* Priorità visiva per utenti approvati */
-    .approved-section {
-      order: 1;
-    }
-    
-    .pending-section {
-      order: 2;
     }
 
     /* Preview area */
@@ -268,7 +289,7 @@
     /* Empty states */
     .empty-state {
       text-align: center;
-      padding: 2rem;
+      padding: 2rem 1rem;
       color: var(--gray-500);
       font-size: 0.875rem;
     }
@@ -279,37 +300,30 @@
       top: 20px; 
       right: 20px; 
       z-index: 10000; 
-      max-width: 400px; 
+      max-width: 320px; 
     }
     
     .toast {
-      background: #fff; 
-      border: 1px solid #e0e0e0; 
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.15);
-      padding: 16px; 
-      margin-bottom: 12px;
-      transform: translateX(100%); 
-      transition: all .3s cubic-bezier(.4,0,.2,1);
-      cursor: pointer; 
-      position: relative; 
-      overflow: hidden;
+      background:#fff; border:1px solid #e0e0e0; border-radius:12px;
+      box-shadow:0 8px 24px rgba(0,0,0,.15);
+      padding:16px; margin-bottom:12px;
+      transform:translateX(100%); transition:all .3s cubic-bezier(.4,0,.2,1);
+      cursor:pointer; position:relative; overflow:hidden;
     }
-    
-    .toast.show { transform: translateX(0); }
-    .toast.hide { transform: translateX(100%); opacity: 0; }
-    .toast::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); }
-    .toast-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--primary); }
-    .toast-body { color: #333; font-size: 14px; line-height: 1.4; margin-left: 24px; }
+    .toast.show { transform:translateX(0); }
+    .toast.hide { transform:translateX(100%); opacity:0; }
+    .toast::before { content:""; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--primary); }
+    .toast-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; font-weight:600; font-size:14px; color:var(--primary); }
+    .toast-body { color:#333; font-size:14px; line-height:1.4; margin-left:24px; }
     .toast-close {
-      position: absolute; top: 8px; right: 8px; width: 24px; height: 24px;
-      background: none; border: none; font-size: 18px; color: #999; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; border-radius: 50%;
+      position:absolute; top:8px; right:8px; width:24px; height:24px;
+      background:none; border:none; font-size:18px; color:#999; cursor:pointer;
+      display:flex; align-items:center; justify-content:center; border-radius:50%;
       transition: background-color .2s;
     }
-    .toast-close:hover { background-color: #f0f0f0; }
+    .toast-close:hover { background-color:#f0f0f0; }
 
-    /* Toast avanzati per notifiche */
+    /* Advanced toast */
     .advanced-toast {
       background: #fff;
       border: 1px solid #e0e0e0;
@@ -366,7 +380,9 @@
       transition: background-color 0.2s;
     }
 
-    .advanced-toast .toast-action-btn:hover { background: #1d4ed8; }
+    .advanced-toast .toast-action-btn:hover {
+      background: #1d4ed8;
+    }
 
     .advanced-toast .toast-close {
       position: absolute;
@@ -386,48 +402,8 @@
       transition: background-color .2s;
     }
 
-    .advanced-toast .toast-close:hover { background-color: #f0f0f0; }
-
-    /* Mobile responsive */
-    @media (max-width: 768px) {
-      .header-content {
-        padding: 0 0.75rem;
-      }
-      
-      .container {
-        padding: 1rem 0.75rem;
-      }
-      
-      .section {
-        padding: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .login-form {
-        gap: 0.5rem;
-      }
-
-      .card-header {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .card-actions {
-        justify-content: flex-start;
-      }
-
-      .users-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-      }
-      
-      .approved-section {
-        order: 1;
-      }
-      
-      .pending-section {
-        order: 2;
-      }
+    .advanced-toast .toast-close:hover {
+      background-color: #f0f0f0;
     }
 
     /* Chat panel */
@@ -466,6 +442,121 @@
       height: calc(100vh - 60px);
       display: block;
     }
+
+    /* Desktop media query */
+    @media (min-width: 768px) {
+      .header-content {
+        padding: 0 1.5rem;
+      }
+      
+      .container {
+        padding: 1.5rem;
+      }
+      
+      .section {
+        padding: 2rem;
+      }
+
+      .users-grid {
+        grid-template-columns: 2fr 1fr;
+      }
+
+      .form-row {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+
+      .card-header {
+        flex-direction: row;
+        align-items: flex-start;
+      }
+
+      .card-actions {
+        justify-content: flex-start;
+      }
+
+      .name-update {
+        flex-wrap: nowrap;
+      }
+
+      .name-update input {
+        min-width: 200px;
+      }
+    }
+
+    /* Large desktop */
+    @media (min-width: 1024px) {
+      .section-title {
+        flex-wrap: nowrap;
+      }
+      
+      .btn {
+        white-space: nowrap;
+      }
+    }
+
+    /* Mobile-specific improvements */
+    @media (max-width: 767px) {
+      .login-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .login-form input {
+        margin-bottom: 0.5rem;
+      }
+
+      .login-form button {
+        width: 100%;
+      }
+
+      .section-title {
+        font-size: 1.125rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+      }
+
+      .section-title .btn {
+        width: 100%;
+      }
+
+      .card-actions {
+        flex-direction: column;
+      }
+
+      .card-actions .btn {
+        width: 100%;
+      }
+
+      .name-update {
+        flex-direction: column;
+      }
+
+      .name-update input {
+        min-width: unset;
+      }
+
+      .toast-container {
+        left: 10px;
+        right: 10px;
+        top: 10px;
+        max-width: unset;
+      }
+
+      .advanced-toast {
+        min-width: unset;
+        max-width: unset;
+      }
+    }
+
+    /* Toast su mobile */
+    @media (max-width: 480px) {
+      .toast-container {
+        left: 10px;
+        right: 10px;
+        top: 80px; /* Sotto l'header sticky */
+      }
+    }
   </style>
 </head>
 <body>
@@ -491,8 +582,8 @@
       <div class="section approved-section">
         <h2 class="section-title">
           Utenti Approvati  
-          <span id="count-approved" class="badge badge-gray">0</span>
-          <a href="console.html" class="btn btn-primary btn-sm" style="margin-left: auto;">Apri Chat Driver</a>
+          <span id="count-approved" class="badge badge-green">0</span>
+          <a href="console.html" class="btn btn-primary btn-sm">Apri Chat Driver</a>
         </h2>
         <div id="approved" class="empty-state">
           Effettua il login per vedere gli utenti approvati
@@ -525,7 +616,7 @@
         <textarea id="rubrica-note" placeholder="Note aggiuntive" rows="3"></textarea>
       </div>
       
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem;">
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap;">
         <button id="btn-add-contact" class="btn btn-success">Aggiungi Contatto</button>
         <button id="btn-cancel-contact" class="btn btn-secondary" style="display:none;">Annulla</button>
       </div>
@@ -549,7 +640,7 @@
         </div>
       </div>
       
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem;">
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
         <button id="btn-load-file" class="btn btn-primary">Analizza File</button>
         <button id="btn-import-sample" class="btn btn-secondary">Usa Dati Esempio</button>
       </div>
@@ -559,7 +650,7 @@
       <div id="import-preview" style="display: none;">
         <h3 class="section-subtitle">Anteprima Importazione</h3>
         <div id="preview-content" class="preview-area"></div>
-        <div style="display: flex; gap: 0.75rem;">
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
           <button id="btn-confirm-import" class="btn btn-success">Conferma Importazione</button>
           <button id="btn-cancel-import" class="btn btn-secondary">Annulla</button>
         </div>
@@ -576,7 +667,7 @@
     <iframe id="chatFrame" class="chat-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
   </div>
 
-  <!-- Container per toast messaggi -->
+  <!-- Container toast -->
   <div id="toast-container" class="toast-container"></div>
 
   <script type="module">
@@ -614,7 +705,7 @@
       status.textContent = msg;
     };
 
-    // ======= FUNZIONI NOTIFICHE AVANZATE =======
+    // ======= FUNZIONI NOTIFICHE ADMIN =======
     
     function createToast(title, message, onClick) {
       const container = document.getElementById('toast-container') || createToastContainer();
@@ -642,63 +733,6 @@
       setTimeout(() => { if(toast.parentElement) toast.remove(); }, 300); 
     }
 
-    function showNewMessageNotification(senderName, messageText, driverUid) {
-      // Notifica browser nativa (se app non ha focus)
-      if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
-        const notification = new Notification(`Nuovo messaggio da ${senderName}`, {
-          body: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
-          icon: './icon192.png',
-          tag: `chat-${driverUid}`,
-          requireInteraction: false,
-          silent: false
-        });
-        
-        // Click per aprire chat
-        notification.onclick = () => {
-          window.focus();
-          openInlineChat(driverUid, senderName);
-          notification.close();
-        };
-        
-        // Auto-chiudi dopo 8 secondi
-        setTimeout(() => notification.close(), 8000);
-      }
-      
-      // Toast visivo sempre (anche se app ha focus)
-      createAdvancedToast(
-        `💬 Nuovo messaggio da ${senderName}`, 
-        messageText, 
-        () => { openInlineChat(driverUid, senderName); }
-      );
-      
-      // Suono notifica
-      playNotificationSound();
-    }
-
-    function playNotificationSound() {
-      try {
-        // Crea un suono di notifica semplice
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 600; // Frequenza leggermente diversa per admin
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.4);
-      } catch (error) {
-        console.log('Suono notifica non disponibile');
-      }
-    }
-
     function createAdvancedToast(title, message, onClick) {
       const container = document.getElementById('toast-container') || createToastContainer();
       
@@ -716,7 +750,6 @@
         </div>
       `;
       
-      // Gestori eventi
       const closeBtn = toast.querySelector('.toast-close');
       const actionBtn = toast.querySelector('.toast-action-btn');
       
@@ -725,8 +758,6 @@
       
       container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 100);
-      
-      // Auto-hide dopo 10 secondi
       setTimeout(() => hideAdvancedToast(toast), 10000);
       
       return toast;
@@ -753,27 +784,72 @@
       }, 300);
     }
 
-    function requestNotificationPermissionForAdmin() {
-      // Solo se non è mai stato chiesto prima
-      if (Notification.permission === 'default') {
-        // Mostra un piccolo prompt prima di chiedere il permesso ufficiale
-        const userWantsNotifications = confirm(
-          "Vuoi ricevere notifiche quando arrivano messaggi dai driver?\n\n" +
-          "Le notifiche ti aiuteranno a rispondere tempestivamente."
-        );
+    function playNotificationSound() {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
         
-        if (userWantsNotifications) {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              console.log('✅ Notifiche admin autorizzate');
-              createToast('🔔 Notifiche attivate', 'Riceverai notifiche per i messaggi dai driver');
-            } else {
-              console.log('❌ Notifiche admin rifiutate');
-            }
-          });
-        }
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.5);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      } catch (error) {
+        console.log('Suono notifica non disponibile');
       }
     }
+
+    function showNewMessageNotification(senderName, messageText, driverUid) {
+      // Notifica browser nativa
+      if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
+        const notification = new Notification(`Nuovo messaggio da ${senderName}`, {
+          body: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
+          icon: './icon192.png',
+          tag: 'new-admin-message',
+          requireInteraction: false,
+          silent: false
+        });
+        
+        notification.onclick = () => {
+          window.focus();
+          openInlineChat(driverUid, senderName);
+          notification.close();
+        };
+        
+        setTimeout(() => notification.close(), 8000);
+      }
+      
+      // Toast visivo sempre
+      createAdvancedToast(
+        `💬 Nuovo messaggio da ${senderName}`, 
+        messageText, 
+        () => { openInlineChat(driverUid, senderName); }
+      );
+      
+      // Suono notifica
+      playNotificationSound();
+    }
+
+    function requestNotificationPermissionForAdmin() {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            console.log('✅ Notifiche admin autorizzate');
+            createToast('🔔 Notifiche attivate', 'Riceverai notifiche per i nuovi messaggi dai driver');
+          }
+        });
+      }
+    }
+
+    // ======= FINE FUNZIONI NOTIFICHE =======
 
     // Chat panel
     const chatPanel = $("chatPanel");
@@ -791,7 +867,7 @@
         return;
       }
       
-      chatTitle.textContent = `Chat con: ${name || uid}`;
+      chatTitle.textContent = `Chat con: ${name}`;
       chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
       chatPanel.classList.add("open");
     }
@@ -820,21 +896,14 @@
     let editingContactId = null;
     let parsedClienti = [];
     let validClienti = [];
-    let messageListeners = new Map(); // Per tenere traccia dei listener per ogni driver
+    let adminNotificationListeners = new Map(); // Per tracciare i listener delle notifiche
 
-    // Funzioni per badge messaggi non letti CON NOTIFICHE CORRETTE
+    // Funzioni per badge messaggi non letti CON NOTIFICHE
     function watchUnreadBadgeForDriver(uid) {
-      // Se già stiamo ascoltando questo driver, non creare un nuovo listener
-      if (messageListeners.has(uid)) {
-        return messageListeners.get(uid);
-      }
-
       const msgsRef = collection(db, "threads", uid, "messages");
       const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
       
-      let lastMessageCount = 0;
-      
-      const unsubscribe = onSnapshot(qRecent, (snap) => {
+      const unsub = onSnapshot(qRecent, (snap) => {
         let count = 0;
         let latestUnreadMessage = null;
         const now = Date.now();
@@ -854,17 +923,17 @@
           }
         });
         
-        // ✅ CORREZIONE: Rimossa la condizione lastMessageCount > 0
-        if (latestUnreadMessage && lastMessageCount < count) {
-          // Trova il nome del driver
-          const driverElement = document.getElementById(`name-input-${uid}`);
-          const driverName = driverElement ? driverElement.value.trim() || `Driver ${uid.slice(0, 8)}` : `Driver ${uid.slice(0, 8)}`;
+        // Se c'è un nuovo messaggio molto recente, mostra notifica
+        const existingCount = adminNotificationListeners.get(uid)?.lastCount || 0;
+        if (latestUnreadMessage && count > existingCount && existingCount >= 0) {
+          // Ottieni il nome del driver
+          const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
+          const driverName = badge?.closest('.card')?.querySelector('h3')?.textContent?.split('\n')[0]?.trim() || 'Driver';
           
           showNewMessageNotification(driverName, latestUnreadMessage.text || 'Nuovo messaggio', uid);
         }
         
-        lastMessageCount = count;
-        
+        // Aggiorna il badge
         const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
         if (badge) {
           if (count > 0) {
@@ -875,10 +944,21 @@
             badge.className = "badge badge-gray badge-unread";
           }
         }
+        
+        // Salva il conteggio per il prossimo confronto
+        if (!adminNotificationListeners.has(uid)) {
+          adminNotificationListeners.set(uid, { unsub, lastCount: count });
+        } else {
+          adminNotificationListeners.get(uid).lastCount = count;
+        }
       });
-
-      messageListeners.set(uid, unsubscribe);
-      return unsubscribe;
+      
+      // Se è un nuovo listener, salvalo
+      if (!adminNotificationListeners.has(uid)) {
+        adminNotificationListeners.set(uid, { unsub, lastCount: 0 });
+      }
+      
+      return unsub;
     }
 
     // Gestione chat inline
@@ -1009,12 +1089,12 @@
               </p>
               ${contact.note ? `<p><em>${contact.note}</em></p>` : ""}
             </div>
-            <div class="card-actions">
-              <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
-                      class="btn btn-secondary btn-sm">Modifica</button>
-              <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
-                      class="btn btn-danger btn-sm">Elimina</button>
-            </div>
+          </div>
+          <div class="card-actions">
+            <button onclick="editContact('${id}', ${JSON.stringify(contact).replace(/"/g, '&quot;')})" 
+                    class="btn btn-secondary btn-sm">Modifica</button>
+            <button onclick="deleteContact('${id}', '${contact.nome || 'Contatto'}')" 
+                    class="btn btn-danger btn-sm">Elimina</button>
           </div>
         `;
         container.appendChild(card);
@@ -1048,9 +1128,9 @@
               </h3>
               <p>${u.email || ""}</p>
               ${type !== "in attesa" ? `
-                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                <div class="name-update">
                   <input type="text" placeholder="Nuovo nome" value="${u.name || ""}" 
-                         style="width: auto; flex: 1;" id="name-input-${uid}">
+                         id="name-input-${uid}">
                   <button onclick="updateDriverName('${uid}')" class="btn btn-secondary btn-sm">
                     Aggiorna
                   </button>
@@ -1060,7 +1140,7 @@
           </div>
           <div class="card-actions">
             ${type === "in attesa" 
-              ? `<button data-uid="${uid}" class="approve btn btn-success btn-sm">Approva</button>`
+              ? `<button data-uid="${uid}" class="approve btn btn-success">Approva</button>`
               : `
                 <button data-uid="${uid}" class="revoke btn btn-secondary btn-sm">Revoca</button>
                 <button data-uid="${uid}" class="remove btn btn-danger btn-sm">Elimina</button>
@@ -1103,19 +1183,13 @@
           const uid = e.currentTarget.getAttribute("data-uid");
           if (!confirm("Eliminare il record utente?")) return;
           
-          // Rimuovi anche il listener per questo driver
-          if (messageListeners.has(uid)) {
-            messageListeners.get(uid)();
-            messageListeners.delete(uid);
-          }
-          
           await deleteDoc(doc(db, "users", uid));
           setStatus("success", "Record utente eliminato");
         });
       });
     }
 
-    // Importazione clienti (funzioni esistenti rimangono invariate)
+    // Importazione clienti (codice esistente...)
     $("btn-load-file").addEventListener("click", async () => {
       const fileInput = $("clientFile");
       const file = fileInput.files[0];
@@ -1188,7 +1262,7 @@
 
     $("btn-cancel-import").addEventListener("click", resetImportForm);
 
-    // Parser functions (invariate)
+    // Parser functions (codice esistente...)
     async function parseJSONFile(file) {
       const text = await file.text();
       const data = JSON.parse(text);
@@ -1344,12 +1418,12 @@
       if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
-      
-      // Ferma tutti i listener dei messaggi
-      messageListeners.forEach((unsubscribe) => {
-        unsubscribe();
+
+      // Ferma tutti i listener delle notifiche
+      adminNotificationListeners.forEach((listener) => {
+        if (listener.unsub) listener.unsub();
       });
-      messageListeners.clear();
+      adminNotificationListeners.clear();
 
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
