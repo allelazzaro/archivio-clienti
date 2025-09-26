@@ -1302,26 +1302,42 @@
     }
 
     // MODIFICA ANCHE LA FUNZIONE filtraClienti PER SUPPORTARE LA RICERCA NEI GRUPPI
-    function filtraClienti() {
-      const queryTxt = el("cerca").value.toLowerCase();
-      
-      // Nascondi/mostra divisori alfabetici
-      document.querySelectorAll(".alphabet-divider").forEach(divider => {
-        divider.style.display = queryTxt ? "none" : "block";
-      });
-      
-      // Filtra clienti
-      document.querySelectorAll(".cliente").forEach(cliente => {
-        const visible = cliente.textContent.toLowerCase().includes(queryTxt);
-        cliente.style.display = visible ? "block" : "none";
-      });
-      
-      // Se c'è una ricerca attiva, espandi automaticamente la lista
-      if (queryTxt && !isClientListExpanded) {
-        toggleClientList();
-      }
-    }
-
+// Sostituisci la funzione filtraClienti esistente con questa versione migliorata
+function filtraClienti() {
+  const queryTxt = el("cerca").value.toLowerCase().trim();
+  
+  // Se la ricerca è vuota, mostra tutti i clienti e i divisori alfabetici
+  if (!queryTxt) {
+    document.querySelectorAll(".alphabet-divider").forEach(divider => {
+      divider.style.display = "block";
+    });
+    document.querySelectorAll(".cliente").forEach(cliente => {
+      cliente.style.display = "block";
+    });
+    return;
+  }
+  
+  // Nascondi divisori alfabetici durante la ricerca
+  document.querySelectorAll(".alphabet-divider").forEach(divider => {
+    divider.style.display = "none";
+  });
+  
+  // Filtra clienti basandosi SOLO sul nome del cliente
+  document.querySelectorAll(".cliente").forEach(cliente => {
+    // Estrae il nome del cliente dal primo elemento <strong>
+    const nomeElement = cliente.querySelector('strong');
+    const nomeCliente = nomeElement ? nomeElement.textContent.toLowerCase() : '';
+    
+    // Verifica se il nome del cliente contiene la query di ricerca
+    const visible = nomeCliente.includes(queryTxt);
+    cliente.style.display = visible ? "block" : "none";
+  });
+  
+  // Se c'è una ricerca attiva, espandi automaticamente la lista
+  if (!isClientListExpanded) {
+    toggleClientList();
+  }
+}
     el("btn-aggiungi").addEventListener("click", aggiungiOmodificaCliente);
     el("btn-annulla").addEventListener("click", annullaModifica);
     el("cerca").addEventListener("input", filtraClienti);
