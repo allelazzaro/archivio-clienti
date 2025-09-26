@@ -273,121 +273,6 @@
       font-size: 0.875rem;
     }
 
-    /* Toast notifiche */
-    .toast-container { 
-      position: fixed; 
-      top: 20px; 
-      right: 20px; 
-      z-index: 10000; 
-      max-width: 400px; 
-    }
-    
-    .toast {
-      background: #fff; 
-      border: 1px solid #e0e0e0; 
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.15);
-      padding: 16px; 
-      margin-bottom: 12px;
-      transform: translateX(100%); 
-      transition: all .3s cubic-bezier(.4,0,.2,1);
-      cursor: pointer; 
-      position: relative; 
-      overflow: hidden;
-    }
-    
-    .toast.show { transform: translateX(0); }
-    .toast.hide { transform: translateX(100%); opacity: 0; }
-    .toast::before { content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--primary); }
-    .toast-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--primary); }
-    .toast-body { color: #333; font-size: 14px; line-height: 1.4; margin-left: 24px; }
-    .toast-close {
-      position: absolute; top: 8px; right: 8px; width: 24px; height: 24px;
-      background: none; border: none; font-size: 18px; color: #999; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; border-radius: 50%;
-      transition: background-color .2s;
-    }
-    .toast-close:hover { background-color: #f0f0f0; }
-
-    /* Toast avanzati per notifiche */
-    .advanced-toast {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      border-left: 4px solid var(--primary);
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.15);
-      padding: 0;
-      margin-bottom: 12px;
-      transform: translateX(100%);
-      transition: all .3s cubic-bezier(.4,0,.2,1);
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      min-width: 320px;
-      max-width: 400px;
-    }
-
-    .advanced-toast.show { transform: translateX(0); }
-    .advanced-toast.hide { transform: translateX(100%); opacity: 0; }
-
-    .advanced-toast .toast-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px 8px;
-      font-weight: 600;
-      font-size: 14px;
-      color: var(--primary);
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    .advanced-toast .toast-body {
-      color: #333;
-      font-size: 14px;
-      line-height: 1.4;
-      padding: 8px 16px;
-    }
-
-    .advanced-toast .toast-actions {
-      padding: 8px 16px 12px;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .advanced-toast .toast-action-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .advanced-toast .toast-action-btn:hover { background: #1d4ed8; }
-
-    .advanced-toast .toast-close {
-      position: absolute;
-      top: 8px;
-      right: 12px;
-      width: 20px;
-      height: 20px;
-      background: none;
-      border: none;
-      font-size: 16px;
-      color: #999;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: background-color .2s;
-    }
-
-    .advanced-toast .toast-close:hover { background-color: #f0f0f0; }
-
     /* Mobile responsive */
     @media (max-width: 768px) {
       .header-content {
@@ -576,9 +461,6 @@
     <iframe id="chatFrame" class="chat-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
   </div>
 
-  <!-- Container per toast messaggi -->
-  <div id="toast-container" class="toast-container"></div>
-
   <script type="module">
     const firebaseConfig = {
       apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
@@ -592,22 +474,19 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc,
-      orderBy, limit, addDoc, serverTimestamp, getDocs, setDoc
+      orderBy, limit, addDoc, serverTimestamp, getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
       setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
     const app = initializeApp(firebaseConfig, "adminApp");
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const messaging = getMessaging(app);
     await setPersistence(auth, browserLocalPersistence);
 
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
-    const VAPID_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
     const $ = id => document.getElementById(id);
     
@@ -616,213 +495,6 @@
       status.className = `status-bar status-${type}`;
       status.textContent = msg;
     };
-
-    // Setup notifiche admin
-// Setup notifiche admin
-async function setupAdminNotifications() {
-  try {
-    // Controlli preliminari più rigorosi
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-      console.warn('Notifiche non supportate');
-      return;
-    }
-
-    // Verifica che l'utente sia loggato
-    if (!auth.currentUser) {
-      console.warn('Utente non loggato, skip setup notifiche');
-      return;
-    }
-
-    // Solo se le notifiche sono già autorizzate
-    if (Notification.permission === 'granted') {
-      // Aspetta che il Service Worker sia pronto
-      await navigator.serviceWorker.ready;
-      
-      const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-      if (token) {
-        await setDoc(doc(db, "users", auth.currentUser.uid), {
-          fcmTokens: { [token]: true }
-        }, { merge: true });
-        console.log('✅ Token FCM salvato per admin');
-      }
-    } else {
-      console.log('ℹ️ Notifiche non ancora autorizzate');
-    }
-  } catch (error) {
-    console.warn('Setup notifiche saltato:', error.message);
-    // Non loggare come errore, è normale durante il caricamento iniziale
-  }
-}
-
-// Gestione notifiche in foreground (solo se supportate)
-if (typeof messaging !== 'undefined') {
-  onMessage(messaging, (payload) => {
-    console.log('Notifica ricevuta:', payload);
-    const title = payload.notification?.title || 'Nuovo messaggio';
-    const body = payload.notification?.body || '';
-    showNewMessageNotification('Driver', body, '');
-  });
-}
-    // ======= FUNZIONI NOTIFICHE AVANZATE =======
-    
-    function createToast(title, message, onClick) {
-      const container = document.getElementById('toast-container') || createToastContainer();
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      toast.innerHTML = `
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-        <div class="toast-header"><span>💬</span>${title}</div>
-        <div class="toast-body">${message}</div>
-      `;
-      if (onClick) {
-        toast.addEventListener('click', (e) => {
-          if (e.target.classList.contains('toast-close')) return;
-          onClick(); hideToast(toast);
-        });
-      }
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 100);
-      setTimeout(() => hideToast(toast), 6000);
-      return toast;
-    }
-
-    function hideToast(toast) { 
-      toast.classList.add('hide'); 
-      setTimeout(() => { if(toast.parentElement) toast.remove(); }, 300); 
-    }
-
-    function showNewMessageNotification(senderName, messageText, driverUid) {
-      // Notifica browser nativa (se app non ha focus)
-      if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
-        const notification = new Notification(`Nuovo messaggio da ${senderName}`, {
-          body: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
-          icon: './icon192.png',
-          tag: `chat-${driverUid}`,
-          requireInteraction: false,
-          silent: false
-        });
-        
-        // Click per aprire chat
-        notification.onclick = () => {
-          window.focus();
-          openInlineChat(driverUid, senderName);
-          notification.close();
-        };
-        
-        // Auto-chiudi dopo 8 secondi
-        setTimeout(() => notification.close(), 8000);
-      }
-      
-      // Toast visivo sempre (anche se app ha focus)
-      createAdvancedToast(
-        `💬 Nuovo messaggio da ${senderName}`, 
-        messageText, 
-        () => { openInlineChat(driverUid, senderName); }
-      );
-      
-      // Suono notifica
-      playNotificationSound();
-    }
-
-    function playNotificationSound() {
-      try {
-        // Crea un suono di notifica semplice
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.value = 600; // Frequenza leggermente diversa per admin
-        oscillator.type = 'sine';
-        
-        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.4);
-        
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.4);
-      } catch (error) {
-        console.log('Suono notifica non disponibile');
-      }
-    }
-
-    function createAdvancedToast(title, message, onClick) {
-      const container = document.getElementById('toast-container') || createToastContainer();
-      
-      const toast = document.createElement('div');
-      toast.className = 'toast advanced-toast';
-      toast.innerHTML = `
-        <div class="toast-header">
-          <span>🔔</span>
-          <strong>${title}</strong>
-          <button class="toast-close">×</button>
-        </div>
-        <div class="toast-body">${message.length > 150 ? message.substring(0, 147) + '...' : message}</div>
-        <div class="toast-actions">
-          <button class="toast-action-btn">Apri Chat</button>
-        </div>
-      `;
-      
-      // Gestori eventi
-      const closeBtn = toast.querySelector('.toast-close');
-      const actionBtn = toast.querySelector('.toast-action-btn');
-      
-      closeBtn.onclick = () => hideAdvancedToast(toast);
-      actionBtn.onclick = () => { if (onClick) onClick(); hideAdvancedToast(toast); };
-      
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 100);
-      
-      // Auto-hide dopo 10 secondi
-      setTimeout(() => hideAdvancedToast(toast), 10000);
-      
-      return toast;
-    }
-
-    function createToastContainer() {
-      let container = document.getElementById('toast-container');
-      if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container';
-        container.className = 'toast-container';
-        document.body.appendChild(container);
-      }
-      return container;
-    }
-
-    function hideAdvancedToast(toast) {
-      toast.classList.remove('show');
-      toast.classList.add('hide');
-      setTimeout(() => {
-        if (toast.parentElement) {
-          toast.remove();
-        }
-      }, 300);
-    }
-
-    function requestNotificationPermissionForAdmin() {
-      // Solo se non è mai stato chiesto prima
-      if (Notification.permission === 'default') {
-        // Mostra un piccolo prompt prima di chiedere il permesso ufficiale
-        const userWantsNotifications = confirm(
-          "Vuoi ricevere notifiche quando arrivano messaggi dai driver?\n\n" +
-          "Le notifiche ti aiuteranno a rispondere tempestivamente."
-        );
-        
-        if (userWantsNotifications) {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              console.log('✅ Notifiche admin autorizzate');
-              createToast('🔔 Notifiche attivate', 'Riceverai notifiche per i messaggi dai driver');
-            } else {
-              console.log('❌ Notifiche admin rifiutate');
-            }
-          });
-        }
-      }
-    }
 
     // Chat panel
     const chatPanel = $("chatPanel");
@@ -833,17 +505,6 @@ if (typeof messaging !== 'undefined') {
       chatPanel.classList.remove("open");
       chatFrame.src = "about:blank";
     });
-
-    function openInlineChat(uid, name) {
-      if (!uid) {
-        alert("Impossibile aprire la chat: UID mancante");
-        return;
-      }
-      
-      chatTitle.textContent = `Chat con: ${name || uid}`;
-      chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
-      chatPanel.classList.add("open");
-    }
 
     // Login/Logout
     $("btn-login").addEventListener("click", async () => {
@@ -869,50 +530,19 @@ if (typeof messaging !== 'undefined') {
     let editingContactId = null;
     let parsedClienti = [];
     let validClienti = [];
-    let messageListeners = new Map(); // Per tenere traccia dei listener per ogni driver
 
-    // Funzioni per badge messaggi non letti CON NOTIFICHE CORRETTE
+    // Funzioni per badge messaggi non letti
     function watchUnreadBadgeForDriver(uid) {
-      // Se già stiamo ascoltando questo driver, non creare un nuovo listener
-      if (messageListeners.has(uid)) {
-        return messageListeners.get(uid);
-      }
-
       const msgsRef = collection(db, "threads", uid, "messages");
       const qRecent = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
       
-      let lastMessageCount = 0;
-      
-      const unsubscribe = onSnapshot(qRecent, (snap) => {
+      return onSnapshot(qRecent, (snap) => {
         let count = 0;
-        let latestUnreadMessage = null;
-        const now = Date.now();
-        
         snap.forEach(d => {
           const m = d.data();
           const rb = Array.isArray(m.readBy) ? m.readBy : [];
-          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) {
-            count++;
-            // Trova il messaggio più recente (ultimi 30 secondi)
-            if (!latestUnreadMessage) {
-              const msgTime = m.createdAt?.toDate?.()?.getTime() || 0;
-              if (now - msgTime < 30000) { // 30 secondi
-                latestUnreadMessage = m;
-              }
-            }
-          }
+          if (!rb.includes(ADMIN_UID) && m.sender !== ADMIN_UID) count++;
         });
-        
-        // ✅ CORREZIONE: Rimossa la condizione lastMessageCount > 0
-        if (latestUnreadMessage && lastMessageCount < count) {
-          // Trova il nome del driver
-          const driverElement = document.getElementById(`name-input-${uid}`);
-          const driverName = driverElement ? driverElement.value.trim() || `Driver ${uid.slice(0, 8)}` : `Driver ${uid.slice(0, 8)}`;
-          
-          showNewMessageNotification(driverName, latestUnreadMessage.text || 'Nuovo messaggio', uid);
-        }
-        
-        lastMessageCount = count;
         
         const badge = document.querySelector(`.badge-unread[data-uid="${uid}"]`);
         if (badge) {
@@ -925,9 +555,6 @@ if (typeof messaging !== 'undefined') {
           }
         }
       });
-
-      messageListeners.set(uid, unsubscribe);
-      return unsubscribe;
     }
 
     // Gestione chat inline
@@ -936,7 +563,15 @@ if (typeof messaging !== 'undefined') {
         btn.addEventListener("click", (e) => {
           const uid = e.currentTarget.dataset.uid;
           const name = e.currentTarget.dataset.name || uid;
-          openInlineChat(uid, name);
+          
+          if (!uid) {
+            alert("Impossibile aprire la chat: UID mancante");
+            return;
+          }
+          
+          chatTitle.textContent = `Chat con: ${name}`;
+          chatFrame.src = `chat.html?uid=${encodeURIComponent(uid)}&iframe=1`;
+          chatPanel.classList.add("open");
         });
       });
     }
@@ -1152,19 +787,13 @@ if (typeof messaging !== 'undefined') {
           const uid = e.currentTarget.getAttribute("data-uid");
           if (!confirm("Eliminare il record utente?")) return;
           
-          // Rimuovi anche il listener per questo driver
-          if (messageListeners.has(uid)) {
-            messageListeners.get(uid)();
-            messageListeners.delete(uid);
-          }
-          
           await deleteDoc(doc(db, "users", uid));
           setStatus("success", "Record utente eliminato");
         });
       });
     }
 
-    // Importazione clienti (funzioni esistenti rimangono invariate)
+    // Importazione clienti
     $("btn-load-file").addEventListener("click", async () => {
       const fileInput = $("clientFile");
       const file = fileInput.files[0];
@@ -1237,7 +866,7 @@ if (typeof messaging !== 'undefined') {
 
     $("btn-cancel-import").addEventListener("click", resetImportForm);
 
-    // Parser functions (invariate)
+    // Parser functions
     async function parseJSONFile(file) {
       const text = await file.text();
       const data = JSON.parse(text);
@@ -1393,12 +1022,6 @@ if (typeof messaging !== 'undefined') {
       if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
-      
-      // Ferma tutti i listener dei messaggi
-      messageListeners.forEach((unsubscribe) => {
-        unsubscribe();
-      });
-      messageListeners.clear();
 
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
@@ -1414,7 +1037,7 @@ if (typeof messaging !== 'undefined') {
     }
 
     // Auth state changes
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
       if (!user) {
         setStatus("warning", "Accesso necessario");
         stopListeners();
@@ -1428,31 +1051,13 @@ if (typeof messaging !== 'undefined') {
       $("pass").disabled = true;
       $("btn-login").disabled = true;
 
-if (user.uid === ADMIN_UID) {
-  setStatus("success", `Benvenuto ${user.email}`);
-  startListeners();
-  requestNotificationPermissionForAdmin();
-  // Setup notifiche dopo un piccolo delay per assicurarsi che tutto sia pronto
-// Setup notifiche dopo un piccolo delay per assicurarsi che tutto sia pronto
-setTimeout(async () => {
-  // Prima verifica che il Service Worker sia disponibile
-  try {
-    const response = await fetch('./firebase-messaging-sw.js');
-    if (response.ok) {
-      console.log('✅ Service Worker file accessibile');
-      setupAdminNotifications();
-    } else {
-      console.warn('⚠️ Service Worker non ancora disponibile, riprovo...');
-      setTimeout(() => setupAdminNotifications(), 2000);
-    }
-  } catch (error) {
-    console.warn('⚠️ Errore verifica SW:', error.message);
-    setTimeout(() => setupAdminNotifications(), 2000);
-  }
-}, 1000);} else {
-  setStatus("warning", `${user.email} - Non hai permessi admin`);
-  stopListeners();
-}
+      if (user.uid === ADMIN_UID) {
+        setStatus("success", `Benvenuto ${user.email}`);
+        startListeners();
+      } else {
+        setStatus("warning", `${user.email} - Non hai permessi admin`);
+        stopListeners();
+      }
     });
 
     // Test function for deleting admin clients
