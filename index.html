@@ -373,84 +373,120 @@
       background: #a8a8a8;
     }
 
-    /* STILI PER CAMPO CON PULSANTE RESET INTEGRATO */
-    .input-with-clear {
+    /* STILI PER CAMPO RICERCA MODERNO */
+    .search-container {
       position: relative;
+      margin-bottom: 8px;
+    }
+
+    .search-container input {
+      background: #2c2c2e;
+      border: 1px solid #48484a;
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 16px;
+      padding: 12px 45px 12px 45px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      margin: 0;
+    }
+
+    .search-container input:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .search-container input::placeholder {
+      color: #8e8e93;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      opacity: 0.6;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .search-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: #8e8e93;
+    }
+
+    .clear-search-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(142, 142, 147, 0.3);
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      color: #8e8e93;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      margin: 0;
+      padding: 0;
+    }
+
+    .clear-search-btn:hover {
+      background: rgba(142, 142, 147, 0.5);
+      color: #ffffff;
+    }
+
+    .clear-search-btn:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    /* STILI PER PULSANTE RESET */
+    .form-row {
       display: flex;
+      gap: 8px;
       align-items: center;
     }
 
-    .input-with-clear input {
-      padding-right: 45px !important;
-      margin: 6px 0;
-    }
-
-    .btn-clear {
-      position: absolute;
-      right: 8px;
-      background: rgba(108, 117, 125, 0.1);
+    .btn-reset {
+      background-color: #6c757d;
+      color: white;
       border: none;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
       cursor: pointer;
-      font-size: 14px;
-      color: #6c757d;
+      font-size: 18px;
+      font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
-      opacity: 0;
-      visibility: hidden;
+      margin: 6px 0;
     }
 
-    .btn-clear.show {
-      opacity: 1;
-      visibility: visible;
+    .btn-reset:hover {
+      background-color: #5a6268;
+      transform: scale(1.1);
     }
 
-    .btn-clear:hover {
-      background: rgba(108, 117, 125, 0.2);
-      color: #495057;
+    .btn-reset:active {
+      transform: scale(0.95);
     }
 
-    .btn-clear:active {
-      transform: scale(0.9);
-    }
-
-    /* Pulsante reset generale del form */
-    .form-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .form-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #495057;
-      margin: 0;
-    }
-
-    .btn-reset-all {
-      background: rgba(108, 117, 125, 0.1);
-      border: 1px solid rgba(108, 117, 125, 0.3);
-      border-radius: 6px;
-      padding: 6px 12px;
-      cursor: pointer;
-      font-size: 12px;
-      color: #6c757d;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .btn-reset-all:hover {
-      background: rgba(108, 117, 125, 0.15);
-      border-color: rgba(108, 117, 125, 0.5);
-      color: #495057;
+    #nome {
+      flex: 1;
     }
   </style>
 
@@ -568,7 +604,15 @@
 
 <!-- NUOVA SEZIONE CLIENTI COMPRIMIBILE -->
 <div>
-  <input id="cerca" placeholder="Cerca cliente" style="margin-bottom: 8px;">
+  <div class="search-container">
+    <div class="search-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+    </div>
+    <input id="cerca" placeholder="Cerca cliente">
+    <button id="clear-search" class="clear-search-btn">×</button>
+  </div>
   
   <!-- Header comprimibile -->
   <div id="client-list-header" class="client-list-header" onclick="toggleClientList()">
@@ -1455,7 +1499,25 @@
     // ✅ AGGIUNGI EVENT LISTENER PER PULSANTE RESET
     el("btn-reset").addEventListener("click", resetForm);
     
-    el("cerca").addEventListener("input", filtraClienti);
+    el("cerca").addEventListener("input", function() {
+      filtraClienti();
+      // Mostra/nasconde il pulsante clear
+      const clearBtn = document.getElementById('clear-search');
+      if (this.value.trim()) {
+        clearBtn.style.display = 'flex';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+    });
+
+    // Gestione pulsante clear ricerca
+    document.getElementById('clear-search').addEventListener('click', function() {
+      const searchInput = document.getElementById('cerca');
+      searchInput.value = '';
+      this.style.display = 'none';
+      filtraClienti(); // Aggiorna la visualizzazione
+    });
+    
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
     // Modal rubrica
