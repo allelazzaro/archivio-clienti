@@ -1,10 +1,14 @@
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
   <title>Admin - Gestione Sistema</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
   <style>
     :root { 
       --primary: #2563eb; 
@@ -216,7 +220,7 @@
       text-align: center;
       justify-content: center;
       white-space: nowrap;
-      min-height: 32px; /* Miglior tocco su mobile */
+      min-height: 32px;
     }
 
     .btn:disabled {
@@ -443,6 +447,146 @@
       display: block;
     }
 
+    /* Mappa clienti */
+    #map-section {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: white;
+    }
+
+    #map-container {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 10px;
+      left: 50px;
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-width: 400px;
+    }
+
+    .map-controls input {
+      flex: 1;
+      min-width: 200px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .map-controls button {
+      padding: 8px 16px;
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .map-controls button:hover {
+      background: #b91c1c;
+    }
+
+    .map-stats {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 8px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Popup personalizzato */
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px;
+      padding: 0;
+    }
+
+    .leaflet-popup-content {
+      margin: 0;
+      min-width: 200px;
+    }
+
+    .client-popup {
+      padding: 12px;
+    }
+
+    .client-popup-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #2563eb;
+    }
+
+    .client-popup-address {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .client-popup-notes {
+      font-size: 12px;
+      color: #888;
+      font-style: italic;
+      margin-bottom: 8px;
+      padding: 6px;
+      background: #f9fafb;
+      border-radius: 4px;
+    }
+
+    .client-popup-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .client-popup-btn {
+      flex: 1;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      text-decoration: none;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-maps {
+      background: #4285f4;
+      color: white;
+    }
+
+    .btn-maps:hover {
+      background: #357ae8;
+    }
+
     /* Desktop media query */
     @media (min-width: 768px) {
       .header-content {
@@ -510,7 +654,7 @@
       }
 
       .section-title {
-        font-size: 0.5rem;
+        font-size: 1.5rem;
         flex-direction: column;
         align-items: flex-start;
         gap: 0.75rem;
@@ -547,6 +691,19 @@
         min-width: unset;
         max-width: unset;
       }
+
+      .map-controls {
+        left: 10px;
+        right: 10px;
+        max-width: unset;
+      }
+
+      .map-stats {
+        left: 10px;
+        right: 10px;
+        transform: none;
+        text-align: center;
+      }
     }
 
     /* Toast su mobile */
@@ -554,7 +711,7 @@
       .toast-container {
         left: 10px;
         right: 10px;
-        top: 80px; /* Sotto l'header sticky */
+        top: 80px;
       }
     }
   </style>
@@ -584,6 +741,7 @@
           Utenti Approvati  
           <span id="count-approved" class="badge badge-green">0</span>
           <a href="console.html" class="btn btn-primary btn-sm">Apri Chat Driver</a>
+          <button id="btn-open-map" class="btn btn-primary btn-sm">🗺️ Mappa Clienti</button>
         </h2>
         <div id="approved" class="empty-state">
           Effettua il login per vedere gli utenti approvati
@@ -667,8 +825,25 @@
     <iframe id="chatFrame" class="chat-iframe" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
   </div>
 
+  <!-- Sezione Mappa Clienti -->
+  <div id="map-section">
+    <div id="map-container">
+      <div class="map-controls">
+        <input id="map-search" type="text" placeholder="🔍 Cerca cliente sulla mappa..." />
+        <button id="btn-close-map">✕ Chiudi</button>
+      </div>
+      <div id="map"></div>
+      <div class="map-stats" id="map-stats">
+        Caricamento mappa...
+      </div>
+    </div>
+  </div>
+
   <!-- Container toast -->
   <div id="toast-container" class="toast-container"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script type="module">
     const firebaseConfig = {
@@ -808,7 +983,6 @@
     }
 
     function showNewMessageNotification(senderName, messageText, driverUid) {
-      // Notifica browser nativa
       if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
         const notification = new Notification(`Nuovo messaggio da ${senderName}`, {
           body: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
@@ -827,14 +1001,12 @@
         setTimeout(() => notification.close(), 8000);
       }
       
-      // Toast visivo sempre
       createAdvancedToast(
         `💬 Nuovo messaggio da ${senderName}`, 
         messageText, 
         () => { openInlineChat(driverUid, senderName); }
       );
       
-      // Suono notifica
       playNotificationSound();
     }
 
@@ -853,14 +1025,12 @@
     let pollingInterval = null;
     let lastBadgeCounts = new Map();
 
-    // Sistema di polling che controlla ogni 10 secondi
     function startBadgePollingForSafari() {
-      if (pollingInterval) return; // Già attivo
+      if (pollingInterval) return;
       
       console.log('🍎 Avviato polling badge per Safari mobile');
       
       pollingInterval = setInterval(async () => {
-        // Trova tutti i badge nella pagina
         const badges = document.querySelectorAll('.badge-unread[data-uid]');
         
         for (const badge of badges) {
@@ -868,14 +1038,11 @@
           if (!uid) continue;
           
           try {
-            // Controlla manualmente i messaggi non letti per questo driver
             const unreadCount = await getUnreadCountForDriver(uid);
             const previousCount = lastBadgeCounts.get(uid) || 0;
             
-            // Aggiorna il badge
             updateBadgeVisually(badge, unreadCount);
             
-            // Se ci sono nuovi messaggi, evidenzia
             if (unreadCount > previousCount && previousCount >= 0) {
               highlightNewMessage(badge, uid, unreadCount);
             }
@@ -886,7 +1053,7 @@
             console.warn(`Errore polling per ${uid}:`, error);
           }
         }
-      }, 10000); // Controlla ogni 10 secondi
+      }, 10000);
     }
 
     function stopBadgePolling() {
@@ -898,7 +1065,6 @@
       }
     }
 
-    // Funzione per contare messaggi non letti
     async function getUnreadCountForDriver(uid) {
       try {
         const msgsRef = collection(db, "threads", uid, "messages");
@@ -918,7 +1084,6 @@
           }
         });
         
-        // Salva ultimo messaggio per notifiche
         if (latestMessage) {
           lastBadgeCounts.set(`${uid}_lastMsg`, latestMessage.text || '');
         }
@@ -930,7 +1095,6 @@
       }
     }
 
-    // Aggiorna visivamente il badge
     function updateBadgeVisually(badge, count) {
       if (count > 0) {
         badge.textContent = String(count);
@@ -942,11 +1106,9 @@
       }
     }
 
-    // Evidenzia nuovo messaggio con animazione
     function highlightNewMessage(badge, uid, newCount) {
       const card = badge.closest('.card');
       if (card) {
-        // Animazione lampeggio
         card.style.border = '2px solid #ff4757';
         card.style.boxShadow = '0 0 10px rgba(255, 71, 87, 0.5)';
         
@@ -955,11 +1117,9 @@
           card.style.boxShadow = '';
         }, 3000);
         
-        // Nome del driver
         const driverName = card.querySelector('h3').textContent.split('\n')[0].trim();
         const lastMsg = lastBadgeCounts.get(`${uid}_lastMsg`) || 'Nuovo messaggio';
         
-        // Su Safari mobile usa confirm invece dei toast
         setTimeout(() => {
           if (confirm(`📱 Nuovo messaggio da ${driverName}: "${lastMsg}". Aprire chat?`)) {
             openInlineChat(uid, driverName);
@@ -968,10 +1128,8 @@
       }
     }
 
-    // Auto-avvio quando la pagina torna in primo piano (per Safari mobile)
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && auth.currentUser?.uid === ADMIN_UID) {
-        // Forza un controllo immediato quando torni sulla pagina
         setTimeout(() => {
           document.querySelectorAll('.badge-unread[data-uid]').forEach(badge => {
             const uid = badge.dataset.uid;
@@ -984,7 +1142,6 @@
       }
     });
 
-    // Controllo immediato all'avvio per caricare i badge
     function loadInitialBadgeCounts() {
       setTimeout(() => {
         document.querySelectorAll('.badge-unread[data-uid]').forEach(badge => {
@@ -996,8 +1153,6 @@
         });
       }, 2000);
     }
-
-    // ======= FINE SISTEMA BADGE POLLING =======
 
     // Chat panel
     const chatPanel = $("chatPanel");
@@ -1039,13 +1194,11 @@
 
     $("btn-logout").addEventListener("click", () => signOut(auth));
 
-    // Variabili globali
     let pendingUnsub = null, approvedUnsub = null, contactsUnsub = null;
     let editingContactId = null;
     let parsedClienti = [];
     let validClienti = [];
 
-    // Gestione chat inline
     function attachInlineChatHandlers(container) {
       container.querySelectorAll(".open-inline").forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -1056,7 +1209,6 @@
       });
     }
 
-    // Aggiornamento nome driver
     window.updateDriverName = async function(uid) {
       const input = document.getElementById(`name-input-${uid}`);
       if (!input) return;
@@ -1075,7 +1227,6 @@
       }
     };
 
-    // Gestione rubrica
     async function addOrEditContact() {
       const nome = $("rubrica-nome").value.trim();
       const telefono = $("rubrica-telefono").value.trim();
@@ -1143,7 +1294,6 @@
       }
     }
 
-    // Render functions
     function renderContacts(snapshot) {
       const container = $("contacts-list");
       const count = $("count-contacts");
@@ -1237,7 +1387,6 @@
         container.appendChild(card);
       });
 
-      // Attach event handlers
       attachInlineChatHandlers(container);
 
       container.querySelectorAll(".approve").forEach(btn => {
@@ -1268,13 +1417,12 @@
         });
       });
 
-      // Carica badge iniziali per i nuovi utenti
       if (type !== "in attesa") {
         setTimeout(loadInitialBadgeCounts, 1000);
       }
     }
 
-    // Importazione clienti (codice esistente...)
+    // Importazione clienti
     $("btn-load-file").addEventListener("click", async () => {
       const fileInput = $("clientFile");
       const file = fileInput.files[0];
@@ -1347,7 +1495,6 @@
 
     $("btn-cancel-import").addEventListener("click", resetImportForm);
 
-    // Parser functions (codice esistente...)
     async function parseJSONFile(file) {
       const text = await file.text();
       const data = JSON.parse(text);
@@ -1466,13 +1613,191 @@
       validClienti = [];
     }
 
-    // Event listeners
     $("btn-add-contact").addEventListener("click", addOrEditContact);
     $("btn-cancel-contact").addEventListener("click", cancelEditContact);
 
-    // Global functions
     window.editContact = editContact;
     window.deleteContact = deleteContact;
+
+    // ======= MAPPA CLIENTI =======
+    let map = null;
+    let markers = [];
+    let allClienti = [];
+
+    function initMap() {
+      if (map) {
+        map.remove();
+      }
+      
+      map = L.map('map').setView([42.5, 12.5], 6);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      }).addTo(map);
+      
+      return map;
+    }
+
+    async function loadClientiForMap() {
+      try {
+        const clientiRef = collection(db, "clienti");
+        const snapshot = await getDocs(clientiRef);
+        
+        allClienti = [];
+        snapshot.forEach(doc => {
+          const cliente = doc.data();
+          cliente.id = doc.id;
+          
+          if (cliente.coordinate && typeof cliente.coordinate === 'string') {
+            const coords = cliente.coordinate.split(',').map(c => parseFloat(c.trim()));
+            if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+              cliente.lat = coords[0];
+              cliente.lng = coords[1];
+              allClienti.push(cliente);
+            }
+          }
+        });
+        
+        return allClienti;
+      } catch (error) {
+        console.error("Errore caricamento clienti:", error);
+        return [];
+      }
+    }
+
+    function createClientMarker(cliente) {
+      const marker = L.marker([cliente.lat, cliente.lng], {
+        title: cliente.nome
+      });
+      
+      const popupContent = `
+        <div class="client-popup">
+          <div class="client-popup-title">${cliente.nome || 'Cliente senza nome'}</div>
+          <div class="client-popup-address">📍 ${cliente.indirizzo || 'Indirizzo non disponibile'}</div>
+          ${cliente.note ? `<div class="client-popup-notes">📝 ${cliente.note}</div>` : ''}
+          <div style="font-size: 11px; color: #999; margin-bottom: 8px;">
+            Coordinate: ${cliente.lat.toFixed(6)}, ${cliente.lng.toFixed(6)}
+          </div>
+          <div class="client-popup-actions">
+            <a href="https://maps.google.com/?q=${cliente.lat},${cliente.lng}" 
+               target="_blank" 
+               class="client-popup-btn btn-maps">
+              Google Maps
+            </a>
+          </div>
+        </div>
+      `;
+      
+      marker.bindPopup(popupContent, {
+        maxWidth: 300,
+        className: 'custom-popup'
+      });
+      
+      marker.clienteData = cliente;
+      
+      return marker;
+    }
+
+    function displayClientiOnMap(clienti) {
+      markers.forEach(marker => marker.remove());
+      markers = [];
+      
+      if (clienti.length === 0) {
+        document.getElementById('map-stats').textContent = 'Nessun cliente con coordinate trovato';
+        return;
+      }
+      
+      const bounds = L.latLngBounds();
+      
+      clienti.forEach(cliente => {
+        const marker = createClientMarker(cliente);
+        marker.addTo(map);
+        markers.push(marker);
+        bounds.extend([cliente.lat, cliente.lng]);
+      });
+      
+      if (clienti.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
+      
+      updateMapStats(clienti.length, allClienti.length);
+    }
+
+    function updateMapStats(visible, total) {
+      const stats = document.getElementById('map-stats');
+      if (visible === total) {
+        stats.textContent = `📍 ${total} clienti visualizzati`;
+      } else {
+        stats.textContent = `📍 ${visible} di ${total} clienti visualizzati`;
+      }
+    }
+
+    function searchClientiOnMap(query) {
+      if (!query || query.trim() === '') {
+        displayClientiOnMap(allClienti);
+        return;
+      }
+      
+      const queryLower = query.toLowerCase().trim();
+      const filtered = allClienti.filter(cliente => {
+        const nome = (cliente.nome || '').toLowerCase();
+        const indirizzo = (cliente.indirizzo || '').toLowerCase();
+        const note = (cliente.note || '').toLowerCase();
+        
+        return nome.includes(queryLower) || 
+               indirizzo.includes(queryLower) || 
+               note.includes(queryLower);
+      });
+      
+      displayClientiOnMap(filtered);
+      
+      if (filtered.length === 1 && markers.length === 1) {
+        const marker = markers[0];
+        map.setView([filtered[0].lat, filtered[0].lng], 15);
+        marker.openPopup();
+      }
+    }
+
+    async function openMapView() {
+      const mapSection = document.getElementById('map-section');
+      mapSection.style.display = 'block';
+      
+      if (!map) {
+        initMap();
+      } else {
+        map.invalidateSize();
+      }
+      
+      document.getElementById('map-stats').textContent = 'Caricamento clienti...';
+      
+      allClienti = await loadClientiForMap();
+      
+      if (allClienti.length === 0) {
+        document.getElementById('map-stats').textContent = '⚠️ Nessun cliente con coordinate GPS trovato';
+        return;
+      }
+      
+      displayClientiOnMap(allClienti);
+    }
+
+    function closeMapView() {
+      document.getElementById('map-section').style.display = 'none';
+      document.getElementById('map-search').value = '';
+    }
+
+    document.getElementById('btn-open-map').addEventListener('click', openMapView);
+    document.getElementById('btn-close-map').addEventListener('click', closeMapView);
+
+    document.getElementById('map-search').addEventListener('input', (e) => {
+      searchClientiOnMap(e.target.value);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('map-section').style.display === 'block') {
+        closeMapView();
+      }
+    });
 
     // Main listeners management
     function startListeners() {
@@ -1495,7 +1820,6 @@
         contactsUnsub = onSnapshot(qContacts, renderContacts);
       }
 
-      // AVVIA IL POLLING PER SAFARI MOBILE
       startBadgePollingForSafari();
 
       $("rubrica-section").style.display = "block";
@@ -1507,7 +1831,6 @@
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
 
-      // FERMA IL POLLING
       stopBadgePolling();
 
       $("count-pending").textContent = "0";
@@ -1523,7 +1846,6 @@
       resetImportForm();
     }
 
-    // Auth state changes
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         setStatus("warning", "Accesso necessario");
@@ -1541,7 +1863,6 @@
       if (user.uid === ADMIN_UID) {
         setStatus("success", `Benvenuto ${user.email}`);
         startListeners();
-        // Richiedi permessi notifiche per admin
         requestNotificationPermissionForAdmin();
       } else {
         setStatus("warning", `${user.email} - Non hai permessi admin`);
@@ -1549,7 +1870,6 @@
       }
     });
 
-    // Test function for deleting admin clients
     window.eliminaClientiTest = async function() {
       const conferma = confirm("Eliminare tutti i clienti importati dall'admin?");
       if (!conferma) return;
@@ -1575,9 +1895,4 @@
     };
   </script>
 </body>
-
 </html>
-
-
-
-
