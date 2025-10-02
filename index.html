@@ -380,27 +380,31 @@
     }
 
     .search-container input {
-      background: #eef6ff;
-      border: 1px solid #cfe3ff;
-      border-radius: 12px;
-      color: #0b3d91;
-      font-size: 16px;
-      padding: 12px 45px 12px 45px;
-      width: 100%;
-      box-sizing: border-box;
-      transition: all 0.3s ease;
-      margin: 0;
-    }
+  background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+  border: 2px solid #ffc107;
+  border-radius: 12px;
+  color: #856404;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 12px 45px 12px 45px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  margin: 0;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+}
 
-    .search-container input:focus {
-      outline: none;
-      border-color: #007bff;
-      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    }
+.search-container input:focus {
+  outline: none;
+  border-color: #ff9800;
+  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+  background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+}
 
-    .search-container input::placeholder {
-      color: #6c9bd1;
-    }
+.search-container input::placeholder {
+  color: #856404;
+  font-weight: 500;
+}
 
     .search-icon {
       position: absolute;
@@ -415,10 +419,10 @@
     }
 
     .search-icon svg {
-      width: 100%;
-      height: 100%;
-      fill: #6c9bd1;
-    }
+  width: 100%;
+  height: 100%;
+  fill: #ff9800;
+}
 
     .clear-search-btn {
       position: absolute;
@@ -1322,7 +1326,7 @@
       const indirizzo = el("indirizzo").value.trim();
       const coordinate = el("coordinate").value.trim();
       const note = el("note").value.trim();
-      if (!nome || !indirizzo) { alert("Inserisci almeno nome e indirizzo."); return; }
+      if (!nome) { alert("Inserisci almeno il nome del cliente."); return; }
 
       const user = auth.currentUser;
       const autore = {
@@ -1818,6 +1822,7 @@
   </script>
 </body>
 </html>
+
 
 
 
