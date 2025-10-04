@@ -38,9 +38,6 @@
       background: white;
       border-bottom: 1px solid var(--gray-200);
       padding: 0.25rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 50;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
@@ -1194,6 +1191,7 @@
     $("btn-logout").addEventListener("click", () => signOut(auth));
 
     let pendingUnsub = null, approvedUnsub = null, contactsUnsub = null;
+    let clientiMapUnsub = null;
     let editingContactId = null;
     let parsedClienti = [];
     let validClienti = [];
@@ -1618,10 +1616,11 @@
     window.editContact = editContact;
     window.deleteContact = deleteContact;
 
-    // ======= MAPPA CLIENTI =======
+    // ======= MAPPA CLIENTI CON AGGIORNAMENTO IN TEMPO REALE =======
     let map = null;
     let markers = [];
     let allClienti = [];
+    let markersByClientId = new Map();
 
     function initMap() {
       if (map) {
@@ -1638,31 +1637,122 @@
       return map;
     }
 
-    async function loadClientiForMap() {
-      try {
-        const clientiRef = collection(db, "clienti");
-        const snapshot = await getDocs(clientiRef);
-        
-        allClienti = [];
-        snapshot.forEach(doc => {
-          const cliente = doc.data();
-          cliente.id = doc.id;
+    function startRealtimeClientListener() {
+      if (clientiMapUnsub) {
+        console.log('Listener clienti già attivo');
+        return;
+      }
+
+      const clientiRef = collection(db, "clienti");
+      const q = query(clientiRef, orderBy("createdAt", "desc"));
+      
+      clientiMapUnsub = onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          const cliente = change.doc.data();
+          cliente.id = change.doc.id;
           
           if (cliente.coordinate && typeof cliente.coordinate === 'string') {
             const coords = cliente.coordinate.split(',').map(c => parseFloat(c.trim()));
             if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
               cliente.lat = coords[0];
               cliente.lng = coords[1];
-              allClienti.push(cliente);
+              
+              if (change.type === 'added') {
+                handleClienteAdded(cliente);
+              } else if (change.type === 'modified') {
+                handleClienteModified(cliente);
+              } else if (change.type === 'removed') {
+                handleClienteRemoved(cliente.id);
+              }
             }
           }
         });
         
-        return allClienti;
-      } catch (error) {
-        console.error("Errore caricamento clienti:", error);
-        return [];
+        updateMapStats(markers.length, allClienti.length);
+      }, (error) => {
+        console.error('Errore listener clienti:', error);
+        document.getElementById('map-stats').textContent = '⚠️ Errore caricamento dati';
+      });
+      
+      console.log('✅ Listener clienti mappa attivato');
+    }
+
+    function handleClienteAdded(cliente) {
+      const existingIndex = allClienti.findIndex(c => c.id === cliente.id);
+      if (existingIndex === -1) {
+        allClienti.push(cliente);
+        
+        const marker = createClientMarker(cliente);
+        marker.addTo(map);
+        markers.push(marker);
+        markersByClientId.set(cliente.id, marker);
+        
+        createToast(
+          '🗺️ Nuovo cliente sulla mappa',
+          `${cliente.nome} aggiunto in ${cliente.indirizzo || 'posizione sconosciuta'}`
+        );
+        
+        if (allClienti.length === 1) {
+          map.setView([cliente.lat, cliente.lng], 12);
+        }
+        
+        console.log(`✅ Cliente aggiunto: ${cliente.nome}`);
       }
+    }
+
+    function handleClienteModified(cliente) {
+      const index = allClienti.findIndex(c => c.id === cliente.id);
+      if (index !== -1) {
+        allClienti[index] = cliente;
+        
+        const oldMarker = markersByClientId.get(cliente.id);
+        if (oldMarker) {
+          oldMarker.remove();
+          const markerIndex = markers.indexOf(oldMarker);
+          if (markerIndex > -1) {
+            markers.splice(markerIndex, 1);
+          }
+        }
+        
+        const newMarker = createClientMarker(cliente);
+        newMarker.addTo(map);
+        markers.push(newMarker);
+        markersByClientId.set(cliente.id, newMarker);
+        
+        console.log(`🔄 Cliente modificato: ${cliente.nome}`);
+      }
+    }
+
+    function handleClienteRemoved(clienteId) {
+      const index = allClienti.findIndex(c => c.id === clienteId);
+      if (index !== -1) {
+        allClienti.splice(index, 1);
+      }
+      
+      const marker = markersByClientId.get(clienteId);
+      if (marker) {
+        marker.remove();
+        const markerIndex = markers.indexOf(marker);
+        if (markerIndex > -1) {
+          markers.splice(markerIndex, 1);
+        }
+        markersByClientId.delete(clienteId);
+      }
+      
+      console.log(`🗑️ Cliente rimosso dalla mappa`);
+    }
+
+    function stopRealtimeClientListener() {
+      if (clientiMapUnsub) {
+        clientiMapUnsub();
+        clientiMapUnsub = null;
+        console.log('❌ Listener clienti mappa disattivato');
+      }
+      
+      markers.forEach(marker => marker.remove());
+      markers = [];
+      markersByClientId.clear();
+      allClienti = [];
     }
 
     function createClientMarker(cliente) {
@@ -1698,31 +1788,6 @@
       return marker;
     }
 
-    function displayClientiOnMap(clienti) {
-      markers.forEach(marker => marker.remove());
-      markers = [];
-      
-      if (clienti.length === 0) {
-        document.getElementById('map-stats').textContent = 'Nessun cliente con coordinate trovato';
-        return;
-      }
-      
-      const bounds = L.latLngBounds();
-      
-      clienti.forEach(cliente => {
-        const marker = createClientMarker(cliente);
-        marker.addTo(map);
-        markers.push(marker);
-        bounds.extend([cliente.lat, cliente.lng]);
-      });
-      
-      if (clienti.length > 0) {
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
-      
-      updateMapStats(clienti.length, allClienti.length);
-    }
-
     function updateMapStats(visible, total) {
       const stats = document.getElementById('map-stats');
       if (visible === total) {
@@ -1734,28 +1799,36 @@
 
     function searchClientiOnMap(query) {
       if (!query || query.trim() === '') {
-        displayClientiOnMap(allClienti);
+        markers.forEach(marker => marker.addTo(map));
+        updateMapStats(markers.length, allClienti.length);
         return;
       }
       
       const queryLower = query.toLowerCase().trim();
-      const filtered = allClienti.filter(cliente => {
+      let visibleCount = 0;
+      
+      markers.forEach(marker => {
+        const cliente = marker.clienteData;
         const nome = (cliente.nome || '').toLowerCase();
         const indirizzo = (cliente.indirizzo || '').toLowerCase();
         const note = (cliente.note || '').toLowerCase();
         
-        return nome.includes(queryLower) || 
-               indirizzo.includes(queryLower) || 
-               note.includes(queryLower);
+        if (nome.includes(queryLower) || 
+            indirizzo.includes(queryLower) || 
+            note.includes(queryLower)) {
+          marker.addTo(map);
+          visibleCount++;
+          
+          if (visibleCount === 1 && query.length > 2) {
+            map.setView([cliente.lat, cliente.lng], 15);
+            marker.openPopup();
+          }
+        } else {
+          marker.remove();
+        }
       });
       
-      displayClientiOnMap(filtered);
-      
-      if (filtered.length === 1 && markers.length === 1) {
-        const marker = markers[0];
-        map.setView([filtered[0].lat, filtered[0].lng], 15);
-        marker.openPopup();
-      }
+      updateMapStats(visibleCount, allClienti.length);
     }
 
     async function openMapView() {
@@ -1770,19 +1843,14 @@
       
       document.getElementById('map-stats').textContent = 'Caricamento clienti...';
       
-      allClienti = await loadClientiForMap();
-      
-      if (allClienti.length === 0) {
-        document.getElementById('map-stats').textContent = '⚠️ Nessun cliente con coordinate GPS trovato';
-        return;
-      }
-      
-      displayClientiOnMap(allClienti);
+      startRealtimeClientListener();
     }
 
     function closeMapView() {
       document.getElementById('map-section').style.display = 'none';
       document.getElementById('map-search').value = '';
+      
+      stopRealtimeClientListener();
     }
 
     document.getElementById('btn-open-map').addEventListener('click', openMapView);
@@ -1829,6 +1897,7 @@
       if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
+      if (clientiMapUnsub) { clientiMapUnsub(); clientiMapUnsub = null; }
 
       stopBadgePolling();
 
@@ -1895,4 +1964,3 @@
   </script>
 </body>
 </html>
-
