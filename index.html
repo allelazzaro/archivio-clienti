@@ -1,13 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <title>Archivio Clienti - Trasporti</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Manifest: percorso per Netlify -->
-
   <link rel="manifest" href="./manifest.json">
 
   <style>
@@ -41,7 +37,6 @@
     .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
     .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d6b; text-decoration:none; position: relative; }
 
-    /* 📱 Contatore messaggi */
     .chat-counter {
       position: absolute; top: -8px; right: -8px;
       background-color: #f44336; color: #fff; border-radius: 50%;
@@ -53,7 +48,6 @@
     @keyframes bounce { 0%,20%,60%,100%{transform:translateY(0)} 40%{transform:translateY(-10px)} 80%{transform:translateY(-5px)} }
     .chat-counter.new-message { animation: bounce 1s ease-in-out; }
 
-    /* 🍞 Toast popup */
     .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 320px; }
     .toast {
       background:#fff; border:1px solid #e0e0e0; border-radius:12px;
@@ -75,7 +69,6 @@
     }
     .toast-close:hover { background-color:#f0f0f0; }
 
-    /* Toast avanzati per notifiche */
     .advanced-toast {
       background: #fff;
       border: 1px solid #e0e0e0;
@@ -164,7 +157,6 @@
       background-color: #f0f0f0;
     }
 
-    /* Stili per campo indirizzo e toggle */
     .address-note {
       font-size: 12px; 
       color: #666; 
@@ -188,9 +180,6 @@
       background: #dee2e6;
     }
 
-    /* NUOVI STILI PER LISTA CLIENTI COMPRIMIBILE */
-    
-    /* Header lista clienti comprimibile */
     .client-list-header {
       background: linear-gradient(135deg, #007bff, #0056b3);
       color: white;
@@ -240,7 +229,6 @@
       transform: rotate(180deg);
     }
 
-    /* Container lista clienti - FIX SCROLL */
     .client-list-container {
       max-height: 0;
       overflow: hidden;
@@ -249,7 +237,7 @@
     }
 
     .client-list-container.expanded {
-      max-height: calc(100vh - 300px); /* Altezza viewport meno spazio per header/form */
+      max-height: calc(100vh - 300px);
       opacity: 1;
       overflow-y: auto;
       overflow-x: hidden;
@@ -258,11 +246,9 @@
       border-radius: 8px;
       background: #fafafa;
       padding: 8px;
-      /* Assicura che lo scroll funzioni su iOS */
       -webkit-overflow-scrolling: touch;
     }
 
-    /* Stili migliorati per i clienti */
     .cliente {
       border: 1px solid #e0e0e0;
       padding: 14px;
@@ -295,7 +281,6 @@
       transition: all 0.2s ease;
     }
 
-    /* Indicatore alfabetico */
     .alphabet-divider {
       background: #f8f9fa;
       color: #6c757d;
@@ -307,7 +292,6 @@
       letter-spacing: 1px;
     }
 
-    /* Animazione di caricamento */
     .loading-clients {
       text-align: center;
       padding: 20px;
@@ -315,7 +299,6 @@
       font-style: italic;
     }
 
-    /* Statistiche rapide */
     .client-stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -341,20 +324,17 @@
       color: #007bff;
     }
 
-    /* Assicura che il container padre non limiti l'altezza */
     #app-wrapper {
       min-height: 100vh;
       overflow: visible;
     }
 
-    /* Fix per dispositivi mobile */
     @media (max-width: 768px) {
       .client-list-container.expanded {
-        max-height: calc(100vh - 400px); /* Più spazio per interfaccia mobile */
+        max-height: calc(100vh - 400px);
       }
     }
 
-    /* Stile per indicare che l'area è scrollabile */
     .client-list-container.expanded::-webkit-scrollbar {
       width: 6px;
     }
@@ -373,38 +353,37 @@
       background: #a8a8a8;
     }
 
-    /* STILI PER CAMPO RICERCA MODERNO */
     .search-container {
       position: relative;
       margin-bottom: 8px;
     }
 
     .search-container input {
-  background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
-  border: 2px solid #ffc107;
-  border-radius: 12px;
-  color: #856404;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 12px 45px 12px 45px;
-  width: 100%;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-  margin: 0;
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
-}
+      background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+      border: 2px solid #ffc107;
+      border-radius: 12px;
+      color: #856404;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 12px 45px 12px 45px;
+      width: 100%;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      margin: 0;
+      box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+    }
 
-.search-container input:focus {
-  outline: none;
-  border-color: #ff9800;
-  box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
-  background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
-}
+    .search-container input:focus {
+      outline: none;
+      border-color: #ff9800;
+      box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+      background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+    }
 
-.search-container input::placeholder {
-  color: #856404;
-  font-weight: 500;
-}
+    .search-container input::placeholder {
+      color: #856404;
+      font-weight: 500;
+    }
 
     .search-icon {
       position: absolute;
@@ -419,10 +398,10 @@
     }
 
     .search-icon svg {
-  width: 100%;
-  height: 100%;
-  fill: #ff9800;
-}
+      width: 100%;
+      height: 100%;
+      fill: #ff9800;
+    }
 
     .clear-search-btn {
       position: absolute;
@@ -455,7 +434,6 @@
       transform: translateY(-50%) scale(0.95);
     }
 
-    /* STILI PER CAMPO NOME CON X */
     .input-container {
       position: relative;
       display: flex;
@@ -517,7 +495,6 @@
       transform: translateY(-50%) scale(0.95);
     }
 
-    /* STILI PER PULSANTE RESET */
     .form-row {
       display: flex;
       gap: 8px;
@@ -554,50 +531,63 @@
     #nome {
       flex: 1;
     }
-  </style>
 
+    /* NUOVO: Indicatore stato tracciamento */
+    #tracking-indicator {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    #tracking-indicator.active {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      display: block;
+    }
+
+    #tracking-indicator.inactive {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      display: none;
+    }
+  </style>
 </head>
 <body>
-
-  <!-- OVERLAY AUTH -->
 
   <div id="auth-overlay">
     <div id="auth-box">
       <div id="auth-header">Accesso</div>
-
-```
-  <div class="tabs">
-    <button id="tab-login" class="tab active">Accedi</button>
-    <button id="tab-register" class="tab">Registrati</button>
+      <div class="tabs">
+        <button id="tab-login" class="tab active">Accedi</button>
+        <button id="tab-register" class="tab">Registrati</button>
+      </div>
+      <div id="pane-login" class="pane">
+        <input id="log-email" placeholder="Email">
+        <input id="log-password" placeholder="Password" type="password">
+        <button id="btn-login">Accedi</button>
+      </div>
+      <div id="pane-register" class="pane" style="display:none;">
+        <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
+        <input id="reg-email" placeholder="Email" required>
+        <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
+        <button id="btn-register">Crea account</button>
+        <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
+      </div>
+    </div>
   </div>
-
-  <div id="pane-login" class="pane">
-    <input id="log-email" placeholder="Email">
-    <input id="log-password" placeholder="Password" type="password">
-    <button id="btn-login">Accedi</button>
-  </div>
-
-  <div id="pane-register" class="pane" style="display:none;">
-    <input id="reg-name" placeholder="Nome (Es: Camion Alessio)" required>
-    <input id="reg-email" placeholder="Email" required>
-    <input id="reg-password" placeholder="Password (min 6 caratteri)" type="password" required>
-    <button id="btn-register">Crea account</button>
-    <div class="muted" style="margin-top:8px;">Dopo la registrazione l'account deve essere approvato dall'amministratore.</div>
-  </div>
-</div>
-```
-
-  </div>
-
-  <!-- ATTESA APPROVAZIONE / BLOCCO ADMIN -->
 
   <div id="awaiting-approval" class="avviso" style="display:none; flex-direction:column; gap:8px; align-items:center; text-align:center;">
     <h3 style="margin:0;">⏳ Account in attesa di approvazione</h3>
     <div>Sei registrato ma non ancora approvato. Quando l'amministratore ti abilita, questa pagina si aggiornerà automaticamente.</div>
     <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
   </div>
-
-  <!-- MODAL RUBRICA -->
 
   <div id="rubrica-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; display:none; align-items:center; justify-content:center; padding:20px;">
     <div style="width:100%; max-width:500px; background:white; border-radius:12px; max-height:80vh; overflow:hidden; display:flex; flex-direction:column;">
@@ -612,123 +602,106 @@
     </div>
   </div>
 
-  <!-- APP -->
-
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
 
-```
-<!-- 📱 Attivazione push (solo se necessario) -->
-<div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
-  <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
-</div>
-
-<div class="avviso">
-  ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
-</div>
-
-<div class="row" style="align-items:center;">
-  <a class="link-pill" href="chat.html" id="chat-link">
-    💬 Chat con Admin
-    <span class="chat-counter hidden" id="chat-counter">0</span>
-  </a>
-  <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
-    📞 Rubrica agenti
-  </button>
-  <button id="btn-logout" style="max-width:160px;">Esci</button>
-</div>
-
-<!-- FORM INSERIMENTO CLIENTI CON CAMPO INDIRIZZO MIGLIORATO E PULSANTE RESET -->
-<div>
-  <!-- Nome cliente con pulsante X integrato -->
-  <div class="input-container">
-    <input id="nome" placeholder="Inserisci nuovo cliente">
-    <button id="clear-nome" class="clear-input-btn">×</button>
-  </div>
-  
-  <!-- Campo indirizzo NON editabile con toggle -->
-  <input id="indirizzo" 
-         placeholder="Clicca 'Usa la mia posizione attuale' per compilare automaticamente" 
-         readonly
-         style="background-color: #f8f9fa; color: #6c757d; cursor: not-allowed;">
-  
-  <div class="address-note">
-    💡 L'indirizzo viene compilato automaticamente quando usi la geolocalizzazione
-    <button id="btn-manual-address" type="button" class="toggle-btn">
-      Inserimento manuale
-    </button>
-  </div>
-  
-  <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
-  <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
-  
-  <textarea id="note" placeholder="Note per la consegna"></textarea>
-  <button id="btn-aggiungi">Aggiungi cliente</button>
-  <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
-</div>
-
-<!-- NUOVA SEZIONE CLIENTI COMPRIMIBILE -->
-<div>
-  <div class="search-container">
-    <div class="search-icon">
-      <svg viewBox="0 0 24 24">
-        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
-      </svg>
+    <div id="push-activation-wrapper" style="display:none; margin-bottom:12px;">
+      <button id="btn-enable-push" style="background-color:#ffdb58; border:1px solid #dcae1d; color:#1b3c6b; padding:6px 12px; border-radius:8px; font-size:14px;">📱 Attiva notifiche push</button>
     </div>
-    <input id="cerca" placeholder="Cerca cliente">
-    <button id="clear-search" class="clear-search-btn">×</button>
-  </div>
-  
-  <!-- Header comprimibile -->
-  <div id="client-list-header" class="client-list-header" onclick="toggleClientList()">
-    <div class="client-list-title">
-      📋 Lista Clienti
-      <span id="client-count" class="client-count">0</span>
+
+    <div class="avviso">
+      ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
     </div>
-    <span id="expand-icon" class="expand-icon">▼</span>
-  </div>
-  
-  <!-- Container comprimibile -->
-  <div id="client-list-container" class="client-list-container">
-    <!-- Statistiche rapide -->
-    <div id="client-stats" class="client-stats" style="display: none;">
-      <div class="stat-item">
-        <span class="stat-number" id="stat-total">0</span>
-        Totale
+
+    <div class="row" style="align-items:center;">
+      <a class="link-pill" href="chat.html" id="chat-link">
+        💬 Chat con Admin
+        <span class="chat-counter hidden" id="chat-counter">0</span>
+      </a>
+      <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
+        📞 Rubrica agenti
+      </button>
+      <button id="btn-logout" style="max-width:160px;">Esci</button>
+    </div>
+
+    <div>
+      <div class="input-container">
+        <input id="nome" placeholder="Inserisci nuovo cliente">
+        <button id="clear-nome" class="clear-input-btn">×</button>
       </div>
-      <div class="stat-item">
-        <span class="stat-number" id="stat-with-coords">0</span>
-        Con GPS
+      
+      <input id="indirizzo" 
+             placeholder="Clicca 'Usa la mia posizione attuale' per compilare automaticamente" 
+             readonly
+             style="background-color: #f8f9fa; color: #6c757d; cursor: not-allowed;">
+      
+      <div class="address-note">
+        💡 L'indirizzo viene compilato automaticamente quando usi la geolocalizzazione
+        <button id="btn-manual-address" type="button" class="toggle-btn">
+          Inserimento manuale
+        </button>
       </div>
-      <div class="stat-item">
-        <span class="stat-number" id="stat-with-notes">0</span>
-        Con Note
+      
+      <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
+      <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
+      
+      <textarea id="note" placeholder="Note per la consegna"></textarea>
+      <button id="btn-aggiungi">Aggiungi cliente</button>
+      <button id="btn-annulla" style="display:none; background-color: #eee;">Annulla modifica</button>
+    </div>
+
+    <div>
+      <div class="search-container">
+        <div class="search-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </div>
+        <input id="cerca" placeholder="Cerca cliente">
+        <button id="clear-search" class="clear-search-btn">×</button>
       </div>
-      <div class="stat-item">
-        <span class="stat-number" id="stat-recent">0</span>
-        Recenti
+      
+      <div id="client-list-header" class="client-list-header" onclick="toggleClientList()">
+        <div class="client-list-title">
+          📋 Lista Clienti
+          <span id="client-count" class="client-count">0</span>
+        </div>
+        <span id="expand-icon" class="expand-icon">▼</span>
+      </div>
+      
+      <div id="client-list-container" class="client-list-container">
+        <div id="client-stats" class="client-stats" style="display: none;">
+          <div class="stat-item">
+            <span class="stat-number" id="stat-total">0</span>
+            Totale
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-with-coords">0</span>
+            Con GPS
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-with-notes">0</span>
+            Con Note
+          </div>
+          <div class="stat-item">
+            <span class="stat-number" id="stat-recent">0</span>
+            Recenti
+          </div>
+        </div>
+        
+        <div id="clienti"></div>
       </div>
     </div>
-    
-    <!-- Lista clienti -->
-    <div id="clienti"></div>
+
+    <hr>
+    <h2>📡 Tracciamento automatico</h2>
+    <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+    <div id="tracking-indicator" class="inactive">🔴 Tracciamento disattivato</div>
+    <div id="status"></div>
   </div>
-</div>
-
-<hr>
-<h2>📡 Tracciamento automatico</h2>
-<button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
-<div id="status"></div>
-```
-
-  </div>
-
-  <!-- 🍞 Container per toast messaggi -->
 
   <div id="toast-container" class="toast-container"></div>
-
-  <!-- APP LOGIC -->
 
   <script type="module">
     const firebaseConfig = {
@@ -761,20 +734,13 @@
 
     let nomeUtente = "";
     let clienteDaModificare = null;
-
-    // 📱 Chat counter
     let chatUnsub = null;
     let currentUserId = null;
     let lastMessageCount = 0;
-
-    // Variabili rubrica
     let clientiUnsub = null;
     let rubricaUnsub = null;
-
-    // Stato di espansione della lista clienti
     let isClientListExpanded = false;
 
-    // 🍞 Toast
     function createToast(title, message, onClick) {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -802,10 +768,7 @@
       createToast(`Nuovo messaggio da ${senderName}`, truncated, ()=>{ window.location.href='chat.html'; });
     }
 
-    // ======= FUNZIONI NOTIFICHE AVANZATE =======
-    
     function showNewMessageNotification(senderName, messageText) {
-      // Notifica browser nativa (se app non ha focus)
       if (Notification.permission === 'granted' && (document.hidden || !document.hasFocus())) {
         const notification = new Notification(`Nuovo messaggio da ${senderName}`, {
           body: messageText.length > 100 ? messageText.substring(0, 97) + '...' : messageText,
@@ -815,31 +778,26 @@
           silent: false
         });
         
-        // Click per aprire chat
         notification.onclick = () => {
           window.focus();
           window.location.href = 'chat.html';
           notification.close();
         };
         
-        // Auto-chiudi dopo 8 secondi
         setTimeout(() => notification.close(), 8000);
       }
       
-      // Toast visivo sempre (anche se app ha focus)
       createAdvancedToast(
         `💬 Nuovo messaggio da ${senderName}`, 
         messageText, 
         () => { window.location.href = 'chat.html'; }
       );
       
-      // Suono notifica
       playNotificationSound();
     }
 
     function playNotificationSound() {
       try {
-        // Crea un suono di notifica semplice
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -847,7 +805,7 @@
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        oscillator.frequency.value = 800; // Frequenza del suono
+        oscillator.frequency.value = 800;
         oscillator.type = 'sine';
         
         gainNode.gain.setValueAtTime(0, audioContext.currentTime);
@@ -878,7 +836,6 @@
         </div>
       `;
       
-      // Gestori eventi
       const closeBtn = toast.querySelector('.toast-close');
       const actionBtn = toast.querySelector('.toast-action-btn');
       
@@ -887,8 +844,6 @@
       
       container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 100);
-      
-      // Auto-hide dopo 10 secondi
       setTimeout(() => hideAdvancedToast(toast), 10000);
       
       return toast;
@@ -916,9 +871,7 @@
     }
 
     function requestNotificationPermissionOnFirstLogin() {
-      // Solo se non è mai stato chiesto prima
       if (Notification.permission === 'default') {
-        // Mostra un piccolo prompt prima di chiedere il permesso ufficiale
         const userWantsNotifications = confirm(
           "Vuoi ricevere notifiche quando arrivano nuovi messaggi dall'admin?\n\n" +
           "Le notifiche ti aiuteranno a non perdere comunicazioni importanti."
@@ -937,9 +890,6 @@
       }
     }
 
-    // ======= FUNZIONI LISTA CLIENTI COMPRIMIBILE =======
-
-    // Toggle della lista clienti
     function toggleClientList() {
       const container = document.getElementById('client-list-container');
       const icon = document.getElementById('expand-icon');
@@ -949,7 +899,6 @@
       if (isClientListExpanded) {
         container.classList.add('expanded');
         icon.classList.add('expanded');
-        // Carica statistiche se non sono già state caricate
         updateClientStats();
       } else {
         container.classList.remove('expanded');
@@ -957,7 +906,6 @@
       }
     }
 
-    // Aggiorna statistiche clienti
     function updateClientStats() {
       const clientiDiv = document.getElementById("clienti");
       const clientCards = clientiDiv.querySelectorAll('.cliente');
@@ -974,7 +922,6 @@
         if (content.includes('maps.google.com')) withCoords++;
         if (content.includes('📝 Note:')) withNotes++;
         
-        // Controlla se è recente (approssimativo basato sul testo)
         const timeText = card.textContent;
         if (timeText.includes('ore fa') || timeText.includes('minuti fa') || 
             timeText.includes('oggi') || timeText.includes('ieri')) {
@@ -987,11 +934,9 @@
       document.getElementById('stat-with-notes').textContent = withNotes;
       document.getElementById('stat-recent').textContent = recent;
       
-      // Mostra le statistiche
       document.getElementById('client-stats').style.display = total > 0 ? 'grid' : 'none';
     }
 
-    // Funzione helper per formattare date relative
     function formatDateRelative(date) {
       const now = new Date();
       const diffMs = now - date;
@@ -1019,7 +964,6 @@
     }
     function stopClientiListener(){ if (clientiUnsub){ clientiUnsub(); clientiUnsub=null; } }
 
-    // ========== RUBRICA ==========
     function startRubricaListener(){
       if (rubricaUnsub) return;
       const qRubrica = query(collection(db, "rubrica"), orderBy("nome", "asc"));
@@ -1059,7 +1003,6 @@
       });
     }
 
-    // 📱 Chat unread counter con notifiche
     function startChatListener(userId){
       if (chatUnsub) return;
       const threadMessagesRef = collection(db, "threads", userId, "messages");
@@ -1076,10 +1019,9 @@
             const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
             if (!readBy.includes(userId)) {
               unreadCount++;
-              // Trova il messaggio più recente (ultimi 30 secondi)
               if (!latestUnreadMessage) {
                 const msgTime = msg.createdAt?.toDate?.()?.getTime() || 0;
-                if (now - msgTime < 30000) { // 30 secondi
+                if (now - msgTime < 30000) {
                   latestUnreadMessage = msg;
                 }
               }
@@ -1087,7 +1029,6 @@
           }
         });
         
-        // Se c'è un nuovo messaggio molto recente, mostra notifica
         if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0) {
           showNewMessageNotification('Admin', latestUnreadMessage.text || 'Nuovo messaggio');
         }
@@ -1111,7 +1052,6 @@
       }
     }
 
-    // segna letti quando si apre la chat
     document.getElementById('chat-link').addEventListener('click', async ()=>{
       if (!currentUserId) return;
       try{
@@ -1173,7 +1113,6 @@
     tabRegister.addEventListener("click", ()=>switchAuth("register"));
     function showAuth(defaultTab="login"){ disableAppUI(); show(el("auth-overlay")); switchAuth(defaultTab); }
 
-    // REGISTRAZIONE
     el("btn-register").addEventListener("click", async ()=>{
       const name = el("reg-name").value.trim();
       const email = el("reg-email").value.trim();
@@ -1192,7 +1131,6 @@
       finally{ disableBtn(el("btn-register"), false); }
     });
 
-    // LOGIN
     el("btn-login").addEventListener("click", async ()=>{
       const email = el("log-email").value.trim();
       const password = el("log-password").value;
@@ -1203,11 +1141,9 @@
       finally{ disableBtn(el("btn-login"), false); }
     });
 
-    // LOGOUT
     el("btn-logout").addEventListener("click", ()=>signOut(auth));
     el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
 
-    // 📱 PUSH (FCM) - semplificato
     const messaging = getMessaging(app);
     const VAPID_PUBLIC_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
@@ -1215,7 +1151,6 @@
       try{
         if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
 
-        // Usa il Service Worker GIÀ registrato globalmente (vedi blocco a fondo pagina)
         const reg = await navigator.serviceWorker.ready;
 
         const perm = await Notification.requestPermission();
@@ -1298,8 +1233,15 @@
           startRubricaListener(); 
           startChatListener(user.uid);
           handlePushPermission(user);
-          // RICHIESTA PERMESSI NOTIFICHE
           requestNotificationPermissionOnFirstLogin();
+          
+          // Riattiva tracciamento se era attivo
+          setTimeout(() => {
+            if (loadTrackingState()) {
+              console.log('♻️ Riattivazione automatica tracciamento...');
+              avviaTracciamento();
+            }
+          }, 1500);
         } else if (data.role==="admin"){
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
@@ -1320,7 +1262,6 @@
       });
     });
 
-    // ✅ Aggiungi/Modifica/Elimina clienti
     async function aggiungiOmodificaCliente() {
       const nome = el("nome").value.trim();
       const indirizzo = el("indirizzo").value.trim();
@@ -1359,14 +1300,12 @@
       resetForm();
     }
 
-    // ✅ NUOVA FUNZIONE RESET FORM
     function resetForm() {
       el("nome").value=""; 
       el("indirizzo").value=""; 
       el("coordinate").value=""; 
       el("note").value="";
       
-      // Ripristina il campo indirizzo come readonly
       const indirizzoField = el("indirizzo");
       const toggleBtn = el("btn-manual-address");
       indirizzoField.readOnly = true;
@@ -1377,7 +1316,6 @@
       toggleBtn.textContent = 'Inserimento manuale';
       toggleBtn.style.backgroundColor = '#e9ecef';
       
-      // Ripristina stato modifica
       clienteDaModificare = null;
       el("btn-aggiungi").innerText = "Aggiungi cliente";
       el("btn-annulla").style.display = "none";
@@ -1394,7 +1332,6 @@
       el("coordinate").value = cliente.coordinate || ""; el("note").value = cliente.note || "";
       clienteDaModificare = id; el("btn-aggiungi").innerText = "Salva modifiche"; el("btn-annulla").style.display = "inline-block";
       
-      // Temporaneamente abilita il campo indirizzo per la modifica
       const indirizzoField = el("indirizzo");
       const toggleBtn = el("btn-manual-address");
       indirizzoField.readOnly = false;
@@ -1409,7 +1346,6 @@
       resetForm();
     }
 
-    // FUNZIONE mostraClienti CON ORDINAMENTO ALFABETICO E FIX NOTE
     function mostraClienti(snapshot) {
       const clientiDiv = el("clienti");
       const countElement = el("client-count");
@@ -1423,7 +1359,6 @@
         return;
       }
       
-      // Converti snapshot in array e ordina alfabeticamente
       const clientiArray = [];
       snapshot.forEach(docSnap => {
         const cliente = docSnap.data();
@@ -1431,17 +1366,14 @@
         clientiArray.push(cliente);
       });
       
-      // Ordinamento alfabetico per nome (case-insensitive)
       clientiArray.sort((a, b) => {
         const nomeA = (a.nome || "").toLowerCase().trim();
         const nomeB = (b.nome || "").toLowerCase().trim();
         return nomeA.localeCompare(nomeB, 'it', { numeric: true });
       });
       
-      // Aggiorna contatore
       countElement.textContent = clientiArray.length.toString();
       
-      // Raggruppa per lettera iniziale
       const gruppi = {};
       clientiArray.forEach(cliente => {
         const primaLettera = (cliente.nome || "?").charAt(0).toUpperCase();
@@ -1451,12 +1383,9 @@
         gruppi[primaLettera].push(cliente);
       });
       
-      // Ordina le lettere
       const lettereOrdinate = Object.keys(gruppi).sort();
       
-      // Renderizza per gruppi alfabetici
       lettereOrdinate.forEach(lettera => {
-        // Aggiungi divisore alfabetico solo se ci sono più di 10 clienti
         if (clientiArray.length > 10) {
           const divider = document.createElement("div");
           divider.className = "alphabet-divider";
@@ -1464,7 +1393,6 @@
           clientiDiv.appendChild(divider);
         }
         
-        // Aggiungi clienti di questo gruppo
         gruppi[lettera].forEach(cliente => {
           const div = document.createElement("div");
           div.className = "cliente";
@@ -1475,7 +1403,6 @@
               ${cliente.createdAt?.toDate ? " • " + formatDateRelative(cliente.createdAt.toDate()) : ""}
             </div>` : "";
           
-          // FIX NOTE - controllo più robusto
           const noteCliente = cliente.note || cliente.notes || "";
           const noteHtml = noteCliente && String(noteCliente).trim() ? 
             `<div style="margin: 6px 0;">
@@ -1515,18 +1442,14 @@
         });
       });
       
-      // Aggiorna statistiche se la lista è espansa
       if (isClientListExpanded) {
         updateClientStats();
       }
     }
 
-    // MODIFICA ANCHE LA FUNZIONE filtraClienti PER SUPPORTARE LA RICERCA NEI GRUPPI
-    // Sostituisci la funzione filtraClienti esistente con questa versione migliorata
     function filtraClienti() {
       const queryTxt = el("cerca").value.toLowerCase().trim();
       
-      // Se la ricerca è vuota, mostra tutti i clienti e i divisori alfabetici
       if (!queryTxt) {
         document.querySelectorAll(".alphabet-divider").forEach(divider => {
           divider.style.display = "block";
@@ -1537,23 +1460,18 @@
         return;
       }
       
-      // Nascondi divisori alfabetici durante la ricerca
       document.querySelectorAll(".alphabet-divider").forEach(divider => {
         divider.style.display = "none";
       });
       
-      // Filtra clienti basandosi SOLO sul nome del cliente
       document.querySelectorAll(".cliente").forEach(cliente => {
-        // Estrae il nome del cliente dal primo elemento <strong>
         const nomeElement = cliente.querySelector('strong');
         const nomeCliente = nomeElement ? nomeElement.textContent.toLowerCase() : '';
         
-        // Verifica se il nome del cliente contiene la query di ricerca
         const visible = nomeCliente.includes(queryTxt);
         cliente.style.display = visible ? "block" : "none";
       });
       
-      // Se c'è una ricerca attiva, espandi automaticamente la lista
       if (!isClientListExpanded) {
         toggleClientList();
       }
@@ -1564,7 +1482,6 @@
     
     el("cerca").addEventListener("input", function() {
       filtraClienti();
-      // Mostra/nasconde il pulsante clear
       const clearBtn = document.getElementById('clear-search');
       if (this.value.trim()) {
         clearBtn.style.display = 'flex';
@@ -1573,15 +1490,13 @@
       }
     });
 
-    // Gestione pulsante clear ricerca
     document.getElementById('clear-search').addEventListener('click', function() {
       const searchInput = document.getElementById('cerca');
       searchInput.value = '';
       this.style.display = 'none';
-      filtraClienti(); // Aggiorna la visualizzazione
+      filtraClienti();
     });
 
-    // Gestione campo nome con pulsante X
     el("nome").addEventListener("input", function() {
       const clearBtn = document.getElementById('clear-nome');
       if (this.value.trim()) {
@@ -1591,17 +1506,15 @@
       }
     });
 
-    // Gestione pulsante clear nome
     document.getElementById('clear-nome').addEventListener('click', function() {
       const nomeInput = document.getElementById('nome');
       nomeInput.value = '';
       this.style.display = 'none';
-      nomeInput.focus(); // Riporta il focus sul campo
+      nomeInput.focus();
     });
     
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
-    // Modal rubrica
     el("btn-rubrica").addEventListener("click", () => {
       el("rubrica-overlay").style.display = "flex";
       el("cerca-rubrica").value = "";
@@ -1610,7 +1523,6 @@
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
-    // 📍 GPS CON REVERSE GEOCODING E COMPILAZIONE AUTOMATICA INDIRIZZO
     el("btn-gps").addEventListener("click", async () => {
       if (!auth.currentUser) { alert("Devi essere loggato."); return; }
       if (!('geolocation' in navigator)) { alert("Geolocalizzazione non supportata."); return; }
@@ -1618,7 +1530,6 @@
       const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
       const docRef = doc(db, 'posizioniMezzo', auth.currentUser.uid);
 
-      // Mostra indicatore di caricamento
       el("btn-gps").textContent = "📍 Ottenendo posizione...";
       el("btn-gps").disabled = true;
 
@@ -1626,19 +1537,16 @@
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         
-        // Compila le coordinate
         el("coordinate").value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
         
-        // ✅ NUOVO: Ottieni l'indirizzo tramite reverse geocoding
         try {
           el("btn-gps").textContent = "🏠 Ottenendo indirizzo...";
           
-          // Usa Nominatim (OpenStreetMap) - gratuito e senza API key
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
             {
               headers: {
-                'User-Agent': 'ArchivioClienti-Trasporti/1.0' // Richiesto da Nominatim
+                'User-Agent': 'ArchivioClienti-Trasporti/1.0'
               }
             }
           );
@@ -1650,24 +1558,20 @@
               const addr = data.address;
               const parts = [];
               
-              // Priorità: strada e numero civico
               if (addr.house_number && addr.road) {
                 parts.push(`${addr.road} ${addr.house_number}`);
               } else if (addr.road) {
                 parts.push(addr.road);
               }
               
-              // Aggiungi città
               if (addr.city || addr.town || addr.village) {
                 parts.push(addr.city || addr.town || addr.village);
               }
               
-              // Aggiungi provincia/stato
               if (addr.state || addr.province) {
                 parts.push(addr.state || addr.province);
               }
               
-              // Aggiungi paese se non è Italia
               if (addr.country && addr.country !== 'Italia' && addr.country !== 'Italy') {
                 parts.push(addr.country);
               }
@@ -1678,20 +1582,16 @@
                 el("indirizzo").value = data.display_name || `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
               }
             } else {
-              // Fallback: se non trova indirizzo specifico, usa le coordinate
               el("indirizzo").value = `Posizione: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
             }
           } else {
-            // Errore API: usa coordinate come fallback
             el("indirizzo").value = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
           }
         } catch (error) {
           console.warn("Errore reverse geocoding:", error);
-          // Fallback in caso di errore
           el("indirizzo").value = `Coordinate: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         }
 
-        // Salva posizione per tracking (come prima)
         try {
           await setDoc(docRef, {
             uid: auth.currentUser.uid,
@@ -1705,16 +1605,13 @@
           console.warn("Errore salvataggio posizione:", error);
         }
         
-        // Ripristina pulsante
         el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
         el("btn-gps").disabled = false;
         
       }, err => {
-        // Errore geolocalizzazione
         alert("Impossibile ottenere la posizione. Assicurati che il GPS sia attivo.");
         console.error(err);
         
-        // Ripristina pulsante
         el("btn-gps").textContent = "📍 Usa la mia posizione attuale";
         el("btn-gps").disabled = false;
       }, { 
@@ -1724,13 +1621,11 @@
       });
     });
 
-    // TOGGLE PER CAMPO INDIRIZZO
     el("btn-manual-address").addEventListener("click", () => {
       const indirizzoField = el("indirizzo");
       const toggleBtn = el("btn-manual-address");
       
       if (indirizzoField.readOnly) {
-        // Abilita modifica manuale
         indirizzoField.readOnly = false;
         indirizzoField.style.backgroundColor = '#fff';
         indirizzoField.style.color = '#000';
@@ -1740,7 +1635,6 @@
         toggleBtn.style.backgroundColor = '#fff3cd';
         indirizzoField.focus();
       } else {
-        // Disabilita modifica manuale
         indirizzoField.readOnly = true;
         indirizzoField.style.backgroundColor = '#f8f9fa';
         indirizzoField.style.color = '#6c757d';
@@ -1751,49 +1645,196 @@
       }
     });
 
-    // 🔴🔵 Tracking
+    // TRACKING MIGLIORATO
     let watchId = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT = 3;
+
+    function saveTrackingState(isActive) {
+      localStorage.setItem('trackingActive', isActive ? 'true' : 'false');
+      localStorage.setItem('trackingTimestamp', Date.now().toString());
+    }
+
+    function loadTrackingState() {
+      const isActive = localStorage.getItem('trackingActive') === 'true';
+      const timestamp = parseInt(localStorage.getItem('trackingTimestamp') || '0');
+      const hoursSinceLastActive = (Date.now() - timestamp) / (1000 * 60 * 60);
+      
+      return isActive && hoursSinceLastActive < 24;
+    }
+
+    function updateTrackingIndicator(isActive) {
+      const indicator = document.getElementById('tracking-indicator');
+      if (!indicator) return;
+      
+      if (isActive) {
+        indicator.className = 'active';
+        indicator.innerHTML = '🟢 Tracciamento attivo';
+      } else {
+        indicator.className = 'inactive';
+        indicator.innerHTML = '🔴 Tracciamento disattivato';
+      }
+    }
+
+    async function checkBatteryLevel() {
+      if ('getBattery' in navigator) {
+        try {
+          const battery = await navigator.getBattery();
+          if (battery.level < 0.15 && watchId) {
+            const status = document.getElementById('status');
+            if (status) {
+              status.textContent = `⚠️ Batteria bassa (${Math.round(battery.level * 100)}%) - Il tracciamento potrebbe interrompersi`;
+              status.style.color = '#856404';
+              status.style.background = '#fff3cd';
+              status.style.padding = '8px';
+              status.style.borderRadius = '6px';
+            }
+          }
+        } catch(e) {
+          console.log('Battery API non disponibile');
+        }
+      }
+    }
 
     window.avviaTracciamento = async function () {
       const status = document.getElementById('status');
       const btn = document.getElementById('btn-tracciamento');
 
-      if (!auth.currentUser) { status.textContent = 'Non sei loggato.'; return; }
-      if (!('geolocation' in navigator)) { status.textContent = 'Geolocalizzazione non supportata.'; return; }
+      if (!auth.currentUser) { 
+        if (status) status.textContent = 'Non sei loggato.'; 
+        return; 
+      }
+      
+      if (!('geolocation' in navigator)) { 
+        if (status) status.textContent = 'Geolocalizzazione non supportata.'; 
+        return; 
+      }
 
-      if (watchId) { await stopTracking(); status.textContent = 'Tracciamento disattivato.'; btn.textContent = '▶️ Attiva tracciamento automatico'; return; }
+      if (watchId) { 
+        await stopTracking(); 
+        if (status) {
+          status.textContent = 'Tracciamento disattivato.';
+          status.style.color = '';
+          status.style.background = '';
+          status.style.padding = '';
+        }
+        if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
+        updateTrackingIndicator(false);
+        saveTrackingState(false);
+        return; 
+      }
 
       const uid = auth.currentUser.uid;
       const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
       const docRef = doc(db, 'posizioniMezzo', uid);
 
-      await setDoc(docRef, { uid, mezzo: mezzoNome, online:true, updatedAt: serverTimestamp() }, { merge:true });
+      await setDoc(docRef, { 
+        uid, 
+        mezzo: mezzoNome, 
+        online: true, 
+        updatedAt: serverTimestamp() 
+      }, { merge: true });
 
-      status.textContent = 'Attivo: invio posizioni…';
-      btn.textContent = '⏸️ Disattiva tracciamento';
+      if (status) {
+        status.textContent = 'Attivo: invio posizioni…';
+        status.style.color = '';
+        status.style.background = '';
+      }
+      if (btn) btn.textContent = '⏸️ Disattiva tracciamento';
+      updateTrackingIndicator(true);
+      saveTrackingState(true);
+      reconnectAttempts = 0;
 
-      watchId = navigator.geolocation.watchPosition(async pos => {
-        const { latitude:lat, longitude:lng, accuracy } = pos.coords;
-        await setDoc(docRef, {
-          uid, mezzo: mezzoNome, lat, lng, accuracy, online:true, updatedAt: serverTimestamp()
-        }, { merge:true });
-        status.textContent = `Ultima posizione: ${lat.toFixed(5)}, ${lng.toFixed(5)} (±${Math.round(accuracy)} m)`;
-      }, async err => {
-        status.textContent = 'Errore GPS: ' + err.message;
-        await setDoc(docRef, { online:false, updatedAt: serverTimestamp() }, { merge:true });
-      }, { enableHighAccuracy:true, maximumAge:5000, timeout:15000 });
+      const batteryCheckInterval = setInterval(() => {
+        if (watchId) checkBatteryLevel();
+        else clearInterval(batteryCheckInterval);
+      }, 5 * 60 * 1000);
+      
+      checkBatteryLevel();
+
+      watchId = navigator.geolocation.watchPosition(
+        async pos => {
+          const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+          reconnectAttempts = 0;
+          
+          await setDoc(docRef, {
+            uid, 
+            mezzo: mezzoNome, 
+            lat, 
+            lng, 
+            accuracy, 
+            online: true, 
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          
+          if (status) {
+            status.textContent = `Ultima posizione: ${lat.toFixed(5)}, ${lng.toFixed(5)} (±${Math.round(accuracy)} m)`;
+            status.style.color = '';
+            status.style.background = '';
+          }
+        },
+        
+        async err => {
+          console.error('Errore GPS:', err);
+          
+          if (reconnectAttempts < MAX_RECONNECT) {
+            reconnectAttempts++;
+            if (status) {
+              status.textContent = `⚠️ Errore GPS (tentativo ${reconnectAttempts}/${MAX_RECONNECT}): ${err.message}`;
+              status.style.color = '#856404';
+              status.style.background = '#fff3cd';
+              status.style.padding = '8px';
+              status.style.borderRadius = '6px';
+            }
+          } else {
+            if (status) {
+              status.textContent = `❌ Tracciamento interrotto dopo ${MAX_RECONNECT} tentativi falliti`;
+              status.style.color = '#721c24';
+              status.style.background = '#f8d7da';
+              status.style.padding = '8px';
+              status.style.borderRadius = '6px';
+            }
+            await stopTracking();
+            if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
+            updateTrackingIndicator(false);
+            saveTrackingState(false);
+          }
+          
+          await setDoc(docRef, { 
+            online: false, 
+            updatedAt: serverTimestamp() 
+          }, { merge: true });
+        },
+        
+        { 
+          enableHighAccuracy: true, 
+          maximumAge: 5000, 
+          timeout: 15000 
+        }
+      );
     };
 
     async function stopTracking() {
-      const btn = document.getElementById('btn-tracciamento');
-      if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+      if (watchId) { 
+        navigator.geolocation.clearWatch(watchId); 
+        watchId = null; 
+      }
+      
+      reconnectAttempts = 0;
+      
       if (auth.currentUser) {
         try {
           await deleteDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid));
         } catch (e) {
-          await setDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid), { online:false, updatedAt: serverTimestamp() }, { merge:true });
+          await setDoc(
+            doc(db, 'posizioniMezzo', auth.currentUser.uid), 
+            { online: false, updatedAt: serverTimestamp() }, 
+            { merge: true }
+          );
         }
       }
+      
+      const btn = document.getElementById('btn-tracciamento');
       if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
     }
 
@@ -1803,13 +1844,10 @@
       }
     });
 
-    // Espone funzioni globali per i bottoni inline
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
     window.toggleClientList = toggleClientList;
   </script>
-
-  <!-- 📱 Registrazione UNICA del Service Worker con path relativo per Netlify -->
 
   <script>
     if ('serviceWorker' in navigator) {
@@ -1822,7 +1860,3 @@
   </script>
 </body>
 </html>
-
-
-
-
