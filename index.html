@@ -26,18 +26,53 @@
     .tab.active { background:#fff; color:#000; border-bottom:2px solid var(--brand); }
     .pane { padding: 14px 16px; }
     .muted { color: var(--muted); font-size: 13px; }
-    .row { display:flex; gap:8px; }
-    .row > * { flex:1; }
 
     #status { margin-top: 10px; font-size: 14px; font-style: italic; }
     button { cursor:pointer; }
     button:disabled { opacity:.6; cursor:not-allowed; }
 
     .userbar{ background:#eef6ff; border:1px solid #cfe3ff; color:#0b3d91; padding:8px 12px; border-radius:8px; margin:8px 0 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:14px; }
-    .userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
-    .link-pill{ display:inline-block; padding:8px 12px; border:1px solid #cfe3ff; border-radius:8px; background:#eef6ff; color:#0b3d6b; text-decoration:none; position: relative; }
+.userbar .pill{ background:#fff; border:1px solid #cfe3ff; padding:2px 8px; border-radius:999px; font-size:12px; color:#1b3c6b; }
 
-    .chat-counter {
+/* ✅ PULSANTI PRINCIPALI CON DIMENSIONI UNIFORMI */
+/* ✅ PULSANTI PRINCIPALI SEMPRE AFFIANCATI */
+.main-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.link-pill {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid #cfe3ff;
+  border-radius: 8px;
+  background: #eef6ff;
+  color: #0b3d6b;
+  text-decoration: none;
+  position: relative;
+}
+
+.main-actions .link-pill {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 6px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .main-actions .link-pill {
+    font-size: 11px;
+    padding: 8px 4px;
+    gap: 2px;
+  }
+}    .chat-counter {
       position: absolute; top: -8px; right: -8px;
       background-color: #f44336; color: #fff; border-radius: 50%;
       width: 20px; height: 20px; min-width:20px;
@@ -628,20 +663,20 @@
       ⚠️ <strong>Attenzione:</strong> Questa app contiene dati riservati dei clienti ed è destinata esclusivamente all'uso operativo da parte di trasportatori autorizzati.
     </div>
 
-    <div class="row" style="align-items:center;">
-      <a class="link-pill" href="chat.html" id="chat-link">
-        💬 Chat con Admin
-        <span class="chat-counter hidden" id="chat-counter">0</span>
-      </a>
-      <button id="btn-comunicazioni" class="link-pill" style="border:none; cursor:pointer; position:relative;">
-        📢 Comunicazioni
-        <span class="chat-counter hidden" id="comunicazioni-counter">0</span>
-      </button>
-      <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
-        📞 Rubrica agenti
-      </button>
-      <button id="btn-logout" style="max-width:160px;">Esci</button>
-    </div>
+    <!-- ✅ PULSANTI PRINCIPALI -->
+<div class="main-actions">
+  <a class="link-pill" href="chat.html" id="chat-link">
+    💬 Chat con Admin
+    <span class="chat-counter hidden" id="chat-counter">0</span>
+  </a>
+  <button id="btn-comunicazioni" class="link-pill" style="border:none; cursor:pointer; position:relative;">
+    📢 Comunicazioni
+    <span class="chat-counter hidden" id="comunicazioni-counter">0</span>
+  </button>
+  <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
+    📞 Rubrica agenti
+  </button>
+</div>
 
     <div>
       <div class="input-container">
@@ -1247,16 +1282,30 @@ window.segnaComeLetta = segnaComeLetta;
     }
     const disableBtn = (btn,on)=> btn.disabled=!!on;
 
-    function renderUserBar(uAuth,uData){
-      const box = document.getElementById("userbar"); if(!box) return;
-      const name  = (uData?.name || uAuth?.displayName || (uAuth?.email ? uAuth.email.split("@")[0] : "")).trim();
-      const email = uAuth?.email || "";
-      const role  = (uData?.role) || (uAuth?.uid === ADMIN_UID ? "admin" : "driver");
-      box.innerHTML = `👤 <strong>${name || "(senza nome)"}</strong>
-                       <span class="pill">${email}</span>
-                       <span class="pill">${role}</span>`;
-    }
-
+// ✅ USERBAR CON PULSANTE ESCI INTEGRATO
+function renderUserBar(uAuth,uData){
+  const box = document.getElementById("userbar"); if(!box) return;
+  const name  = (uData?.name || uAuth?.displayName || (uAuth?.email ? uAuth.email.split("@")[0] : "")).trim();
+  const email = uAuth?.email || "";
+  const role  = (uData?.role) || (uAuth?.uid === ADMIN_UID ? "admin" : "driver");
+  
+  box.innerHTML = `
+    <div class="userbar-info">
+      👤 <strong>${name || "(senza nome)"}</strong>
+      <span class="pill">${email}</span>
+      <span class="pill">${role}</span>
+    </div>
+    <div class="userbar-actions">
+<button id="btn-logout-inline" style="padding: 2px 6px; border-radius: 4px; border: 1px solid #cfe3ff; background: white; cursor: pointer; font-size: 11px; color: #0b3d91; font-weight: 500;">
+  🚪 Esci
+</button>    </div>
+  `;
+  
+  const logoutBtn = document.getElementById('btn-logout-inline');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => signOut(auth));
+  }
+}
     const tabLogin = el("tab-login");
     const tabRegister = el("tab-register");
     const paneLogin = el("pane-login");
@@ -1298,9 +1347,7 @@ window.segnaComeLetta = segnaComeLetta;
       finally{ disableBtn(el("btn-login"), false); }
     });
 
-    el("btn-logout").addEventListener("click", ()=>signOut(auth));
-    el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
-
+el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
     const messaging = getMessaging(app);
     const VAPID_PUBLIC_KEY = "BG1pU9CLPvIoAwBKbUFtveLXiX8EgSqzUyuoVl465d5zuSzyQZN043nfnN1xamZuDa9gZZEbsNpT-Vs_m_x-nS0";
 
