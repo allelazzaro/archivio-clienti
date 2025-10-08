@@ -295,6 +295,27 @@
       font-size: 0.875rem;
     }
 
+    /* Progress bar */
+    .progress-container {
+      margin: 1rem 0;
+      background: var(--gray-200);
+      border-radius: 8px;
+      overflow: hidden;
+      height: 24px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: var(--primary);
+      transition: width 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
     /* Toast notifiche */
     .toast-container { 
       position: fixed; 
@@ -756,6 +777,47 @@
       </div>
     </div>
 
+    <!-- Gestione Comunicazioni -->
+    <div id="comunicazioni-section" class="section" style="display:none;">
+      <h2 class="section-title">📢 Gestione Comunicazioni</h2>
+      
+      <h3 class="section-subtitle">Carica Nuova Comunicazione</h3>
+      <div class="form-group">
+        <label>Titolo Comunicazione *</label>
+        <input id="comunicazione-titolo" placeholder="Es: Nuove procedure di scarico">
+      </div>
+      
+      <div class="form-group">
+        <label>Descrizione</label>
+        <textarea id="comunicazione-descrizione" rows="3" placeholder="Descrizione breve della comunicazione"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>File PDF *</label>
+        <input type="file" id="comunicazione-file" accept=".pdf">
+        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">
+          Formato supportato: PDF (max 10 MB)
+        </div>
+      </div>
+      
+      <div id="upload-progress" style="display: none; margin: 1rem 0;">
+        <div style="background: var(--gray-200); border-radius: 8px; overflow: hidden;">
+          <div id="progress-bar" style="height: 24px; background: var(--primary); transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.875rem; font-weight: 500; width: 0%;"></div>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap;">
+        <button id="btn-upload-comunicazione" class="btn btn-success">📤 Carica Comunicazione</button>
+        <button id="btn-cancel-comunicazione" class="btn btn-secondary" style="display:none;">Annulla</button>
+      </div>
+
+      <h3 class="section-subtitle">
+        Comunicazioni Pubblicate 
+        <span id="count-comunicazioni" class="badge badge-gray">0</span>
+      </h3>
+      <div id="comunicazioni-list"></div>
+    </div>
+
     <!-- Gestione Rubrica -->
     <div id="rubrica-section" class="section" style="display:none;">
       <h2 class="section-title">Gestione Rubrica Aziendale</h2>
@@ -861,10 +923,14 @@
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
       setPersistence, browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const app = initializeApp(firebaseConfig, "adminApp");
     const db = getFirestore(app);
     const auth = getAuth(app);
+    const storage = getStorage(app);
     await setPersistence(auth, browserLocalPersistence);
 
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
@@ -876,6 +942,214 @@
       status.className = `status-bar status-${type}`;
       status.textContent = msg;
     };
+
+    // ======= GESTIONE COMUNICAZIONI =======
+    
+    let comunicazioniUnsub = null;
+    let editingComunicazioneId = null;
+
+    async function uploadComunicazione() {
+      const titolo = $("comunicazione-titolo").value.trim();
+      const descrizione = $("comunicazione-descrizione").value.trim();
+      const fileInput = $("comunicazione-file");
+      const file = fileInput.files[0];
+
+      if (!titolo) {
+        alert("Inserisci un titolo per la comunicazione");
+        return;
+      }
+
+      if (!file && !editingComunicazioneId) {
+        alert("Seleziona un file PDF da caricare");
+        return;
+      }
+
+      if (file && file.type !== "application/pdf") {
+        alert("Il file deve essere in formato PDF");
+        return;
+      }
+
+      if (file && file.size > 10 * 1024 * 1024) {
+        alert("Il file non può superare 10 MB");
+        return;
+      }
+
+      try {
+        $("btn-upload-comunicazione").disabled = true;
+        
+        let fileUrl = null;
+        let fileName = null;
+        let fileSize = 0;
+
+        if (file) {
+          const timestamp = Date.now();
+          const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const storageRef = ref(storage, `comunicazioni/${timestamp}_${safeName}`);
+          
+          const uploadTask = uploadBytesResumable(storageRef, file);
+          
+          $("upload-progress").style.display = "block";
+          
+          await new Promise((resolve, reject) => {
+            uploadTask.on('state_changed',
+              (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                $("progress-bar").style.width = progress + '%';
+                $("progress-bar").textContent = Math.round(progress) + '%';
+              },
+              (error) => reject(error),
+              () => resolve()
+            );
+          });
+
+          fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          fileName = file.name;
+          fileSize = file.size;
+        }
+
+        const comunicazioneData = {
+          titolo,
+          descrizione,
+          updatedAt: serverTimestamp()
+        };
+
+        if (fileUrl) {
+          comunicazioneData.fileUrl = fileUrl;
+          comunicazioneData.fileName = fileName;
+          comunicazioneData.fileSize = fileSize;
+        }
+
+        if (editingComunicazioneId) {
+          await updateDoc(doc(db, "comunicazioni", editingComunicazioneId), comunicazioneData);
+          setStatus("success", "Comunicazione aggiornata");
+          cancelEditComunicazione();
+        } else {
+          await addDoc(collection(db, "comunicazioni"), {
+            ...comunicazioneData,
+            createdAt: serverTimestamp(),
+            createdBy: "admin"
+          });
+          setStatus("success", "Comunicazione pubblicata");
+        }
+
+        clearComunicazioneForm();
+        $("upload-progress").style.display = "none";
+        
+      } catch (error) {
+        console.error("Errore upload:", error);
+        setStatus("error", "Errore durante l'upload: " + error.message);
+      } finally {
+        $("btn-upload-comunicazione").disabled = false;
+      }
+    }
+
+    function clearComunicazioneForm() {
+      $("comunicazione-titolo").value = "";
+      $("comunicazione-descrizione").value = "";
+      $("comunicazione-file").value = "";
+      $("upload-progress").style.display = "none";
+      $("progress-bar").style.width = "0%";
+      $("progress-bar").textContent = "";
+    }
+
+    function editComunicazione(id, comunicazione) {
+      editingComunicazioneId = id;
+      $("comunicazione-titolo").value = comunicazione.titolo || "";
+      $("comunicazione-descrizione").value = comunicazione.descrizione || "";
+      $("btn-upload-comunicazione").textContent = "💾 Aggiorna Comunicazione";
+      $("btn-cancel-comunicazione").style.display = "inline-block";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelEditComunicazione() {
+      editingComunicazioneId = null;
+      $("btn-upload-comunicazione").textContent = "📤 Carica Comunicazione";
+      $("btn-cancel-comunicazione").style.display = "none";
+      clearComunicazioneForm();
+    }
+
+    async function deleteComunicazione(id, fileUrl, titolo) {
+      if (!confirm(`Eliminare la comunicazione "${titolo}"?`)) return;
+      
+      try {
+        if (fileUrl) {
+          const fileRef = ref(storage, fileUrl);
+          await deleteObject(fileRef);
+        }
+        
+        await deleteDoc(doc(db, "comunicazioni", id));
+        setStatus("success", "Comunicazione eliminata");
+      } catch (error) {
+        console.error("Errore eliminazione:", error);
+        setStatus("error", "Errore nell'eliminazione");
+      }
+    }
+
+    function renderComunicazioni(snapshot) {
+      const container = $("comunicazioni-list");
+      const count = $("count-comunicazioni");
+      
+      container.innerHTML = "";
+      count.textContent = String(snapshot.size);
+
+      if (snapshot.empty) {
+        container.innerHTML = '<div class="empty-state">Nessuna comunicazione pubblicata</div>';
+        return;
+      }
+
+      snapshot.forEach(docSnap => {
+        const comunicazione = docSnap.data();
+        const id = docSnap.id;
+        
+        const dataCreazione = comunicazione.createdAt?.toDate?.() 
+          ? comunicazione.createdAt.toDate().toLocaleDateString('it-IT', { 
+              year: 'numeric', month: 'short', day: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            })
+          : "Data non disponibile";
+        
+        const fileSize = comunicazione.fileSize 
+          ? (comunicazione.fileSize / 1024).toFixed(0) + ' KB'
+          : '';
+        
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-info">
+              <h3>📄 ${comunicazione.titolo || "(senza titolo)"}</h3>
+              ${comunicazione.descrizione ? `<p>${comunicazione.descrizione}</p>` : ""}
+              <p style="font-size: 0.75rem; color: var(--gray-500);">
+                📅 ${dataCreazione}
+                ${comunicazione.fileName ? ` • 📎 ${comunicazione.fileName}` : ''}
+                ${fileSize ? ` • 💾 ${fileSize}` : ''}
+              </p>
+            </div>
+          </div>
+          <div class="card-actions">
+            ${comunicazione.fileUrl ? `
+              <a href="${comunicazione.fileUrl}" target="_blank" class="btn btn-primary btn-sm">
+                👁️ Visualizza PDF
+              </a>
+              <a href="${comunicazione.fileUrl}" download="${comunicazione.fileName || 'comunicazione.pdf'}" class="btn btn-secondary btn-sm">
+                ⬇️ Scarica
+              </a>
+            ` : ''}
+            <button onclick="editComunicazione('${id}', ${JSON.stringify(comunicazione).replace(/"/g, '&quot;')})" 
+                    class="btn btn-secondary btn-sm">Modifica Info</button>
+            <button onclick="deleteComunicazione('${id}', '${comunicazione.fileUrl || ''}', '${comunicazione.titolo || 'Comunicazione'}')" 
+                    class="btn btn-danger btn-sm">Elimina</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    $("btn-upload-comunicazione").addEventListener("click", uploadComunicazione);
+    $("btn-cancel-comunicazione").addEventListener("click", cancelEditComunicazione);
+
+    window.editComunicazione = editComunicazione;
+    window.deleteComunicazione = deleteComunicazione;
 
     // ======= FUNZIONI NOTIFICHE ADMIN =======
     
@@ -1025,7 +1299,7 @@
     function startBadgePollingForSafari() {
       if (pollingInterval) return;
       
-      console.log('🍎 Avviato polling badge per Safari mobile');
+      console.log('🎯 Avviato polling badge per Safari mobile');
       
       pollingInterval = setInterval(async () => {
         const badges = document.querySelectorAll('.badge-unread[data-uid]');
@@ -1058,7 +1332,7 @@
         clearInterval(pollingInterval);
         pollingInterval = null;
         lastBadgeCounts.clear();
-        console.log('❌ Polling badge fermato');
+        console.log('⌛ Polling badge fermato');
       }
     }
 
@@ -1817,29 +2091,40 @@
         contactsUnsub = onSnapshot(qContacts, renderContacts);
       }
 
+      if (!comunicazioniUnsub) {
+        const qComunicazioni = query(collection(db, "comunicazioni"), orderBy("createdAt", "desc"));
+        comunicazioniUnsub = onSnapshot(qComunicazioni, renderComunicazioni);
+      }
+
       startBadgePollingForSafari();
 
       $("rubrica-section").style.display = "block";
       $("import-section").style.display = "block";
+      $("comunicazioni-section").style.display = "block";
     }
 
     function stopListeners() {
       if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
       if (approvedUnsub) { approvedUnsub(); approvedUnsub = null; }
       if (contactsUnsub) { contactsUnsub(); contactsUnsub = null; }
+      if (comunicazioniUnsub) { comunicazioniUnsub(); comunicazioniUnsub = null; }
 
       stopBadgePolling();
 
       $("count-pending").textContent = "0";
       $("count-approved").textContent = "0";
       $("count-contacts").textContent = "0";
+      $("count-comunicazioni").textContent = "0";
       $("pending").innerHTML = '<div class="empty-state">Effettua il login per vedere gli utenti in attesa</div>';
       $("approved").innerHTML = '<div class="empty-state">Effettua il login per vedere gli utenti approvati</div>';
       $("contacts-list").innerHTML = "";
+      $("comunicazioni-list").innerHTML = "";
 
       $("rubrica-section").style.display = "none";
       $("import-section").style.display = "none";
+      $("comunicazioni-section").style.display = "none";
       cancelEditContact();
+      cancelEditComunicazione();
       resetImportForm();
     }
 
@@ -1893,4 +2178,3 @@
   </script>
 </body>
 </html>
-

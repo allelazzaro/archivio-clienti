@@ -532,7 +532,6 @@
       flex: 1;
     }
 
-    /* NUOVO: Indicatore stato tracciamento */
     #tracking-indicator {
       margin-top: 10px;
       padding: 10px 14px;
@@ -602,6 +601,21 @@
     </div>
   </div>
 
+  <div id="comunicazioni-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; display:none; align-items:center; justify-content:center; padding:20px;">
+    <div style="width:100%; max-width:700px; background:white; border-radius:12px; max-height:85vh; overflow:hidden; display:flex; flex-direction:column;">
+      <div style="padding:16px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #007bff, #0056b3); color: white;">
+        <h3 style="margin:0;">📢 Comunicazioni Aziendali</h3>
+        <button id="close-comunicazioni" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:white; font-size:18px; cursor:pointer; padding:4px 8px; border-radius:4px;">✖</button>
+      </div>
+      <div style="padding:16px; flex:1; overflow:auto;" id="comunicazioni-driver-container">
+        <div style="text-align:center; padding:40px 20px; color:#999;">
+          <div style="font-size:48px; margin-bottom:16px;">📭</div>
+          <div>Caricamento comunicazioni...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="app-wrapper" style="display:none;">
     <h1>Archivio Clienti - Trasporti</h1>
     <div id="userbar" class="userbar"></div>
@@ -619,6 +633,10 @@
         💬 Chat con Admin
         <span class="chat-counter hidden" id="chat-counter">0</span>
       </a>
+      <button id="btn-comunicazioni" class="link-pill" style="border:none; cursor:pointer; position:relative;">
+        📢 Comunicazioni
+        <span class="chat-counter hidden" id="comunicazioni-counter">0</span>
+      </button>
       <button id="btn-rubrica" class="link-pill" style="border:none; cursor:pointer;">
         📞 Rubrica agenti
       </button>
@@ -739,6 +757,7 @@
     let lastMessageCount = 0;
     let clientiUnsub = null;
     let rubricaUnsub = null;
+    let comunicazioniUnsub = null;
     let isClientListExpanded = false;
 
     function createToast(title, message, onClick) {
@@ -883,7 +902,7 @@
               console.log('✅ Notifiche autorizzate');
               createToast('🔔 Notifiche attivate', 'Riceverai notifiche per i nuovi messaggi dall\'admin');
             } else {
-              console.log('❌ Notifiche rifiutate');
+              console.log('⌛ Notifiche rifiutate');
             }
           });
         }
@@ -970,6 +989,144 @@
       rubricaUnsub = onSnapshot(qRubrica, mostraRubrica, (err)=>console.error("Errore rubrica:", err));
     }
     function stopRubricaListener(){ if (rubricaUnsub){ rubricaUnsub(); rubricaUnsub=null; } }
+
+    function startComunicazioniListener(){
+      if (comunicazioniUnsub) return;
+      const qComunicazioni = query(collection(db, "comunicazioni"), orderBy("createdAt", "desc"));
+      comunicazioniUnsub = onSnapshot(qComunicazioni, mostraComunicazioni, (err)=>console.error("Errore comunicazioni:", err));
+    }
+    function stopComunicazioniListener(){ 
+      if (comunicazioniUnsub){ 
+        comunicazioniUnsub(); 
+        comunicazioniUnsub=null; 
+        updateComunicazioniCounter(0);
+      } 
+    }
+
+    function mostraComunicazioni(snapshot) {
+      const container = el("comunicazioni-driver-container");
+      const counter = el("comunicazioni-counter");
+      
+      container.innerHTML = "";
+      
+      if (snapshot.empty) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px 20px; color:#999;">
+            <div style="font-size:48px; margin-bottom:16px;">📭</div>
+            <div>Nessuna comunicazione disponibile</div>
+          </div>
+        `;
+        counter.classList.add('hidden');
+        return;
+      }
+
+      // Conta solo le comunicazioni NON lette
+      let unreadCount = 0;
+      snapshot.forEach(docSnap => {
+        const comunicazione = docSnap.data();
+        const readBy = Array.isArray(comunicazione.readBy) ? comunicazione.readBy : [];
+        if (!readBy.includes(currentUserId)) {
+          unreadCount++;
+        }
+      });
+
+      // Aggiorna il counter con le non lette
+      if (unreadCount > 0) {
+        counter.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        counter.classList.remove('hidden');
+      } else {
+        counter.classList.add('hidden');
+      }
+
+      snapshot.forEach(docSnap => {
+        const comunicazione = docSnap.data();
+        const comunicazioneId = docSnap.id;
+        const readBy = Array.isArray(comunicazione.readBy) ? comunicazione.readBy : [];
+        const isRead = readBy.includes(currentUserId);
+        
+        const dataCreazione = comunicazione.createdAt?.toDate?.() 
+          ? comunicazione.createdAt.toDate().toLocaleDateString('it-IT', { 
+              year: 'numeric', month: 'long', day: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            })
+          : "Data non disponibile";
+        
+        const fileSize = comunicazione.fileSize 
+          ? (comunicazione.fileSize / 1024).toFixed(0) + ' KB'
+          : '';
+        
+        const card = document.createElement("div");
+        card.className = "cliente";
+        card.style.background = isRead 
+          ? "linear-gradient(135deg, #f8f9fa, #e9ecef)" 
+          : "linear-gradient(135deg, #ffffff, #f8f9fa)";
+        card.style.borderLeft = isRead ? "4px solid #6c757d" : "4px solid #007bff";
+        card.innerHTML = `
+          <div style="display:flex; align-items:start; gap:12px; margin-bottom:12px;">
+            <div style="font-size:32px; line-height:1;">${isRead ? '📄' : '📩'}</div>
+            <div style="flex:1;">
+              <strong style="font-size:18px; color:${isRead ? '#6c757d' : '#007bff'}; display:block; margin-bottom:6px;">
+                ${comunicazione.titolo || "(senza titolo)"}
+                ${!isRead ? '<span style="background:#ff4757; color:white; font-size:11px; padding:2px 6px; border-radius:10px; margin-left:8px;">NUOVO</span>' : ''}
+              </strong>
+              ${comunicazione.descrizione ? `
+                <div style="color:#495057; font-size:14px; line-height:1.5; margin-bottom:8px;">
+                  ${comunicazione.descrizione}
+                </div>
+              ` : ""}
+              <div style="font-size:12px; color:#6c757d; margin-top:8px;">
+                📅 ${dataCreazione}
+                ${comunicazione.fileName ? ` • 📎 ${comunicazione.fileName}` : ''}
+                ${fileSize ? ` • 💾 ${fileSize}` : ''}
+              </div>
+            </div>
+          </div>
+          ${comunicazione.fileUrl ? `
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+              <a href="${comunicazione.fileUrl}" target="_blank" 
+                 onclick="segnaComeLetta('${comunicazioneId}')"
+                 style="flex:1; min-width:140px; text-align:center; padding:10px 16px; background:#007bff; color:white; text-decoration:none; border-radius:8px; font-weight:500; transition:all 0.2s;">
+                👁️ Visualizza PDF
+              </a>
+              <a href="${comunicazione.fileUrl}" download="${comunicazione.fileName || 'comunicazione.pdf'}" 
+                 style="flex:1; min-width:140px; text-align:center; padding:10px 16px; background:#28a745; color:white; text-decoration:none; border-radius:8px; font-weight:500; transition:all 0.2s;">
+                ⬇️ Scarica
+              </a>
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Funzione per segnare la comunicazione come letta
+    async function segnaComeLetta(comunicazioneId) {
+      if (!currentUserId) return;
+      
+      try {
+        const comunicazioneRef = doc(db, "comunicazioni", comunicazioneId);
+        await updateDoc(comunicazioneRef, {
+          readBy: arrayUnion(currentUserId)
+        });
+        console.log('✅ Comunicazione segnata come letta');
+      } catch (error) {
+        console.error('Errore nel segnare come letta:', error);
+      }
+    }
+
+    window.segnaComeLetta = segnaComeLetta;
+
+    function updateComunicazioniCounter(count) {
+      const counter = document.getElementById('comunicazioni-counter');
+      if (!counter) return;
+      
+      if (count > 0) {
+        counter.textContent = count > 99 ? '99+' : count;
+        counter.classList.remove('hidden');
+      } else {
+        counter.classList.add('hidden');
+      }
+    }
 
     function mostraRubrica(snapshot) {
       const container = el("rubrica-container");
@@ -1198,7 +1355,7 @@
     onAuthStateChanged(auth, async (user)=>{
       if (!user){
         showAuth("login");
-        stopClientiListener(); stopRubricaListener(); stopChatListener(); currentUserId=null; updateChatCounter(0);
+        stopClientiListener(); stopRubricaListener(); stopComunicazioniListener(); stopChatListener(); currentUserId=null; updateChatCounter(0);
         if (userUnsub){ userUnsub(); userUnsub=null; }
         const ub = document.getElementById("userbar"); if (ub) ub.innerHTML="";
         return;
@@ -1231,11 +1388,11 @@
           enableAppUI(); 
           startClientiListener(); 
           startRubricaListener(); 
+          startComunicazioniListener();
           startChatListener(user.uid);
           handlePushPermission(user);
           requestNotificationPermissionOnFirstLogin();
           
-          // Riattiva tracciamento se era attivo
           setTimeout(() => {
             if (loadTrackingState()) {
               console.log('♻️ Riattivazione automatica tracciamento...');
@@ -1247,7 +1404,7 @@
           el("awaiting-approval").innerHTML =
             "<h3>👑 Sei loggato come admin</h3><div>L'app operativa è solo per gli autisti approvati. Vai su <a href='admin.html'>admin.html</a>.</div><button id='btn-logout-while-waiting' style='margin-top:6px; max-width:200px;'>Esci</button>";
           document.getElementById('btn-logout-while-waiting').onclick = ()=>signOut(auth);
-          stopClientiListener(); stopRubricaListener(); stopChatListener(); handlePushPermission(user);
+          stopClientiListener(); stopRubricaListener(); stopComunicazioniListener(); stopChatListener(); handlePushPermission(user);
         } else {
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           const nomeUtentePendente = data.name || user.displayName || user.email?.split("@")[0] || "Utente";
@@ -1257,7 +1414,7 @@
             <button id="btn-logout-while-waiting" style="margin-top:6px; max-width:200px;">Esci</button>
           `;
           document.getElementById('btn-logout-while-waiting').onclick = ()=>signOut(auth);
-          stopClientiListener(); stopRubricaListener(); stopChatListener();
+          stopClientiListener(); stopRubricaListener(); stopComunicazioniListener(); stopChatListener();
         }
       });
     });
@@ -1399,7 +1556,7 @@
           
           const inseritoDa = cliente.createdBy ? 
             `<div style="font-size: 12px; color: #666; margin-top: 8px;">
-              📍 Inserito da: <strong>${cliente.createdBy.name || "sconosciuto"}</strong>
+              📝 Inserito da: <strong>${cliente.createdBy.name || "sconosciuto"}</strong>
               ${cliente.createdAt?.toDate ? " • " + formatDateRelative(cliente.createdAt.toDate()) : ""}
             </div>` : "";
           
@@ -1522,6 +1679,18 @@
     });
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
+
+    el("btn-comunicazioni").addEventListener("click", () => {
+      el("comunicazioni-overlay").style.display = "flex";
+    });
+    el("close-comunicazioni").addEventListener("click", () => { 
+      el("comunicazioni-overlay").style.display = "none"; 
+    });
+    el("comunicazioni-overlay").addEventListener("click", (e) => { 
+      if (e.target === el("comunicazioni-overlay")) {
+        el("comunicazioni-overlay").style.display = "none"; 
+      }
+    });
 
     el("btn-gps").addEventListener("click", async () => {
       if (!auth.currentUser) { alert("Devi essere loggato."); return; }
@@ -1788,7 +1957,7 @@
             }
           } else {
             if (status) {
-              status.textContent = `❌ Tracciamento interrotto dopo ${MAX_RECONNECT} tentativi falliti`;
+              status.textContent = `⌛ Tracciamento interrotto dopo ${MAX_RECONNECT} tentativi falliti`;
               status.style.color = '#721c24';
               status.style.background = '#f8d7da';
               status.style.padding = '8px';
