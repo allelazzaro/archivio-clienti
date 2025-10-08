@@ -1100,21 +1100,21 @@
     }
 
     // Funzione per segnare la comunicazione come letta
-    async function segnaComeLetta(comunicazioneId) {
-      if (!currentUserId) return;
-      
-      try {
-        const comunicazioneRef = doc(db, "comunicazioni", comunicazioneId);
-        await updateDoc(comunicazioneRef, {
-          readBy: arrayUnion(currentUserId)
-        });
-        console.log('✅ Comunicazione segnata come letta');
-      } catch (error) {
-        console.error('Errore nel segnare come letta:', error);
-      }
-    }
+async function segnaComeLetta(comunicazioneId) {
+  if (!currentUserId) return;
+  
+  try {
+    const comunicazioneRef = doc(db, "comunicazioni", comunicazioneId);
+    await updateDoc(comunicazioneRef, {
+      readBy: arrayUnion(currentUserId)
+    });
+    console.log('✅ Comunicazione segnata come letta');
+  } catch (error) {
+    console.error('Errore nel segnare come letta:', error);
+  }
+}
 
-    window.segnaComeLetta = segnaComeLetta;
+window.segnaComeLetta = segnaComeLetta;
 
     function updateComunicazioniCounter(count) {
       const counter = document.getElementById('comunicazioni-counter');
@@ -1680,10 +1680,39 @@
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
-    el("btn-comunicazioni").addEventListener("click", () => {
-      el("comunicazioni-overlay").style.display = "flex";
-    });
-    el("close-comunicazioni").addEventListener("click", () => { 
+el("btn-comunicazioni").addEventListener("click", async () => {
+  el("comunicazioni-overlay").style.display = "flex";
+  
+  // ✅ Segna tutte le comunicazioni come lette quando si apre il pannello
+  if (currentUserId) {
+    try {
+      const comunicazioniSnapshot = await getDocs(collection(db, "comunicazioni"));
+      const batchUpdates = [];
+      
+      comunicazioniSnapshot.forEach(docSnap => {
+        const comunicazione = docSnap.data();
+        const readBy = Array.isArray(comunicazione.readBy) ? comunicazione.readBy : [];
+        
+        // Solo se non è già stata letta
+        if (!readBy.includes(currentUserId)) {
+          const comunicazioneRef = doc(db, "comunicazioni", docSnap.id);
+          batchUpdates.push(
+            updateDoc(comunicazioneRef, {
+              readBy: arrayUnion(currentUserId)
+            })
+          );
+        }
+      });
+      
+      if (batchUpdates.length > 0) {
+        await Promise.all(batchUpdates);
+        console.log('✅ Comunicazioni segnate come lette');
+      }
+    } catch (error) {
+      console.error('Errore nel segnare comunicazioni come lette:', error);
+    }
+  }
+});    el("close-comunicazioni").addEventListener("click", () => { 
       el("comunicazioni-overlay").style.display = "none"; 
     });
     el("comunicazioni-overlay").addEventListener("click", (e) => { 
