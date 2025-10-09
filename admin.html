@@ -732,6 +732,50 @@
         top: 80px;
       }
     }
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+.custom-client-marker {
+  transition: all 0.3s ease;
+}
+/* Tooltip clienti */
+.client-tooltip {
+  background: white;
+  border: 1px solid #2563eb;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #2563eb;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.client-tooltip-highlight {
+  background: #ff4757;
+  border: 1px solid #ff4757;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 2px 6px rgba(255,71,87,0.4);
+}
+
+.leaflet-tooltip-top::before {
+  border-top-color: #2563eb;
+}
+
+.client-tooltip-highlight.leaflet-tooltip-top::before {
+  border-top-color: #ff4757;
+}
   </style>
 </head>
 <body>
@@ -760,6 +804,8 @@
           <span id="count-approved" class="badge badge-green">0</span>
           <a href="console.html" class="btn btn-primary btn-sm">Apri Chat Driver</a>
           <button id="btn-open-map" class="btn btn-primary btn-sm">🗺️ Mappa Clienti</button>
+<button id="btn-check-coords" class="btn btn-secondary btn-sm">🔍 Trova clienti senza GPS</button>
+<button id="btn-fix-coords" class="btn btn-success btn-sm">🔧 Correggi coordinate</button>
         </h2>
         <div id="approved" class="empty-state">
           Effettua il login per vedere gli utenti approvati
@@ -1935,98 +1981,198 @@ function renderComunicazioni(snapshot) {
       }
     }
 
-    function createClientMarker(cliente) {
-      const marker = L.marker([cliente.lat, cliente.lng], {
-        title: cliente.nome
-      });
-      
-      const popupContent = `
-        <div class="client-popup">
-          <div class="client-popup-title">${cliente.nome || 'Cliente senza nome'}</div>
-          <div class="client-popup-address">📍 ${cliente.indirizzo || 'Indirizzo non disponibile'}</div>
-          ${cliente.note ? `<div class="client-popup-notes">📝 ${cliente.note}</div>` : ''}
-          <div style="font-size: 11px; color: #999; margin-bottom: 8px;">
-            Coordinate: ${cliente.lat.toFixed(6)}, ${cliente.lng.toFixed(6)}
-          </div>
-          <div class="client-popup-actions">
-            <a href="https://maps.google.com/?q=${cliente.lat},${cliente.lng}" 
-               target="_blank" 
-               class="client-popup-btn btn-maps">
-              Google Maps
-            </a>
-          </div>
-        </div>
-      `;
-      
-      marker.bindPopup(popupContent, {
-        maxWidth: 300,
-        className: 'custom-popup'
-      });
-      
-      marker.clienteData = cliente;
-      
-      return marker;
-    }
+function createClientMarker(cliente, highlight = false, showLabel = false) {
+  const iconColor = highlight ? '#ff4757' : '#2563eb';
+  
+  const customIcon = L.divIcon({
+    className: 'custom-client-marker',
+    html: `<div style="
+      width: 32px;
+      height: 32px;
+      background: ${iconColor};
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      ${highlight ? 'animation: pulse 2s infinite;' : ''}
+    ">📍</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+  });
+  
+  const marker = L.marker([cliente.lat, cliente.lng], {
+    icon: customIcon,
+    title: cliente.nome
+  });
+  
+  // Tooltip permanente con il nome (solo se richiesto)
+  if (showLabel) {
+    marker.bindTooltip(cliente.nome || 'Cliente senza nome', {
+      permanent: true,
+      direction: 'top',
+      offset: [0, -35],
+      className: highlight ? 'client-tooltip-highlight' : 'client-tooltip',
+      opacity: 0.95
+    });
+  }
+  
+  const popupContent = `
+    <div class="client-popup">
+      <div class="client-popup-title" style="${highlight ? 'color: #ff4757; font-size: 18px;' : ''}">${cliente.nome || 'Cliente senza nome'}</div>
+      <div class="client-popup-address">📍 ${cliente.indirizzo || 'Indirizzo non disponibile'}</div>
+      ${cliente.note ? `<div class="client-popup-notes">📝 ${cliente.note}</div>` : ''}
+      <div style="font-size: 11px; color: #999; margin-bottom: 8px;">
+        Coordinate: ${cliente.lat.toFixed(6)}, ${cliente.lng.toFixed(6)}
+      </div>
+      <div class="client-popup-actions">
+        <a href="https://maps.google.com/?q=${cliente.lat},${cliente.lng}" 
+           target="_blank" 
+           class="client-popup-btn btn-maps">
+          Google Maps
+        </a>
+      </div>
+    </div>
+  `;
+  
+  marker.bindPopup(popupContent, {
+    maxWidth: 300,
+    className: 'custom-popup'
+  });
+  
+  marker.clienteData = cliente;
+  
+  return marker;
+}
 
-    function displayClientiOnMap(clienti) {
-      markers.forEach(marker => marker.remove());
-      markers = [];
-      
-      if (clienti.length === 0) {
-        document.getElementById('map-stats').textContent = 'Nessun cliente con coordinate trovato';
-        return;
-      }
-      
-      const bounds = L.latLngBounds();
+function displayClientiOnMap(clienti, highlightIds = []) {
+  markers.forEach(marker => marker.remove());
+  markers = [];
+  
+  if (clienti.length === 0) {
+    document.getElementById('map-stats').textContent = 'Nessun cliente con coordinate trovato';
+    return;
+  }
+  
+  const bounds = L.latLngBounds();
+  let highlightedMarker = null;
+  let highlightedCliente = null;
+  
+  // Trova i clienti vicini a quelli evidenziati (entro ~10km)
+  const nearbyIds = new Set(highlightIds); // Includi sempre i clienti evidenziati
+  
+  if (highlightIds.length > 0) {
+    const NEARBY_DISTANCE = 0.08; // ~8km (in gradi lat/lng)
+    
+    // Per ogni cliente evidenziato, trova quelli vicini
+    highlightIds.forEach(highlightId => {
+      const highlightedClient = clienti.find(c => c.id === highlightId);
+      if (!highlightedClient) return;
       
       clienti.forEach(cliente => {
-        const marker = createClientMarker(cliente);
-        marker.addTo(map);
-        markers.push(marker);
-        bounds.extend([cliente.lat, cliente.lng]);
-      });
-      
-      if (clienti.length > 0) {
-        map.fitBounds(bounds, { padding: [50, 50] });
-      }
-      
-      updateMapStats(clienti.length, allClienti.length);
-    }
-
-    function updateMapStats(visible, total) {
-      const stats = document.getElementById('map-stats');
-      if (visible === total) {
-        stats.textContent = `📍 ${total} clienti visualizzati`;
-      } else {
-        stats.textContent = `📍 ${visible} di ${total} clienti visualizzati`;
-      }
-    }
-
-    function searchClientiOnMap(query) {
-      if (!query || query.trim() === '') {
-        displayClientiOnMap(allClienti);
-        return;
-      }
-      
-      const queryLower = query.toLowerCase().trim();
-      const filtered = allClienti.filter(cliente => {
-        const nome = (cliente.nome || '').toLowerCase();
-        const indirizzo = (cliente.indirizzo || '').toLowerCase();
-        const note = (cliente.note || '').toLowerCase();
+        // Calcola distanza approssimativa
+        const latDiff = Math.abs(cliente.lat - highlightedClient.lat);
+        const lngDiff = Math.abs(cliente.lng - highlightedClient.lng);
+        const distance = Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
         
-        return nome.includes(queryLower) || 
-               indirizzo.includes(queryLower) || 
-               note.includes(queryLower);
+        if (distance <= NEARBY_DISTANCE) {
+          nearbyIds.add(cliente.id);
+        }
       });
-      
-      displayClientiOnMap(filtered);
-      
-      if (filtered.length === 1 && markers.length === 1) {
-        const marker = markers[0];
-        map.setView([filtered[0].lat, filtered[0].lng], 15);
-        marker.openPopup();
-      }
+    });
+  }
+  
+  clienti.forEach(cliente => {
+    const isHighlighted = highlightIds.includes(cliente.id);
+    const isNearby = nearbyIds.has(cliente.id);
+    const showLabel = isNearby; // Mostra etichetta solo se è vicino o evidenziato
+    
+    const marker = createClientMarker(cliente, isHighlighted, showLabel);
+    marker.addTo(map);
+    markers.push(marker);
+    bounds.extend([cliente.lat, cliente.lng]);
+    
+    if (isHighlighted) {
+      highlightedMarker = marker;
+      highlightedCliente = cliente;
     }
+  });
+  
+  // Aspetta che i marker siano renderizzati
+  setTimeout(() => {
+    // Se c'è UN SOLO cliente evidenziato, zoom su di lui
+    if (highlightIds.length === 1 && highlightedCliente) {
+      console.log('🎯 Zoom su:', highlightedCliente.nome, '- Clienti vicini:', nearbyIds.size - 1);
+      map.setView([highlightedCliente.lat, highlightedCliente.lng], 13, {
+        animate: true,
+        duration: 0.5
+      });
+      if (highlightedMarker) {
+        setTimeout(() => highlightedMarker.openPopup(), 500);
+      }
+    } else if (highlightIds.length > 1) {
+      // Se ci sono più risultati, mostra solo quelli evidenziati
+      const highlightBounds = L.latLngBounds();
+      clienti.forEach(cliente => {
+        if (highlightIds.includes(cliente.id)) {
+          highlightBounds.extend([cliente.lat, cliente.lng]);
+        }
+      });
+      map.fitBounds(highlightBounds, { padding: [50, 50] });
+    } else {
+      // Nessun risultato evidenziato, mostra tutti
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, 100);
+  
+  updateMapStats(clienti.length, allClienti.length, highlightIds.length);
+}
+
+
+function updateMapStats(visible, total, highlighted = 0) {
+  const stats = document.getElementById('map-stats');
+  if (highlighted > 0) {
+    stats.innerHTML = `🔍 <span style="color: #ff4757; font-weight: bold;">${highlighted}</span> ${highlighted === 1 ? 'cliente evidenziato' : 'clienti evidenziati'} su ${total} totali`;
+  } else {
+    stats.textContent = `📍 ${total} clienti visualizzati`;
+  }
+}
+
+function searchClientiOnMap(query) {
+  if (!query || query.trim() === '') {
+    displayClientiOnMap(allClienti, []);
+    return;
+  }
+  
+  const queryLower = query.toLowerCase().trim();
+  const matchingClients = [];
+  
+  // Ottimizzazione: cerca solo nei campi principali
+  for (let i = 0; i < allClienti.length; i++) {
+    const cliente = allClienti[i];
+    const nome = (cliente.nome || '').toLowerCase();
+    
+    // Prima controlla il nome (più veloce)
+    if (nome.includes(queryLower)) {
+      matchingClients.push(cliente.id);
+      continue;
+    }
+    
+    // Poi controlla indirizzo e note solo se necessario
+    const indirizzo = (cliente.indirizzo || '').toLowerCase();
+    const note = (cliente.note || '').toLowerCase();
+    
+    if (indirizzo.includes(queryLower) || note.includes(queryLower)) {
+      matchingClients.push(cliente.id);
+    }
+  }
+  
+  // Passa tutto a displayClientiOnMap che gestisce lo zoom
+  displayClientiOnMap(allClienti, matchingClients);
+}
 
     async function openMapView() {
       const mapSection = document.getElementById('map-section');
@@ -2058,9 +2204,29 @@ function renderComunicazioni(snapshot) {
     document.getElementById('btn-open-map').addEventListener('click', openMapView);
     document.getElementById('btn-close-map').addEventListener('click', closeMapView);
 
-    document.getElementById('map-search').addEventListener('input', (e) => {
-      searchClientiOnMap(e.target.value);
-    });
+// Debounce per la ricerca
+let searchTimeout = null;
+
+document.getElementById('map-search').addEventListener('input', (e) => {
+  const query = e.target.value;
+  
+  // Cancella il timeout precedente
+  if (searchTimeout) {
+    clearTimeout(searchTimeout);
+  }
+  
+  // Se la ricerca è vuota, mostra subito tutti i clienti
+  if (!query || query.trim() === '') {
+    displayClientiOnMap(allClienti, []);
+    return;
+  }
+  
+  // Altrimenti aspetta 400ms prima di cercare
+  searchTimeout = setTimeout(() => {
+    searchClientiOnMap(query);
+  }, 400);
+});
+
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && document.getElementById('map-section').style.display === 'block') {
@@ -2173,6 +2339,206 @@ function renderComunicazioni(snapshot) {
         alert("Errore: " + error.message);
       }
     };
+// Dopo la sezione MAPPA CLIENTI, aggiungi questa nuova funzione:
+
+async function trovaClientiProblematici() {
+  try {
+    setStatus("", "Analisi clienti in corso...");
+    
+    const clientiRef = collection(db, "clienti");
+    const snapshot = await getDocs(clientiRef);
+    
+    const senzaCoordinate = [];
+    const coordinateInvalide = [];
+    const ok = [];
+    
+    snapshot.forEach(doc => {
+      const cliente = doc.data();
+      cliente.id = doc.id;
+      
+      if (!cliente.coordinate || cliente.coordinate.trim() === '') {
+        senzaCoordinate.push(cliente);
+      } else {
+        const coords = cliente.coordinate.split(',').map(c => parseFloat(c.trim()));
+        if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) {
+          coordinateInvalide.push(cliente);
+        } else {
+          ok.push(cliente);
+        }
+      }
+    });
+    
+    const totale = snapshot.size;
+    const problematici = senzaCoordinate.length + coordinateInvalide.length;
+    
+    // Crea report dettagliato
+    let report = `
+📊 REPORT COORDINATE GPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Clienti con coordinate valide: ${ok.length}
+⚠️ Clienti problematici: ${problematici}
+   └─ Senza coordinate: ${senzaCoordinate.length}
+   └─ Coordinate invalide: ${coordinateInvalide.length}
+
+📈 TOTALE: ${totale} clienti
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+    if (senzaCoordinate.length > 0) {
+      report += `\n❌ CLIENTI SENZA COORDINATE (${senzaCoordinate.length}):\n\n`;
+      senzaCoordinate.forEach((c, i) => {
+        report += `${i + 1}. ${c.nome || '(senza nome)'}\n`;
+        report += `   Indirizzo: ${c.indirizzo || 'nessuno'}\n`;
+        report += `   ID: ${c.id}\n\n`;
+      });
+    }
+    
+    if (coordinateInvalide.length > 0) {
+      report += `\n⚠️ CLIENTI CON COORDINATE INVALIDE (${coordinateInvalide.length}):\n\n`;
+      coordinateInvalide.forEach((c, i) => {
+        report += `${i + 1}. ${c.nome || '(senza nome)'}\n`;
+        report += `   Coordinate errate: "${c.coordinate}"\n`;
+        report += `   ID: ${c.id}\n\n`;
+      });
+    }
+    
+    // Mostra in console per copia-incolla
+    console.log(report);
+    
+    // Mostra alert con riepilogo
+    const userMessage = `
+📊 Analisi completata!
+
+✅ ${ok.length} clienti OK
+❌ ${senzaCoordinate.length} senza coordinate  
+⚠️ ${coordinateInvalide.length} coordinate invalide
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TOTALE: ${totale} clienti
+
+Il report dettagliato è stato salvato nella console del browser (F12 → Console).
+
+Vuoi aprire la console per vedere i dettagli?
+`;
+    
+    if (confirm(userMessage)) {
+      console.log("📋 Copia il report qui sopra ⬆️");
+    }
+    
+    setStatus("success", `Analisi completata: ${problematici} clienti con problemi GPS`);
+    
+    // Crea anche un download del report
+    creaDownloadReport(report, senzaCoordinate, coordinateInvalide);
+    
+  } catch (error) {
+    console.error("Errore analisi:", error);
+    setStatus("error", "Errore durante l'analisi: " + error.message);
+  }
+}
+
+function creaDownloadReport(reportText, senzaCoordinate, coordinateInvalide) {
+  // Crea un file scaricabile con il report
+  const blob = new Blob([reportText], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `report-gps-${new Date().toISOString().slice(0,10)}.txt`;
+  link.style.display = 'none';
+  
+  document.body.appendChild(link);
+  link.click();
+  
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 100);
+  
+  setStatus("success", "Report scaricato! Controlla la cartella Download");
+}
+
+// Aggiungi event listener per il pulsante
+document.getElementById('btn-check-coords').addEventListener('click', trovaClientiProblematici);
+// ✅ FUNZIONE PER PULIRE E CORREGGERE LE COORDINATE
+async function pulisciCoordinateInvalide() {
+  if (!confirm("Vuoi correggere automaticamente le coordinate con parentesi o spazi extra?\n\nQuesta operazione pulirà le coordinate mantenendo solo numeri, virgola e punto.")) {
+    return;
+  }
+  
+  try {
+    setStatus("", "Correzione coordinate in corso...");
+    
+    const clientiRef = collection(db, "clienti");
+    const snapshot = await getDocs(clientiRef);
+    
+    let corretti = 0;
+    const correzioni = [];
+    
+    for (const docSnap of snapshot.docs) {
+      const cliente = docSnap.data();
+      const coordOriginali = cliente.coordinate;
+      
+      if (coordOriginali && typeof coordOriginali === 'string') {
+        // Rimuovi parentesi, spazi extra e altri caratteri
+        const coordPulite = coordOriginali
+          .replace(/[()]/g, '')        // Rimuovi parentesi
+          .replace(/\s+/g, '')          // Rimuovi tutti gli spazi
+          .trim();
+        
+        // Verifica se le coordinate sono cambiate
+        if (coordPulite !== coordOriginali) {
+          // Verifica che siano valide dopo la pulizia
+          const coords = coordPulite.split(',').map(c => parseFloat(c));
+          
+          if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+            // Aggiorna nel database
+            await updateDoc(doc(db, "clienti", docSnap.id), {
+              coordinate: coordPulite
+            });
+            
+            corretti++;
+            correzioni.push({
+              nome: cliente.nome,
+              prima: coordOriginali,
+              dopo: coordPulite
+            });
+            
+            console.log(`✅ ${cliente.nome}: "${coordOriginali}" → "${coordPulite}"`);
+          }
+        }
+      }
+    }
+    
+    if (corretti > 0) {
+      let report = `✅ CORREZIONE COMPLETATA!\n\n`;
+      report += `Coordinate corrette: ${corretti}\n\n`;
+      report += `DETTAGLIO CORREZIONI:\n`;
+      report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+      
+      correzioni.forEach((c, i) => {
+        report += `${i + 1}. ${c.nome}\n`;
+        report += `   PRIMA: ${c.prima}\n`;
+        report += `   DOPO:  ${c.dopo}\n\n`;
+      });
+      
+      console.log(report);
+      alert(`✅ ${corretti} coordinate corrette!\n\nVedi i dettagli nella console (F12)`);
+      setStatus("success", `${corretti} coordinate corrette con successo!`);
+    } else {
+      alert("✅ Nessuna coordinata da correggere!");
+      setStatus("success", "Tutte le coordinate sono già nel formato corretto");
+    }
+    
+  } catch (error) {
+    console.error("Errore correzione:", error);
+    setStatus("error", "Errore durante la correzione: " + error.message);
+  }
+}
+
+// Event listener per il pulsante
+document.getElementById('btn-fix-coords')?.addEventListener('click', pulisciCoordinateInvalide);
   </script>
 </body>
 </html>
