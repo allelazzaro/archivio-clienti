@@ -44,36 +44,46 @@
 
 .link-pill {
   display: inline-block;
-  padding: 8px 12px;
-  border: 1px solid #cfe3ff;
-  border-radius: 8px;
-  background: #eef6ff;
+  padding: 12px 16px;
+  border: 2px solid #007bff;  /* ✅ Bordo più spesso e colorato */
+  border-radius: 10px;
+  background: linear-gradient(135deg, #eef6ff, #d6e9ff);  /* ✅ Sfondo gradiente */
   color: #0b3d6b;
   text-decoration: none;
   position: relative;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.15);  /* ✅ Ombra leggera */
+  transition: all 0.2s ease;  /* ✅ Animazione hover */
+}
+
+.link-pill:hover {
+  transform: translateY(-2px);  /* ✅ Effetto sollevamento */
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.25);
+  border-color: #0056b3;
 }
 
 .main-actions .link-pill {
   flex: 1;
   min-width: 0;
-  padding: 10px 6px;
-  font-size: 13px;
+  padding: 14px 10px;  /* ✅ Più padding */
+  font-size: 15px;      /* ✅ Font più grande */
+  font-weight: 600;     /* ✅ Testo in grassetto */
+  min-height: 52px;     /* ✅ Altezza minima */
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   text-align: center;
   overflow: hidden;
 }
 
 @media (max-width: 600px) {
   .main-actions .link-pill {
-    font-size: 11px;
-    padding: 8px 4px;
-    gap: 2px;
+    font-size: 13px;
+    padding: 12px 6px;
+    min-height: 48px;
+    gap: 4px;
   }
-}    
-
+}
 .chat-counter {
   position: absolute; 
   top: -0px !important; 
