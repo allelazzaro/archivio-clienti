@@ -1313,15 +1313,12 @@ function renderUserBar(uAuth,uData){
   const role  = (uData?.role) || (uAuth?.uid === ADMIN_UID ? "admin" : "driver");
   
   box.innerHTML = `
-    <div class="userbar-info">
-      👤 <strong>${name || "(senza nome)"}</strong>
-      <span class="pill">${email}</span>
-      <span class="pill">${role}</span>
-    </div>
-    <div class="userbar-actions">
-<button id="btn-logout-inline" style="padding: 2px 6px; border-radius: 4px; border: 1px solid #cfe3ff; background: white; cursor: pointer; font-size: 11px; color: #0b3d91; font-weight: 500;">
-  🚪 Esci
-</button>    </div>
+    👤 <strong>${name || "(senza nome)"}</strong>
+    <span class="pill">${email}</span>
+    <span class="pill">${role}</span>
+    <button id="btn-logout-inline" class="pill" style="cursor: pointer; background: #fff; border: 1px solid #cfe3ff; padding: 4px 10px; border-radius: 999px; font-size: 12px; color: #dc2626; font-weight: 600;">
+      🚪 Esci
+    </button>
   `;
   
   const logoutBtn = document.getElementById('btn-logout-inline');
@@ -1329,6 +1326,7 @@ function renderUserBar(uAuth,uData){
     logoutBtn.addEventListener('click', () => signOut(auth));
   }
 }
+
     const tabLogin = el("tab-login");
     const tabRegister = el("tab-register");
     const paneLogin = el("pane-login");
