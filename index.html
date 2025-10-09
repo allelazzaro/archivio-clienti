@@ -1563,107 +1563,123 @@ el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
       resetForm();
     }
 
-    function mostraClienti(snapshot) {
-      const clientiDiv = el("clienti");
-      const countElement = el("client-count");
-      
-      clientiDiv.innerHTML = "";
-      
-      if (snapshot.empty) {
-        clientiDiv.innerHTML = '<div class="loading-clients">Nessun cliente trovato</div>';
-        countElement.textContent = "0";
-        document.getElementById('client-stats').style.display = 'none';
-        return;
-      }
-      
-      const clientiArray = [];
-      snapshot.forEach(docSnap => {
-        const cliente = docSnap.data();
-        cliente.id = docSnap.id;
-        clientiArray.push(cliente);
-      });
-      
-      clientiArray.sort((a, b) => {
-        const nomeA = (a.nome || "").toLowerCase().trim();
-        const nomeB = (b.nome || "").toLowerCase().trim();
-        return nomeA.localeCompare(nomeB, 'it', { numeric: true });
-      });
-      
-      countElement.textContent = clientiArray.length.toString();
-      
-      const gruppi = {};
-      clientiArray.forEach(cliente => {
-        const primaLettera = (cliente.nome || "?").charAt(0).toUpperCase();
-        if (!gruppi[primaLettera]) {
-          gruppi[primaLettera] = [];
-        }
-        gruppi[primaLettera].push(cliente);
-      });
-      
-      const lettereOrdinate = Object.keys(gruppi).sort();
-      
-      lettereOrdinate.forEach(lettera => {
-        if (clientiArray.length > 10) {
-          const divider = document.createElement("div");
-          divider.className = "alphabet-divider";
-          divider.textContent = `${lettera} (${gruppi[lettera].length})`;
-          clientiDiv.appendChild(divider);
-        }
-        
-        gruppi[lettera].forEach(cliente => {
-          const div = document.createElement("div");
-          div.className = "cliente";
-          
-          const inseritoDa = cliente.createdBy ? 
-            `<div style="font-size: 12px; color: #666; margin-top: 8px;">
-              📝 Inserito da: <strong>${cliente.createdBy.name || "sconosciuto"}</strong>
-              ${cliente.createdAt?.toDate ? " • " + formatDateRelative(cliente.createdAt.toDate()) : ""}
-            </div>` : "";
-          
-          const noteCliente = cliente.note || cliente.notes || "";
-          const noteHtml = noteCliente && String(noteCliente).trim() ? 
-            `<div style="margin: 6px 0;">
-              <strong style="color: #007bff;">📝 Note:</strong><br>
-              <em style="color: #495057; font-size: 13px; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; display: block; margin-top: 4px;">
-                ${String(noteCliente).trim()}
-              </em>
-            </div>` : "";
-          
-          div.innerHTML = `
-            <strong>${cliente.nome || "(senza nome)"}</strong><br>
-            <div style="color: #6c757d; font-size: 14px; margin: 4px 0;">
-              ${cliente.indirizzo || ""}
-            </div>
-            ${cliente.coordinate ? 
-              `<div style="margin: 6px 0;">
-                <a href='https://maps.google.com/?q=${cliente.coordinate}' target='_blank' 
-                   style="color: #007bff; text-decoration: none; font-size: 13px;">
-                  🗺️ Vai a Google Maps
-                </a>
-              </div>` : ""
-            }
-            ${noteHtml}
-            ${inseritoDa}
-            <div style="margin-top: 10px;">
-              <button class='btn-azione' onclick='eliminaCliente("${cliente.id}")' 
-                      style="background-color: #dc3545; color: white; border: none;">
-                🗑️ Elimina
-              </button>
-              <button class='btn-azione' onclick='preparaModificaCliente("${cliente.id}", ${JSON.stringify(cliente).replace(/"/g, '&quot;')})' 
-                      style="background-color: #28a745; color: white; border: none;">
-                ✏️ Modifica
-              </button>
-            </div>
-          `;
-          clientiDiv.appendChild(div);
-        });
-      });
-      
-      if (isClientListExpanded) {
-        updateClientStats();
-      }
+function mostraClienti(snapshot) {
+  const clientiDiv = el("clienti");
+  const countElement = el("client-count");
+  const searchInput = el("cerca");
+  
+  // ✅ SALVA IL VALORE DELLA RICERCA PRIMA DI RIGENERARE
+  const currentSearchQuery = searchInput ? searchInput.value.trim() : '';
+  
+  clientiDiv.innerHTML = "";
+  
+  if (snapshot.empty) {
+    clientiDiv.innerHTML = '<div class="loading-clients">Nessun cliente trovato</div>';
+    countElement.textContent = "0";
+    document.getElementById('client-stats').style.display = 'none';
+    return;
+  }
+  
+  const clientiArray = [];
+  snapshot.forEach(docSnap => {
+    const cliente = docSnap.data();
+    cliente.id = docSnap.id;
+    clientiArray.push(cliente);
+  });
+  
+  clientiArray.sort((a, b) => {
+    const nomeA = (a.nome || "").toLowerCase().trim();
+    const nomeB = (b.nome || "").toLowerCase().trim();
+    return nomeA.localeCompare(nomeB, 'it', { numeric: true });
+  });
+  
+  countElement.textContent = clientiArray.length.toString();
+  
+  const gruppi = {};
+  clientiArray.forEach(cliente => {
+    const primaLettera = (cliente.nome || "?").charAt(0).toUpperCase();
+    if (!gruppi[primaLettera]) {
+      gruppi[primaLettera] = [];
     }
-
+    gruppi[primaLettera].push(cliente);
+  });
+  
+  const lettereOrdinate = Object.keys(gruppi).sort();
+  
+  lettereOrdinate.forEach(lettera => {
+    if (clientiArray.length > 10) {
+      const divider = document.createElement("div");
+      divider.className = "alphabet-divider";
+      divider.textContent = `${lettera} (${gruppi[lettera].length})`;
+      clientiDiv.appendChild(divider);
+    }
+    
+    gruppi[lettera].forEach(cliente => {
+      const div = document.createElement("div");
+      div.className = "cliente";
+      
+      const inseritoDa = cliente.createdBy ? 
+        `<div style="font-size: 12px; color: #666; margin-top: 8px;">
+          📝 Inserito da: <strong>${cliente.createdBy.name || "sconosciuto"}</strong>
+          ${cliente.createdAt?.toDate ? " • " + formatDateRelative(cliente.createdAt.toDate()) : ""}
+        </div>` : "";
+      
+      const noteCliente = cliente.note || cliente.notes || "";
+      const noteHtml = noteCliente && String(noteCliente).trim() ? 
+        `<div style="margin: 6px 0;">
+          <strong style="color: #007bff;">📝 Note:</strong><br>
+          <em style="color: #495057; font-size: 13px; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; display: block; margin-top: 4px;">
+            ${String(noteCliente).trim()}
+          </em>
+        </div>` : "";
+      
+      div.innerHTML = `
+        <strong>${cliente.nome || "(senza nome)"}</strong><br>
+        <div style="color: #6c757d; font-size: 14px; margin: 4px 0;">
+          ${cliente.indirizzo || ""}
+        </div>
+        ${cliente.coordinate ? 
+          `<div style="margin: 6px 0;">
+            <a href='https://maps.google.com/?q=${cliente.coordinate}' target='_blank' 
+               style="color: #007bff; text-decoration: none; font-size: 13px;">
+              🗺️ Vai a Google Maps
+            </a>
+          </div>` : ""
+        }
+        ${noteHtml}
+        ${inseritoDa}
+        <div style="margin-top: 10px;">
+          <button class='btn-azione' onclick='eliminaCliente("${cliente.id}")' 
+                  style="background-color: #dc3545; color: white; border: none;">
+            🗑️ Elimina
+          </button>
+          <button class='btn-azione' onclick='preparaModificaCliente("${cliente.id}", ${JSON.stringify(cliente).replace(/"/g, '&quot;')})' 
+                  style="background-color: #28a745; color: white; border: none;">
+            ✏️ Modifica
+          </button>
+        </div>
+      `;
+      clientiDiv.appendChild(div);
+    });
+  });
+  
+  // ✅ RIAPPLICA IL FILTRO SE C'ERA UNA RICERCA ATTIVA
+  if (currentSearchQuery) {
+    setTimeout(() => {
+      filtraClienti();
+      
+      // ✅ Mantieni visibile il pulsante X se c'è testo
+      const clearBtn = document.getElementById('clear-search');
+      if (clearBtn) {
+        clearBtn.style.display = 'flex';
+      }
+    }, 50);
+  }
+  
+  if (isClientListExpanded) {
+    updateClientStats();
+  }
+}
     function filtraClienti() {
       const queryTxt = el("cerca").value.toLowerCase().trim();
       
