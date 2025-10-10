@@ -779,31 +779,40 @@
 
   <div id="toast-container" class="toast-container"></div>
 
-  <script type="module">
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
-      authDomain: "archivio-clienti-trasporti.firebaseapp.com",
-      projectId: "archivio-clienti-trasporti",
-      storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
-      messagingSenderId: "773533170263",
-      appId: "1:773533170263:web:d05e2b00e991b0294c0112"
-    };
+<script type="module">
+  const firebaseConfig = {
+    apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
+    authDomain: "archivio-clienti-trasporti.firebaseapp.com",
+    projectId: "archivio-clienti-trasporti",
+    storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
+    messagingSenderId: "773533170263",
+    appId: "1:773533170263:web:d05e2b00e991b0294c0112"
+  };
 
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-      getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
-      onSnapshot, query, getDocs, getDoc, orderBy, serverTimestamp, limit
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-    import {
-      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-      onAuthStateChanged, signOut, updateProfile
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
-    import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
+    onSnapshot, query, getDocs, getDoc, orderBy, serverTimestamp, limit,
+    enableIndexedDbPersistence  // ✅ AGGIUNTO!
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    onAuthStateChanged, signOut, updateProfile
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+  import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
-    const auth = getAuth(app);
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+  const auth = getAuth(app);
+
+  // ✅ CACHE OFFLINE
+  try {
+    await enableIndexedDbPersistence(db);
+    console.log('✅ Cache attiva');
+  } catch (e) {
+    console.warn('Cache non disponibile:', e.code);
+  }
 
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
     const clientiRef = collection(db, "clienti");
@@ -1221,7 +1230,7 @@ window.segnaComeLetta = segnaComeLetta;
     function startChatListener(userId){
       if (chatUnsub) return;
       const threadMessagesRef = collection(db, "threads", userId, "messages");
-      const q = query(threadMessagesRef, orderBy("createdAt","desc"), limit(50));
+      const q = query(threadMessagesRef, orderBy("createdAt","desc"), limit(20));
       
       chatUnsub = onSnapshot(q, (snapshot)=>{
         let unreadCount = 0; 
@@ -2030,7 +2039,7 @@ el("btn-comunicazioni").addEventListener("click", async () => {
       const batteryCheckInterval = setInterval(() => {
         if (watchId) checkBatteryLevel();
         else clearInterval(batteryCheckInterval);
-      }, 5 * 60 * 1000);
+      }, 55 * 60 * 1000);
       
       checkBatteryLevel();
 
