@@ -1203,7 +1203,28 @@ window.segnaComeLetta = segnaComeLetta;
       
       chatUnsub = onSnapshot(q, (snapshot)=>{
         let unreadCount = 0; 
+        let latestUnreadMessage = null; 
+        const now = Date.now();
         
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          if (msg.sender !== userId) {
+            const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
+            if (!readBy.includes(userId)) {
+              unreadCount++;
+              if (!latestUnreadMessage) {
+                const msgTime = msg.createdAt?.toDate?.()?.getTime() || 0;
+                if (now - msgTime < 30000) {
+                  latestUnreadMessage = msg;
+                }
+              }
+            }
+          }
+        });
+        
+        if (latestUnreadMessage && lastMessageCount < unreadCount && lastMessageCount > 0) {
+          showNewMessageNotification('Admin', latestUnreadMessage.text || 'Nuovo messaggio');
+        }
         
         lastMessageCount = unreadCount;
         updateChatCounter(unreadCount);
