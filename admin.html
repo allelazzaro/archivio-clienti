@@ -963,7 +963,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, query, where, onSnapshot, updateDoc, doc, deleteDoc,
-      orderBy, limit, addDoc, serverTimestamp, getDocs
+      orderBy, limit, addDoc, serverTimestamp, getDocs, enableIndexedDbPersistence
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import {
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
@@ -975,6 +975,17 @@
 
     const app = initializeApp(firebaseConfig, "adminApp");
     const db = getFirestore(app);
+// ✅ CACHE OFFLINE
+try {
+  await enableIndexedDbPersistence(db);
+  console.log('✅ Cache attiva');
+} catch (e) {
+  console.warn('Cache non disponibile:', e.code);
+}
+    // Abilita cache offline
+enableIndexedDbPersistence(db).catch((err) => {
+  console.log('Cache già attiva:', err.code);
+});
     const auth = getAuth(app);
     const storage = getStorage(app);
     await setPersistence(auth, browserLocalPersistence);
@@ -1340,37 +1351,10 @@ function renderComunicazioni(snapshot) {
     let pollingInterval = null;
     let lastBadgeCounts = new Map();
 
-    function startBadgePollingForSafari() {
-      if (pollingInterval) return;
-      
-      console.log('🎯 Avviato polling badge per Safari mobile');
-      
-      pollingInterval = setInterval(async () => {
-        const badges = document.querySelectorAll('.badge-unread[data-uid]');
-        
-        for (const badge of badges) {
-          const uid = badge.dataset.uid;
-          if (!uid) continue;
-          
-          try {
-            const unreadCount = await getUnreadCountForDriver(uid);
-            const previousCount = lastBadgeCounts.get(uid) || 0;
-            
-            updateBadgeVisually(badge, unreadCount);
-            
-            if (unreadCount > previousCount && previousCount >= 0) {
-              highlightNewMessage(badge, uid, unreadCount);
-            }
-            
-            lastBadgeCounts.set(uid, unreadCount);
-            
-          } catch (error) {
-            console.warn(`Errore polling per ${uid}:`, error);
-          }
-        }
-      }, 10000);
-    }
-
+function startBadgePollingForSafari() {
+  // DISABILITATO PER RISPARMIARE LETTURE
+  return;
+}
     function stopBadgePolling() {
       if (pollingInterval) {
         clearInterval(pollingInterval);
@@ -1383,7 +1367,7 @@ function renderComunicazioni(snapshot) {
     async function getUnreadCountForDriver(uid) {
       try {
         const msgsRef = collection(db, "threads", uid, "messages");
-        const q = query(msgsRef, orderBy("createdAt", "desc"), limit(50));
+        const q = query(msgsRef, orderBy("createdAt", "desc"), limit(100));
         const snapshot = await getDocs(q);
         
         let count = 0;

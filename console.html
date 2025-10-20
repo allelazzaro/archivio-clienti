@@ -294,7 +294,7 @@
     }
 
     function watchUnread(uid){
-      const qLast = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(50));
+      const qLast = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(10));
       return onSnapshot(qLast, snap=>{
         let n=0;
         snap.forEach(d=>{
