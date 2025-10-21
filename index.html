@@ -1199,7 +1199,7 @@ window.segnaComeLetta = segnaComeLetta;
     function startChatListener(userId){
       if (chatUnsub) return;
       const threadMessagesRef = collection(db, "threads", userId, "messages");
-      const q = query(threadMessagesRef, orderBy("createdAt","desc"), limit(20));
+      const q = query(threadMessagesRef, orderBy("createdAt","desc"), limit(10));
       
       chatUnsub = onSnapshot(q, (snapshot)=>{
         let unreadCount = 0; 

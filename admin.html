@@ -975,6 +975,10 @@
 
     const app = initializeApp(firebaseConfig, "adminApp");
     const db = getFirestore(app);
+enableIndexedDbPersistence(db).catch((err) => {
+  console.log('Cache già attiva:', err.code);
+});
+
 // ✅ CACHE OFFLINE
 try {
   await enableIndexedDbPersistence(db);
@@ -983,9 +987,6 @@ try {
   console.warn('Cache non disponibile:', e.code);
 }
     // Abilita cache offline
-enableIndexedDbPersistence(db).catch((err) => {
-  console.log('Cache già attiva:', err.code);
-});
     const auth = getAuth(app);
     const storage = getStorage(app);
     await setPersistence(auth, browserLocalPersistence);
