@@ -213,8 +213,7 @@
       messages.innerHTML="";
       let prevDay="";
 
-      const qMsgs = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","asc"));
-      unsubMsgs = onSnapshot(qMsgs, snap=>{
+const qMsgs = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(30));      unsubMsgs = onSnapshot(qMsgs, snap=>{
         messages.innerHTML=""; prevDay="";
         const toMark=[];
         snap.forEach(d=>{
@@ -294,7 +293,7 @@
     }
 
     function watchUnread(uid){
-      const qLast = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(10));
+      const qLast = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(5));
       return onSnapshot(qLast, snap=>{
         let n=0;
         snap.forEach(d=>{
