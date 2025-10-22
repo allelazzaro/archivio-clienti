@@ -1432,9 +1432,34 @@ el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
 
         if (data.role==="driver" && data.approved===true){
           enableAppUI(); 
-          startClientiListener(); 
-          startRubricaListener(); 
-          startComunicazioniListener();
+          let clientiCaricati = false;
+
+document.getElementById('client-list-header').addEventListener('click', () => {
+  if (!clientiCaricati) {
+    startClientiListener();
+    clientiCaricati = true;
+  }
+  toggleClientList();
+}); 
+        // Per la rubrica
+let rubricaCaricata = false;
+el("btn-rubrica").addEventListener("click", () => {
+  if (!rubricaCaricata) {
+    startRubricaListener();
+    rubricaCaricata = true;
+  }
+  el("rubrica-overlay").style.display = "flex";
+});
+
+// Per le comunicazioni
+let comunicazioniCaricate = false;
+el("btn-comunicazioni").addEventListener("click", async () => {
+  if (!comunicazioniCaricate) {
+    startComunicazioniListener();
+    comunicazioniCaricate = true;
+  }
+  el("comunicazioni-overlay").style.display = "flex";
+});  
           startChatListener(user.uid);
           handlePushPermission(user);
           requestNotificationPermissionOnFirstLogin();
