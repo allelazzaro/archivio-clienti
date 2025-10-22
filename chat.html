@@ -563,12 +563,7 @@
       let lastDay = "";
 
       const msgsRef = collection(db, "threads", driverUid, "messages");
-      // INVECE DI limit(30)
-const qMsgs = query(
-  collection(db,"threads",uid,"messages"), 
-  orderBy("createdAt","desc"), 
-  limit(10)  // ← Riduci a 10
-);
+      const qMsgs = query(msgsRef, orderBy("createdAt", "asc"));
       
       unsubMsgs = onSnapshot(qMsgs, snap => {
         messages.innerHTML = "";
