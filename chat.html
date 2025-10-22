@@ -320,6 +320,19 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+import { enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// Abilita cache persistente
+try {
+  await enableIndexedDbPersistence(db);
+  console.log('✅ Cache chat attiva');
+} catch (err) {
+  if (err.code == 'failed-precondition') {
+    console.log('Cache già attiva in un\'altra tab');
+  } else if (err.code == 'unimplemented') {
+    console.log('Browser non supporta cache offline');
+  }
+}
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
@@ -562,10 +575,12 @@
       messages.innerHTML = "";
       let lastDay = "";
 
-      const msgsRef = collection(db, "threads", driverUid, "messages");
-      const qMsgs = query(msgsRef, orderBy("createdAt", "asc"));
-      
+const msgsRef = collection(db, "threads", driverUid, "messages");
+// Carica solo gli ultimi 15 messaggi
+const qMsgs = query(msgsRef, orderBy("createdAt", "desc"), limit(15));      
       unsubMsgs = onSnapshot(qMsgs, snap => {
+const fromCache = snap.metadata.fromCache;
+    console.log(fromCache ? "📦 Da cache locale" : "☁️ Da server");
         messages.innerHTML = "";
         lastDay = "";
         const toMark = [];
