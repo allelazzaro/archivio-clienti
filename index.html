@@ -1759,15 +1759,9 @@ el("btn-comunicazioni").addEventListener("click", async () => {
     }
   }
 });      
-      if (batchUpdates.length > 0) {
-        await Promise.all(batchUpdates);
-        console.log('✅ Comunicazioni segnate come lette');
-      }
-    } catch (error) {
-      console.error('Errore nel segnare comunicazioni come lette:', error);
-    }
-  }
-});    el("close-comunicazioni").addEventListener("click", () => { 
+     
+
+    el("close-comunicazioni").addEventListener("click", () => { 
       el("comunicazioni-overlay").style.display = "none"; 
     });
     el("comunicazioni-overlay").addEventListener("click", (e) => { 
