@@ -590,6 +590,30 @@
       flex: 1;
     }
 
+    #tracking-indicator {
+      margin-top: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      display: none;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    #tracking-indicator.active {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      display: block;
+    }
+
+    #tracking-indicator.inactive {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -746,42 +770,40 @@
       </div>
     </div>
 
+    <hr>
+    <h2>📡 Tracciamento automatico</h2>
+    <button id="btn-tracciamento" onclick="avviaTracciamento()">▶️ Attiva tracciamento automatico</button>
+    <div id="tracking-indicator" class="inactive">🔴 Tracciamento disattivato</div>
+    <div id="status"></div>
+  </div>
+
   <div id="toast-container" class="toast-container"></div>
 
-<script type="module">
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
-    authDomain: "archivio-clienti-trasporti.firebaseapp.com",
-    projectId: "archivio-clienti-trasporti",
-    storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
-    messagingSenderId: "773533170263",
-    appId: "1:773533170263:web:d05e2b00e991b0294c0112"
-  };
+  <script type="module">
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbjK5sgQ70-p8jODaK_PnLIzPxgfrqQ34",
+      authDomain: "archivio-clienti-trasporti.firebaseapp.com",
+      projectId: "archivio-clienti-trasporti",
+      storageBucket: "archivio-clienti-trasporti.firebasestorage.app",
+      messagingSenderId: "773533170263",
+      appId: "1:773533170263:web:d05e2b00e991b0294c0112"
+    };
 
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import {
-    getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
-    onSnapshot, query, getDocs, getDoc, orderBy, serverTimestamp, limit,
-    enableIndexedDbPersistence  // ✅ AGGIUNTO!
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import {
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-    onAuthStateChanged, signOut, updateProfile
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
-  import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, deleteDoc, doc, setDoc, updateDoc,
+      onSnapshot, query, getDocs, getDoc, orderBy, serverTimestamp, limit
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      onAuthStateChanged, signOut, updateProfile
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+    import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-  const auth = getAuth(app);
-
-  // ✅ CACHE OFFLINE
-  try {
-    await enableIndexedDbPersistence(db);
-    console.log('✅ Cache attiva');
-  } catch (e) {
-    console.warn('Cache non disponibile:', e.code);
-  }
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    const auth = getAuth(app);
 
     const ADMIN_UID = "0dCvHDcVp1PHuWVNIN9i6ZvEVBt2";
     const clientiRef = collection(db, "clienti");
@@ -1199,7 +1221,7 @@ window.segnaComeLetta = segnaComeLetta;
     function startChatListener(userId){
       if (chatUnsub) return;
       const threadMessagesRef = collection(db, "threads", userId, "messages");
-      const q = query(threadMessagesRef, orderBy("createdAt","desc"), limit(10));
+      const q = query(threadMessagesRef, orderBy("createdAt","desc"), limit(50));
       
       chatUnsub = onSnapshot(q, (snapshot)=>{
         let unreadCount = 0; 
@@ -1432,10 +1454,19 @@ el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
 
         if (data.role==="driver" && data.approved===true){
           enableAppUI(); 
+          startClientiListener(); 
+          startRubricaListener(); 
+          startComunicazioniListener();
           startChatListener(user.uid);
           handlePushPermission(user);
           requestNotificationPermissionOnFirstLogin();
           
+          setTimeout(() => {
+            if (loadTrackingState()) {
+              console.log('♻️ Riattivazione automatica tracciamento...');
+              avviaTracciamento();
+            }
+          }, 1500);
         } else if (data.role==="admin"){
           disableAppUI(); hide(el("auth-overlay")); show(el("awaiting-approval"));
           el("awaiting-approval").innerHTML =
@@ -1725,43 +1756,47 @@ function mostraClienti(snapshot) {
     
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
-el("btn-rubrica").addEventListener("click", async () => {
-  el("rubrica-overlay").style.display = "flex";
-  el("cerca-rubrica").value = "";
-  
-  try {
-    const q = query(collection(db, "rubrica"), orderBy("nome", "asc"));
-    const snapshot = await getDocs(q);
-    mostraRubrica(snapshot);
-    console.log('✅ Rubrica caricata - 1 lettura');
-  } catch (error) {
-    console.error("Errore rubrica:", error);
-  }
-});
+    el("btn-rubrica").addEventListener("click", () => {
+      el("rubrica-overlay").style.display = "flex";
+      el("cerca-rubrica").value = "";
+      filtraRubrica();
+    });
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
 el("btn-comunicazioni").addEventListener("click", async () => {
   el("comunicazioni-overlay").style.display = "flex";
   
+  // ✅ Segna tutte le comunicazioni come lette quando si apre il pannello
   if (currentUserId) {
     try {
-      const q = query(
-        collection(db, "comunicazioni"),
-        orderBy("createdAt", "desc"),
-        limit(50)
-      );
-      const snapshot = await getDocs(q);
-      mostraComunicazioni(snapshot);
-      console.log('✅ Comunicazioni caricate - ' + snapshot.size + ' letture');
+      const comunicazioniSnapshot = await getDocs(collection(db, "comunicazioni"));
+      const batchUpdates = [];
+      
+      comunicazioniSnapshot.forEach(docSnap => {
+        const comunicazione = docSnap.data();
+        const readBy = Array.isArray(comunicazione.readBy) ? comunicazione.readBy : [];
+        
+        // Solo se non è già stata letta
+        if (!readBy.includes(currentUserId)) {
+          const comunicazioneRef = doc(db, "comunicazioni", docSnap.id);
+          batchUpdates.push(
+            updateDoc(comunicazioneRef, {
+              readBy: arrayUnion(currentUserId)
+            })
+          );
+        }
+      });
+      
+      if (batchUpdates.length > 0) {
+        await Promise.all(batchUpdates);
+        console.log('✅ Comunicazioni segnate come lette');
+      }
     } catch (error) {
-      console.error('Errore caricamento comunicazioni:', error);
+      console.error('Errore nel segnare comunicazioni come lette:', error);
     }
   }
-});      
-     
-
-    el("close-comunicazioni").addEventListener("click", () => { 
+});    el("close-comunicazioni").addEventListener("click", () => { 
       el("comunicazioni-overlay").style.display = "none"; 
     });
     el("comunicazioni-overlay").addEventListener("click", (e) => { 
@@ -1892,8 +1927,204 @@ el("btn-comunicazioni").addEventListener("click", async () => {
       }
     });
 
+    // TRACKING MIGLIORATO
+    let watchId = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT = 3;
 
+    function saveTrackingState(isActive) {
+      localStorage.setItem('trackingActive', isActive ? 'true' : 'false');
+      localStorage.setItem('trackingTimestamp', Date.now().toString());
+    }
 
+    function loadTrackingState() {
+      const isActive = localStorage.getItem('trackingActive') === 'true';
+      const timestamp = parseInt(localStorage.getItem('trackingTimestamp') || '0');
+      const hoursSinceLastActive = (Date.now() - timestamp) / (1000 * 60 * 60);
+      
+      return isActive && hoursSinceLastActive < 24;
+    }
+
+    function updateTrackingIndicator(isActive) {
+      const indicator = document.getElementById('tracking-indicator');
+      if (!indicator) return;
+      
+      if (isActive) {
+        indicator.className = 'active';
+        indicator.innerHTML = '🟢 Tracciamento attivo';
+      } else {
+        indicator.className = 'inactive';
+        indicator.innerHTML = '🔴 Tracciamento disattivato';
+      }
+    }
+
+    async function checkBatteryLevel() {
+      if ('getBattery' in navigator) {
+        try {
+          const battery = await navigator.getBattery();
+          if (battery.level < 0.15 && watchId) {
+            const status = document.getElementById('status');
+            if (status) {
+              status.textContent = `⚠️ Batteria bassa (${Math.round(battery.level * 100)}%) - Il tracciamento potrebbe interrompersi`;
+              status.style.color = '#856404';
+              status.style.background = '#fff3cd';
+              status.style.padding = '8px';
+              status.style.borderRadius = '6px';
+            }
+          }
+        } catch(e) {
+          console.log('Battery API non disponibile');
+        }
+      }
+    }
+
+    window.avviaTracciamento = async function () {
+      const status = document.getElementById('status');
+      const btn = document.getElementById('btn-tracciamento');
+
+      if (!auth.currentUser) { 
+        if (status) status.textContent = 'Non sei loggato.'; 
+        return; 
+      }
+      
+      if (!('geolocation' in navigator)) { 
+        if (status) status.textContent = 'Geolocalizzazione non supportata.'; 
+        return; 
+      }
+
+      if (watchId) { 
+        await stopTracking(); 
+        if (status) {
+          status.textContent = 'Tracciamento disattivato.';
+          status.style.color = '';
+          status.style.background = '';
+          status.style.padding = '';
+        }
+        if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
+        updateTrackingIndicator(false);
+        saveTrackingState(false);
+        return; 
+      }
+
+      const uid = auth.currentUser.uid;
+      const mezzoNome = (nomeUtente || auth.currentUser.displayName || (auth.currentUser.email?.split("@")[0] ?? "")).trim() || 'Senza nome';
+      const docRef = doc(db, 'posizioniMezzo', uid);
+
+      await setDoc(docRef, { 
+        uid, 
+        mezzo: mezzoNome, 
+        online: true, 
+        updatedAt: serverTimestamp() 
+      }, { merge: true });
+
+      if (status) {
+        status.textContent = 'Attivo: invio posizioni…';
+        status.style.color = '';
+        status.style.background = '';
+      }
+      if (btn) btn.textContent = '⏸️ Disattiva tracciamento';
+      updateTrackingIndicator(true);
+      saveTrackingState(true);
+      reconnectAttempts = 0;
+
+      const batteryCheckInterval = setInterval(() => {
+        if (watchId) checkBatteryLevel();
+        else clearInterval(batteryCheckInterval);
+      }, 5 * 60 * 1000);
+      
+      checkBatteryLevel();
+
+      watchId = navigator.geolocation.watchPosition(
+        async pos => {
+          const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+          reconnectAttempts = 0;
+          
+          await setDoc(docRef, {
+            uid, 
+            mezzo: mezzoNome, 
+            lat, 
+            lng, 
+            accuracy, 
+            online: true, 
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+          
+          if (status) {
+            status.textContent = `Ultima posizione: ${lat.toFixed(5)}, ${lng.toFixed(5)} (±${Math.round(accuracy)} m)`;
+            status.style.color = '';
+            status.style.background = '';
+          }
+        },
+        
+        async err => {
+          console.error('Errore GPS:', err);
+          
+          if (reconnectAttempts < MAX_RECONNECT) {
+            reconnectAttempts++;
+            if (status) {
+              status.textContent = `⚠️ Errore GPS (tentativo ${reconnectAttempts}/${MAX_RECONNECT}): ${err.message}`;
+              status.style.color = '#856404';
+              status.style.background = '#fff3cd';
+              status.style.padding = '8px';
+              status.style.borderRadius = '6px';
+            }
+          } else {
+            if (status) {
+              status.textContent = `⌛ Tracciamento interrotto dopo ${MAX_RECONNECT} tentativi falliti`;
+              status.style.color = '#721c24';
+              status.style.background = '#f8d7da';
+              status.style.padding = '8px';
+              status.style.borderRadius = '6px';
+            }
+            await stopTracking();
+            if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
+            updateTrackingIndicator(false);
+            saveTrackingState(false);
+          }
+          
+          await setDoc(docRef, { 
+            online: false, 
+            updatedAt: serverTimestamp() 
+          }, { merge: true });
+        },
+        
+        { 
+          enableHighAccuracy: true, 
+          maximumAge: 5000, 
+          timeout: 15000 
+        }
+      );
+    };
+
+    async function stopTracking() {
+      if (watchId) { 
+        navigator.geolocation.clearWatch(watchId); 
+        watchId = null; 
+      }
+      
+      reconnectAttempts = 0;
+      
+      if (auth.currentUser) {
+        try {
+          await deleteDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid));
+        } catch (e) {
+          await setDoc(
+            doc(db, 'posizioniMezzo', auth.currentUser.uid), 
+            { online: false, updatedAt: serverTimestamp() }, 
+            { merge: true }
+          );
+        }
+      }
+      
+      const btn = document.getElementById('btn-tracciamento');
+      if (btn) btn.textContent = '▶️ Attiva tracciamento automatico';
+    }
+
+    window.addEventListener('beforeunload', async () => {
+      if (watchId && auth.currentUser) {
+        try { await deleteDoc(doc(db, 'posizioniMezzo', auth.currentUser.uid)); } catch(e){}
+      }
+    });
 
     window.eliminaCliente = eliminaCliente;
     window.preparaModificaCliente = preparaModificaCliente;
