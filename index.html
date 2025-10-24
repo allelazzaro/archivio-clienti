@@ -1432,9 +1432,6 @@ el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
 
         if (data.role==="driver" && data.approved===true){
           enableAppUI(); 
-          startClientiListener(); 
-          startRubricaListener(); 
-          startComunicazioniListener();
           startChatListener(user.uid);
           handlePushPermission(user);
           requestNotificationPermissionOnFirstLogin();
@@ -1728,38 +1725,40 @@ function mostraClienti(snapshot) {
     
     el("cerca-rubrica").addEventListener("input", filtraRubrica);
 
-    el("btn-rubrica").addEventListener("click", () => {
-      el("rubrica-overlay").style.display = "flex";
-      el("cerca-rubrica").value = "";
-      filtraRubrica();
-    });
+el("btn-rubrica").addEventListener("click", async () => {
+  el("rubrica-overlay").style.display = "flex";
+  el("cerca-rubrica").value = "";
+  
+  try {
+    const q = query(collection(db, "rubrica"), orderBy("nome", "asc"));
+    const snapshot = await getDocs(q);
+    mostraRubrica(snapshot);
+    console.log('✅ Rubrica caricata - 1 lettura');
+  } catch (error) {
+    console.error("Errore rubrica:", error);
+  }
+});
     el("close-rubrica").addEventListener("click", () => { el("rubrica-overlay").style.display = "none"; });
     el("rubrica-overlay").addEventListener("click", (e) => { if (e.target === el("rubrica-overlay")) el("rubrica-overlay").style.display = "none"; });
 
 el("btn-comunicazioni").addEventListener("click", async () => {
   el("comunicazioni-overlay").style.display = "flex";
   
-  // ✅ Segna tutte le comunicazioni come lette quando si apre il pannello
   if (currentUserId) {
     try {
-      const comunicazioniSnapshot = await getDocs(collection(db, "comunicazioni"));
-      const batchUpdates = [];
-      
-      comunicazioniSnapshot.forEach(docSnap => {
-        const comunicazione = docSnap.data();
-        const readBy = Array.isArray(comunicazione.readBy) ? comunicazione.readBy : [];
-        
-        // Solo se non è già stata letta
-        if (!readBy.includes(currentUserId)) {
-          const comunicazioneRef = doc(db, "comunicazioni", docSnap.id);
-          batchUpdates.push(
-            updateDoc(comunicazioneRef, {
-              readBy: arrayUnion(currentUserId)
-            })
-          );
-        }
-      });
-      
+      const q = query(
+        collection(db, "comunicazioni"),
+        orderBy("createdAt", "desc"),
+        limit(50)
+      );
+      const snapshot = await getDocs(q);
+      mostraComunicazioni(snapshot);
+      console.log('✅ Comunicazioni caricate - ' + snapshot.size + ' letture');
+    } catch (error) {
+      console.error('Errore caricamento comunicazioni:', error);
+    }
+  }
+});      
       if (batchUpdates.length > 0) {
         await Promise.all(batchUpdates);
         console.log('✅ Comunicazioni segnate come lette');
