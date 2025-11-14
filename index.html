@@ -26,7 +26,14 @@
     .tab.active { background:#fff; color:#000; border-bottom:2px solid var(--brand); }
     .pane { padding: 14px 16px; }
     .muted { color: var(--muted); font-size: 13px; }
+#coordinate:placeholder-shown {
+  border: 2px solid #ff9800;
+  background-color: #fff8f0;
+}
 
+#coordinate:not(:placeholder-shown) {
+  border: 1px solid #28a745;
+}
     #status { margin-top: 10px; font-size: 14px; font-style: italic; }
     button { cursor:pointer; }
     button:disabled { opacity:.6; cursor:not-allowed; }
@@ -2168,3 +2175,4 @@ el("btn-comunicazioni").addEventListener("click", async () => {
 </body>
 
 </html>
+
