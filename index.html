@@ -719,7 +719,7 @@
         </button>
       </div>
       
-      <input id="coordinate" placeholder="Coordinate (es: 44.8015, 10.3274)">
+      <input id="coordinate" placeholder="⚠️ OBBLIGATORIO - Coordinate GPS (es: 44.8015, 10.3274)" required>
       <button id="btn-gps" type="button">📍 Usa la mia posizione attuale</button>
       
       <textarea id="note" placeholder="Note per la consegna"></textarea>
@@ -1488,42 +1488,67 @@ el("btn-logout-while-waiting").addEventListener("click", ()=>signOut(auth));
     });
 
     async function aggiungiOmodificaCliente() {
-      const nome = el("nome").value.trim();
-      const indirizzo = el("indirizzo").value.trim();
-      const coordinate = el("coordinate").value.trim();
-      const note = el("note").value.trim();
-      if (!nome) { alert("Inserisci almeno il nome del cliente."); return; }
+  const nome = el("nome").value.trim();
+  const indirizzo = el("indirizzo").value.trim();
+  const coordinate = el("coordinate").value.trim();
+  const note = el("note").value.trim();
+  
+  // ✅ VALIDAZIONE CAMPI OBBLIGATORI
+  if (!nome) { 
+    alert("⚠️ Inserisci il nome del cliente."); 
+    return; 
+  }
+  
+  if (!coordinate) { 
+    alert("📍 Le coordinate GPS sono obbligatorie!\n\nUsa il pulsante 'Usa la mia posizione attuale' oppure inserisci manualmente le coordinate (es: 44.8015, 10.3274)"); 
+    el("coordinate").focus();
+    return; 
+  }
+  
+  // ✅ VALIDAZIONE FORMATO COORDINATE
+  const coordPattern = /^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$/;
+  if (!coordPattern.test(coordinate)) {
+    alert("⚠️ Formato coordinate non valido!\n\nUsa il formato: latitudine, longitudine\nEsempio: 44.8015, 10.3274");
+    el("coordinate").focus();
+    return;
+  }
 
-      const user = auth.currentUser;
-      const autore = {
-        uid: user?.uid || null,
-        name: (nomeUtente || user?.displayName || (user?.email ? user.email.split("@")[0] : "")) || "",
-        email: user?.email || ""
-      };
+  const user = auth.currentUser;
+  const autore = {
+    uid: user?.uid || null,
+    name: (nomeUtente || user?.displayName || (user?.email ? user.email.split("@")[0] : "")) || "",
+    email: user?.email || ""
+  };
 
-      const payload = { nome, indirizzo, coordinate, note };
+  const payload = { nome, indirizzo, coordinate, note };
 
-      if (clienteDaModificare) {
-        const docRef = doc(db, "clienti", clienteDaModificare);
-        try {
-          await updateDoc(docRef, payload);
-          clienteDaModificare = null;
-          el("btn-aggiungi").innerText = "Aggiungi cliente";
-          el("btn-annulla").style.display = "none";
-        } catch (error) {
-          alert("Impossibile salvare le modifiche: il cliente non esiste più.");
-          console.error(error);
-        }
-      } else {
-        await addDoc(clientiRef, {
-          ...payload,
-          createdAt: serverTimestamp(),
-          createdBy: autore
-        });
-      }
-
-      resetForm();
+  if (clienteDaModificare) {
+    const docRef = doc(db, "clienti", clienteDaModificare);
+    try {
+      await updateDoc(docRef, payload);
+      clienteDaModificare = null;
+      el("btn-aggiungi").innerText = "Aggiungi cliente";
+      el("btn-annulla").style.display = "none";
+      
+      // ✅ Messaggio di conferma
+      createToast('✅ Cliente modificato', `${nome} è stato aggiornato con successo`);
+    } catch (error) {
+      alert("Impossibile salvare le modifiche: il cliente non esiste più.");
+      console.error(error);
     }
+  } else {
+    await addDoc(clientiRef, {
+      ...payload,
+      createdAt: serverTimestamp(),
+      createdBy: autore
+    });
+    
+    // ✅ Messaggio di conferma
+    createToast('✅ Cliente aggiunto', `${nome} è stato salvato con coordinate GPS`);
+  }
+
+  resetForm();
+}
 
     function resetForm() {
       el("nome").value=""; 
@@ -2141,4 +2166,5 @@ el("btn-comunicazioni").addEventListener("click", async () => {
     }
   </script>
 </body>
+
 </html>
