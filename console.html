@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <title>Console Chat</title>
+  <title>Console Chat - Ottimizzata</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <style>
     :root{
@@ -27,6 +27,7 @@
     .title{font-weight:700; flex:1}
     .btn{background:#fff1;border:1px solid #fff5;color:#fff;padding:6px 10px;border-radius:999px;text-decoration:none}
     .btn-menu{display:none}
+    .btn-refresh{margin-left:8px; cursor:pointer}
 
     .wrap{display:grid; grid-template-columns: 340px 1fr; height: calc(var(--vvh) - 52px); min-height:420px;}
     @media (max-width:980px){
@@ -40,9 +41,13 @@
     .sidebar{border-right:1px solid var(--line); overflow:auto; background:#fff;}
     .search{padding:10px;border-bottom:1px solid var(--line)}
     .search input{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+    
+    .cache-info{padding:6px 10px; background:#fff8dc; font-size:12px; color:#666; border-bottom:1px solid var(--line)}
+    .cache-info.hidden{display:none}
 
     .list .item{display:flex;gap:10px;align-items:center;padding:12px 12px;border-bottom:1px solid var(--line);cursor:pointer}
     .list .item:hover{background:#f4f7fb}
+    .list .item.active{background:#e8f5f0}
     .avatar{width:36px;height:36px;border-radius:50%;background:#e7efe7;display:grid;place-items:center;font-weight:700}
     .meta{margin-left:auto;text-align:right;font-size:12px;color:#667}
     .name{font-weight:700}
@@ -75,12 +80,15 @@
     #text{flex:1;min-height:40px;max-height:calc(1.4em*5);resize:none;overflow:auto;border:1px solid #cfd8e3;border-radius:20px;padding:10px 12px;font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
     #send{background:var(--brand);color:#fff;border:0;border-radius:18px;padding:10px 14px;min-width:64px;touch-action:manipulation}
     #send:disabled{opacity:.6}
+    
+    .loading{text-align:center;padding:20px;color:#666}
   </style>
 </head>
 <body>
   <header>
     <button class="btn btn-menu" id="btnMenu">☰</button>
     <div class="title">💬 Console Chat</div>
+    <button class="btn btn-refresh" id="btnRefresh" title="Aggiorna lista">🔄</button>
     <a class="btn" href="home.html">🏠 Home</a>
   </header>
 
@@ -90,7 +98,10 @@
     <!-- LISTA CHAT -->
     <aside id="sidebar" class="sidebar" aria-label="Elenco chat">
       <div class="search"><input id="q" placeholder="Cerca driver…" /></div>
-      <div id="list" class="list"></div>
+      <div id="cacheInfo" class="cache-info hidden"></div>
+      <div id="list" class="list">
+        <div class="loading">Caricamento...</div>
+      </div>
     </aside>
 
     <!-- PANNELLO CHAT -->
@@ -111,8 +122,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
       getFirestore, collection, doc, getDoc, setDoc, updateDoc, addDoc,
-      query, orderBy, onSnapshot, serverTimestamp, limit,
-      deleteDoc, getDocs
+      query, orderBy, onSnapshot, serverTimestamp, limit, getDocs,
+      deleteDoc, where
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -136,9 +147,44 @@
     const sidebar = $("sidebar"), drawer = $("drawer"), btnMenu = $("btnMenu");
     const composer = $("composer");
     const chatWith = $("chatWith"), deleteBtn = $("deleteChat");
+    const btnRefresh = $("btnRefresh"), cacheInfo = $("cacheInfo");
 
     let me=null, current=null, unsubMsgs=null;
+    
+    // ======= CACHE MANAGEMENT =======
+    const CACHE_TTL = 60000; // 1 minuto di cache per la lista thread
+    const CACHE_KEY = 'console_threads_cache';
+    const UNREAD_KEY = 'console_unread_cache';
+    
+    function saveToCache(key, data) {
+      try {
+        localStorage.setItem(key, JSON.stringify({
+          data: data,
+          timestamp: Date.now()
+        }));
+      } catch(e) {
+        console.warn('Cache write failed:', e);
+      }
+    }
+    
+    function getFromCache(key, ttl = CACHE_TTL) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(key) || '{}');
+        if (cached.data && cached.timestamp && (Date.now() - cached.timestamp < ttl)) {
+          return cached.data;
+        }
+      } catch(e) {
+        console.warn('Cache read failed:', e);
+      }
+      return null;
+    }
+    
+    function clearCache() {
+      localStorage.removeItem(CACHE_KEY);
+      localStorage.removeItem(UNREAD_KEY);
+    }
 
+    // ======= VIEWPORT HANDLING =======
     if (window.visualViewport){
       const updateVH = () => document.body.style.setProperty('--vvh', window.visualViewport.height + 'px');
       visualViewport.addEventListener('resize', updateVH);
@@ -146,11 +192,13 @@
       updateVH();
     }
 
+    // ======= DRAWER HANDLING =======
     const openDrawer = ()=>{ sidebar.classList.add("open"); drawer.style.display="block"; };
     const closeDrawer = ()=>{ sidebar.classList.remove("open"); drawer.style.display="none"; };
     btnMenu?.addEventListener("click", openDrawer); 
     drawer?.addEventListener("click", closeDrawer);
 
+    // ======= COMPOSER HANDLING =======
     composer.addEventListener('touchstart', (e)=>{
       const t = e.target;
       if (t === text) return;
@@ -158,6 +206,7 @@
       text.focus({ preventScroll:true });
       try { text.setSelectionRange(text.value.length, text.value.length); } catch {}
     }, {passive:false});
+    
     composer.addEventListener('mousedown', (e)=>{
       if (e.target === text) return;
       e.preventDefault();
@@ -175,10 +224,18 @@
     text.addEventListener("input", autoresize);
     autoresize();
 
+    // ======= DATE FORMATTING =======
     const fmtDT = (t)=> t?.toDate?.() ? t.toDate() : (t instanceof Date ? t : new Date());
     const fmtDay = (d)=> d.toLocaleDateString();
     const fmtTime = (d)=> d.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-    function daySep(d){ const n=document.createElement("div"); n.className="day"; n.textContent=fmtDay(d); messages.appendChild(n); }
+    
+    function daySep(d){ 
+      const n=document.createElement("div"); 
+      n.className="day"; 
+      n.textContent=fmtDay(d); 
+      messages.appendChild(n); 
+    }
+    
     function renderMsg(m){
       const mine = m.sender===me.uid;
       const b = document.createElement("div");
@@ -186,47 +243,126 @@
       b.innerHTML = `${(m.text||"").replace(/</g,"&lt;")}<div class="meta-msg">${fmtTime(fmtDT(m.createdAt))}</div>`;
       messages.appendChild(b);
     }
-    function atBottom(){ return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40; }
-    function scrollBottom(smooth=false){ messages.scrollTo({ top: messages.scrollHeight, behavior: smooth?'smooth':'auto' }); }
+    
+    function atBottom(){ 
+      return messages.scrollHeight - messages.scrollTop - messages.clientHeight < 40; 
+    }
+    
+    function scrollBottom(smooth=false){ 
+      messages.scrollTo({ top: messages.scrollHeight, behavior: smooth?'smooth':'auto' }); 
+    }
 
-    const obs = new MutationObserver(()=>{ if (document.activeElement === text) setTimeout(()=>scrollBottom(false), 80); });
+    const obs = new MutationObserver(()=>{ 
+      if (document.activeElement === text) setTimeout(()=>scrollBottom(false), 80); 
+    });
     obs.observe(messages, { childList:true });
 
+    // ======= THREAD MANAGEMENT =======
     async function ensureThread(uid, name="", email=""){
       const tref = doc(db,"threads",uid);
       const s = await getDoc(tref);
       if(!s.exists()){
         await setDoc(tref,{
           participants:[uid],
-          driverName:name, driverEmail:email, lastMessage:"", updatedAt:serverTimestamp()
+          driverName:name, 
+          driverEmail:email, 
+          lastMessage:"", 
+          updatedAt:serverTimestamp()
         });
       }
       return tref;
     }
 
+    // ======= UNREAD COUNTER - OTTIMIZZATO =======
+    async function countUnreadForThread(threadId) {
+      // Conta solo i non letti on-demand quando serve
+      try {
+        const q = query(
+          collection(db, "threads", threadId, "messages"),
+          where("sender", "!=", me.uid),
+          orderBy("createdAt", "desc"),
+          limit(20) // Non serve contare più di 20
+        );
+        
+        const snap = await getDocs(q);
+        let count = 0;
+        
+        snap.forEach(doc => {
+          const msg = doc.data();
+          const readBy = Array.isArray(msg.readBy) ? msg.readBy : [];
+          if (!readBy.includes(me.uid)) count++;
+        });
+        
+        return count;
+      } catch(e) {
+        console.warn('Error counting unread:', e);
+        return 0;
+      }
+    }
+    
+    // Aggiorna badge singolo thread
+    async function updateUnreadBadge(threadId) {
+      const count = await countUnreadForThread(threadId);
+      const badge = document.querySelector(`.badge[data-uid="${threadId}"]`);
+      if (badge) {
+        badge.textContent = count;
+        badge.classList.toggle("zero", count === 0);
+      }
+      
+      // Salva in cache per riuso
+      const unreadCache = getFromCache(UNREAD_KEY) || {};
+      unreadCache[threadId] = { count, timestamp: Date.now() };
+      saveToCache(UNREAD_KEY, unreadCache);
+    }
+
+    // ======= OPEN CHAT =======
     function openChat(uid){
       current = uid;
       document.querySelectorAll(".item").forEach(i=>i.classList.remove("active"));
-      const el = document.getElementById("it-"+uid); if(el) el.classList.add("active");
+      const el = document.getElementById("it-"+uid); 
+      if(el) el.classList.add("active");
 
-      if (unsubMsgs) { unsubMsgs(); unsubMsgs=null; }
+      if (unsubMsgs) { 
+        unsubMsgs(); 
+        unsubMsgs=null; 
+      }
+      
       messages.innerHTML="";
       let prevDay="";
 
+      // Solo qui uso un listener real-time per i messaggi della chat aperta
       const qMsgs = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","asc"));
       unsubMsgs = onSnapshot(qMsgs, snap=>{
-        messages.innerHTML=""; prevDay="";
+        messages.innerHTML=""; 
+        prevDay="";
         const toMark=[];
+        
         snap.forEach(d=>{
           const m=d.data(), dt=fmtDT(m.createdAt), day=dt.toDateString();
-          if (day!==prevDay){ daySep(dt); prevDay=day; }
+          if (day!==prevDay){ 
+            daySep(dt); 
+            prevDay=day; 
+          }
           renderMsg(m);
+          
           const rb = Array.isArray(m.readBy)? m.readBy : [];
           if(!rb.includes(me.uid)) toMark.push(d.id);
         });
+        
+        // Marca come letti
         toMark.forEach(id=>{
-          updateDoc(doc(db,"threads",uid,"messages",id),{ readBy: arrayUnion(me.uid) }).catch(()=>{});
+          updateDoc(doc(db,"threads",uid,"messages",id),{ 
+            readBy: arrayUnion(me.uid) 
+          }).catch(()=>{});
         });
+        
+        // Azzera il badge del thread corrente
+        const badge = document.querySelector(`.badge[data-uid="${uid}"]`);
+        if (badge) {
+          badge.textContent = 0;
+          badge.classList.add("zero");
+        }
+        
         if (atBottom()) scrollBottom(false);
       });
 
@@ -238,16 +374,33 @@
       closeDrawer();
     }
 
+    // ======= SEND MESSAGE =======
     async function sendMsg(){
-      const t = text.value.trim(); if(!t || !current) return;
+      const t = text.value.trim(); 
+      if(!t || !current) return;
+      
       await addDoc(collection(db,"threads",current,"messages"),{
-        text:t, sender: me.uid, createdAt: serverTimestamp(), readBy:[me.uid]
+        text:t, 
+        sender: me.uid, 
+        createdAt: serverTimestamp(), 
+        readBy:[me.uid]
       });
-      await updateDoc(doc(db,"threads",current),{ lastMessage:t, updatedAt: serverTimestamp() });
-      text.value=""; autoresize(); scrollBottom(false);
+      
+      await updateDoc(doc(db,"threads",current),{ 
+        lastMessage:t, 
+        updatedAt: serverTimestamp() 
+      });
+      
+      text.value=""; 
+      autoresize(); 
+      scrollBottom(false);
       text.focus({ preventScroll:true });
+      
+      // Invalida cache della lista
+      clearCache();
     }
 
+    // ======= DELETE THREAD =======
     async function deleteThread(uid, niceName){
       if (!confirm(`Eliminare definitivamente la chat con "${niceName}"?`)) return;
       try {
@@ -258,23 +411,41 @@
           await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
         }
         await deleteDoc(doc(db, "threads", uid));
+        
         const it = document.getElementById("it-"+uid);
         if (it) it.remove();
+        
         messages.innerHTML="";
         chatWith.textContent="Chat con: —";
         deleteBtn.style.display="none";
         current=null;
+        
+        clearCache();
       } catch(e){
         alert("Errore eliminazione chat: "+(e?.message||e));
       }
     }
 
+    // ======= SEND HANDLING =======
     let touchSending=false;
     send.addEventListener("mousedown", e=>e.preventDefault());
-    send.addEventListener("touchstart", e=>{touchSending=true; e.preventDefault(); sendMsg(); setTimeout(()=>touchSending=false,0);},{passive:false});
-    send.addEventListener("click", ()=>{ if(!touchSending) sendMsg(); });
-    text.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMsg(); }});
+    send.addEventListener("touchstart", e=>{
+      touchSending=true; 
+      e.preventDefault(); 
+      sendMsg(); 
+      setTimeout(()=>touchSending=false,0);
+    },{passive:false});
+    send.addEventListener("click", ()=>{ 
+      if(!touchSending) sendMsg(); 
+    });
+    text.addEventListener("keydown", e=>{ 
+      if(e.key==="Enter" && !e.shiftKey){ 
+        e.preventDefault(); 
+        sendMsg(); 
+      }
+    });
 
+    // ======= RENDER THREAD ITEM =======
     function renderItem({uid, name, lastMessage, updatedAt, unread}){
       const p = document.createElement("div");
       p.id = "it-"+uid;
@@ -293,48 +464,218 @@
       list.appendChild(p);
     }
 
-    function watchUnread(uid){
-      const qLast = query(collection(db,"threads",uid,"messages"), orderBy("createdAt","desc"), limit(50));
-      return onSnapshot(qLast, snap=>{
-        let n=0;
-        snap.forEach(d=>{
-          const m=d.data(); const rb = Array.isArray(m.readBy)? m.readBy : [];
-          if (m.sender !== me.uid && !rb.includes(me.uid)) n++;
+    // ======= LOAD THREADS - OTTIMIZZATO CON CACHE =======
+    async function loadThreads(forceRefresh = false) {
+      // Prova prima la cache
+      if (!forceRefresh) {
+        const cached = getFromCache(CACHE_KEY);
+        const unreadCache = getFromCache(UNREAD_KEY) || {};
+        
+        if (cached && cached.length > 0) {
+          list.innerHTML = "";
+          cacheInfo.textContent = `📦 Dati da cache (${new Date(Date.now()).toLocaleTimeString()})`;
+          cacheInfo.classList.remove('hidden');
+          
+          cached.forEach(thread => {
+            const cachedUnread = unreadCache[thread.id];
+            const unread = cachedUnread?.count || 0;
+            
+            renderItem({
+              uid: thread.id,
+              name: thread.driverName || thread.id,
+              lastMessage: thread.lastMessage || "",
+              updatedAt: thread.updatedAt,
+              unread: unread
+            });
+          });
+          
+          // Aggiorna contatori in background (senza bloccare UI)
+          setTimeout(() => {
+            cached.forEach(thread => {
+              updateUnreadBadge(thread.id);
+            });
+          }, 100);
+          
+          return;
+        }
+      }
+      
+      // Carica da Firebase
+      cacheInfo.classList.add('hidden');
+      list.innerHTML = '<div class="loading">Caricamento da Firebase...</div>';
+      
+      try {
+        const snap = await getDocs(query(collection(db,"threads"), orderBy("updatedAt","desc")));
+        
+        list.innerHTML = "";
+        if (snap.empty) { 
+          list.innerHTML = `<div class="item" style="cursor:default">Nessuna chat attiva</div>`; 
+          return; 
+        }
+        
+        const threads = [];
+        snap.forEach(doc => {
+          const data = doc.data();
+          threads.push({ id: doc.id, ...data });
         });
-        const b = document.querySelector(`.badge[data-uid="${uid}"]`);
-        if (b){ b.textContent = n; b.classList.toggle("zero", n===0); }
-      });
+        
+        // Salva in cache
+        saveToCache(CACHE_KEY, threads);
+        
+        // Renderizza
+        for (const thread of threads) {
+          renderItem({
+            uid: thread.id,
+            name: thread.driverName || thread.id,
+            lastMessage: thread.lastMessage || "",
+            updatedAt: thread.updatedAt,
+            unread: 0 // Inizialmente 0
+          });
+        }
+        
+        // Apri il primo thread se non c'è uno corrente
+        if (!current && threads.length > 0) {
+          openChat(threads[0].id);
+        }
+        
+        // Aggiorna contatori in background
+        setTimeout(() => {
+          threads.forEach(thread => {
+            updateUnreadBadge(thread.id);
+          });
+        }, 100);
+        
+      } catch(e) {
+        console.error('Error loading threads:', e);
+        list.innerHTML = '<div class="item" style="cursor:default">Errore caricamento</div>';
+      }
     }
+    
+    // ======= REFRESH BUTTON =======
+    btnRefresh.addEventListener('click', () => {
+      clearCache();
+      loadThreads(true);
+    });
 
+    // ======= SEARCH =======
     q.addEventListener("input", ()=>{
       const v = q.value.toLowerCase();
       document.querySelectorAll(".item").forEach(el=>{
         el.style.display = el.textContent.toLowerCase().includes(v) ? "" : "none";
       });
     });
+    
+    // ======= POLLING PER AGGIORNAMENTI (ogni 30 secondi) =======
+    let pollInterval = null;
+    
+    function startPolling() {
+      // Aggiorna solo i contatori, non ricarica tutta la lista
+      pollInterval = setInterval(async () => {
+        if (!document.hidden) { // Solo se la pagina è visibile
+          const items = document.querySelectorAll('.item[id^="it-"]');
+          for (const item of items) {
+            const uid = item.id.replace('it-', '');
+            if (uid !== current) { // Non aggiornare il thread corrente
+              updateUnreadBadge(uid);
+            }
+          }
+        }
+      }, 30000); // 30 secondi
+    }
+    
+    function stopPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+    
+    // Gestione visibilità pagina
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        startPolling();
+        // Ricarica se nascosto per più di 5 minuti
+        const cached = getFromCache(CACHE_KEY, 5 * 60000);
+        if (!cached) {
+          loadThreads(true);
+        }
+      }
+    });
 
+    // ======= AUTH & INIT =======
     onAuthStateChanged(auth, async (user)=>{
-      if(!user){ location.href="index.html"; return; }
+      if(!user){ 
+        location.href="index.html"; 
+        return; 
+      }
       me=user;
-
-      onSnapshot(query(collection(db,"threads"), orderBy("updatedAt","desc")), async snap=>{
-        list.innerHTML="";
-        if (snap.empty){ list.innerHTML = `<div class="item" style="cursor:default">Nessuna chat attiva</div>`; return; }
-
-        snap.forEach(t=>{
-          const d=t.data();
-          renderItem({
-            uid: t.id,
-            name: d.driverName || t.id,
-            lastMessage: d.lastMessage || "",
-            updatedAt: d.updatedAt,
-            unread: 0
-          });
-          watchUnread(t.id);
+      
+      // Carica threads (con cache se disponibile)
+      await loadThreads(false);
+      
+      // Avvia polling
+      startPolling();
+      
+      // Listener per nuovi thread (solo per aggiornamenti live critici)
+      // Usa limit per ridurre letture
+      const recentQuery = query(
+        collection(db,"threads"), 
+        orderBy("updatedAt","desc"), 
+        limit(5)
+      );
+      
+      onSnapshot(recentQuery, (snap) => {
+        snap.docChanges().forEach(change => {
+          if (change.type === "added" || change.type === "modified") {
+            // Invalida cache se ci sono nuovi thread
+            clearCache();
+            
+            // Aggiorna solo il thread modificato invece di ricaricare tutto
+            const data = change.doc.data();
+            const existingItem = document.getElementById("it-" + change.doc.id);
+            
+            if (existingItem) {
+              // Aggiorna solo il contenuto esistente
+              const lastDiv = existingItem.querySelector('.last');
+              const metaDiv = existingItem.querySelector('.meta');
+              if (lastDiv) lastDiv.textContent = data.lastMessage || "";
+              if (metaDiv) metaDiv.textContent = data.updatedAt ? fmtTime(fmtDT(data.updatedAt)) : "";
+              
+              // Sposta in cima se è l'ultimo messaggio
+              if (change.type === "modified") {
+                list.insertBefore(existingItem, list.firstChild);
+              }
+            } else if (change.type === "added") {
+              // Nuovo thread, aggiungilo in cima
+              const newItem = document.createElement('div');
+              newItem.id = "it-" + change.doc.id;
+              newItem.className = "item";
+              newItem.innerHTML = `
+                <div class="avatar">${(data.driverName||change.doc.id).substring(0,2).toUpperCase()}</div>
+                <div style="min-width:0">
+                  <div class="name">${data.driverName||change.doc.id}
+                    <span class="badge zero" data-uid="${change.doc.id}">0</span>
+                  </div>
+                  <div class="last">${data.lastMessage || ""}</div>
+                </div>
+                <div class="meta">${data.updatedAt ? fmtTime(fmtDT(data.updatedAt)) : ""}</div>
+              `;
+              newItem.addEventListener("click", () => openChat(change.doc.id));
+              list.insertBefore(newItem, list.firstChild);
+              
+              // Conta i non letti per il nuovo thread
+              updateUnreadBadge(change.doc.id);
+            }
+          }
         });
-
-        if(!current && !snap.empty){ openChat(snap.docs[0].id); }
       });
+    });
+    
+    // Pulizia all'uscita
+    window.addEventListener('beforeunload', () => {
+      stopPolling();
     });
   </script>
 </body>
