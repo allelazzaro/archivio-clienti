@@ -2,7 +2,7 @@
   "name": "Archivio Clienti - Trasporti",
   "short_name": "Clienti",
   "description": "Archivio e monitoraggio clienti e mezzi per trasportatori.",
-  "gcm_sender_id": "103953800507",
+  "gcm_sender_id": "773533170263",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",
