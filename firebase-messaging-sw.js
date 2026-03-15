@@ -19,19 +19,20 @@ const messaging = firebase.messaging();
 const APP_ORIGIN = 'https://archivio-clienti-trasporti.web.app';
 
 // Messaggi in background via FCM
+// Il payload è data-only: siamo noi a mostrare la notifica (una sola volta)
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Background message:', payload);
 
-  const title = payload.notification?.title || "Nuovo messaggio";
-  const body  = payload.notification?.body  || "";
-  // Usa l'URL passato dal Cloud Function, oppure la chat come fallback
-  const url   = payload.data?.url || (APP_ORIGIN + '/chat.html');
+  // Leggi titolo e body dal campo data (inviati dal Cloud Function)
+  const title = payload.data?.title || payload.notification?.title || "💬 Nuovo messaggio";
+  const body  = payload.data?.body  || payload.notification?.body  || "";
+  const url   = payload.data?.url   || (APP_ORIGIN + '/chat.html');
 
   return self.registration.showNotification(title, {
     body,
     icon: '/icon192.png',
     badge: '/icon192.png',
-    tag: 'chat-message',
+    tag: 'chat-message',      // stesso tag = notifica precedente sovrascritta, non duplicata
     data: { url },
     requireInteraction: false,
     silent: false

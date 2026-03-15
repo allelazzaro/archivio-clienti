@@ -40,53 +40,31 @@ exports.onNewChatMessage = onDocumentCreated("threads/{driverUid}/messages/{msgI
   const chatUrl = `${APP_BASE}/chat.html?uid=${driverUid}`;
 
   const payload = {
-    notification: {
+    // Solo data-only: il Service Worker mostra la notifica una volta sola
+    // Non usare il campo "notification" top-level per evitare notifiche doppie
+    data: {
+      url: chatUrl,
+      driverUid: String(driverUid),
       title: "💬 Nuovo messaggio",
       body: msgBody
     },
-    data: {
-      // I valori nel campo data devono essere stringhe
-      url: chatUrl,
-      driverUid: String(driverUid)
-    },
-    // Opzioni specifiche per web push (Chrome Android / PWA)
+    // Opzioni web push: solo link, la notifica la gestisce il SW
     webpush: {
       headers: {
-        Urgency: "high"   // forza consegna immediata anche in Doze mode
-      },
-      notification: {
-        title: "💬 Nuovo messaggio",
-        body: msgBody,
-        icon: "/icon192.png",
-        badge: "/icon192.png",
-        tag: "chat-message",
-        requireInteraction: false,
-        silent: false
+        Urgency: "high"
       },
       fcm_options: {
-        link: chatUrl    // URL assoluto HTTPS obbligatorio
+        link: chatUrl
       }
     },
     // Alta priorità per Android
     android: {
-      priority: "high",
-      notification: {
-        sound: "default",
-        channelId: "chat",
-        priority: "high",
-        defaultSound: true
-      }
+      priority: "high"
     },
-    // Alta priorità per Apple (APNS) - iOS PWA 16.4+
+    // Alta priorità per iOS PWA 16.4+
     apns: {
       headers: {
         "apns-priority": "10"
-      },
-      payload: {
-        aps: {
-          sound: "default",
-          badge: 1
-        }
       }
     }
   };
