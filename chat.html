@@ -377,31 +377,11 @@
       }, { passive: false });
     }
 
-    // NOTIFICHE PUSH - VERSIONE CORRETTA
+    // NOTIFICHE PUSH
     async function setupNotifications() {
       try {
         if (!('Notification' in window) || !('serviceWorker' in navigator)) {
           console.warn('Notifiche non supportate');
-          return;
-        }
-
-        // Controlla se il permesso è già stato concesso
-        if (Notification.permission === 'granted') {
-          console.log('Notifiche già autorizzate, procedo con la configurazione');
-          
-          // Procedi direttamente con la configurazione del token FCM
-          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-          if (!token) {
-            console.warn('Token FCM non ricevuto');
-            return;
-          }
-
-          if (currentUser) {
-            await setDoc(doc(db, "users", currentUser.uid), {
-              fcmTokens: { [token]: true }
-            }, { merge: true });
-            console.log('Token FCM salvato per', currentUser.uid);
-          }
           return;
         }
 
@@ -411,27 +391,39 @@
           return;
         }
 
-        // Solo se il permesso non è mai stato richiesto (default), chiedi il permesso
-        console.log('Richiedo permesso notifiche per la prima volta');
-        const permission = await Notification.requestPermission();
-        
-        if (permission !== 'granted') {
-          console.warn('Permesso notifiche negato');
-          return;
+        // Chiedi il permesso se non ancora concesso
+        if (Notification.permission !== 'granted') {
+          console.log('Richiedo permesso notifiche');
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            console.warn('Permesso notifiche negato');
+            return;
+          }
         }
 
-        // Configurazione dopo aver ottenuto il permesso
-        const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+        console.log('Notifiche autorizzate, attendo Service Worker...');
+
+        // IMPORTANTE: aspetta che il Service Worker sia attivo prima di chiamare getToken
+        const swRegistration = await navigator.serviceWorker.ready;
+        console.log('Service Worker pronto:', swRegistration.scope);
+
+        // Passa sempre la registrazione SW a getToken per evitare race condition su mobile
+        const token = await getToken(messaging, {
+          vapidKey: VAPID_KEY,
+          serviceWorkerRegistration: swRegistration
+        });
+
         if (!token) {
           console.warn('Token FCM non ricevuto');
           return;
         }
 
         if (currentUser) {
+          // Usa setDoc con merge per non sovrascrivere altri campi utente
           await setDoc(doc(db, "users", currentUser.uid), {
             fcmTokens: { [token]: true }
           }, { merge: true });
-          console.log('Token FCM salvato per', currentUser.uid);
+          console.log('✅ Token FCM salvato per', currentUser.uid, token.slice(0, 20) + '...');
         }
 
       } catch (error) {

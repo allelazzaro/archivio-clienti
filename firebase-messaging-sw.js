@@ -15,34 +15,44 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// URL base dell'app (root di Firebase Hosting)
+const APP_ORIGIN = 'https://archivio-clienti-trasporti.web.app';
+
 // Messaggi in background via FCM
 messaging.onBackgroundMessage((payload) => {
   console.log('[SW] Background message:', payload);
 
   const title = payload.notification?.title || "Nuovo messaggio";
   const body  = payload.notification?.body  || "";
-  const url   = payload.data?.url || "/archivio-clienti/chat.html";
+  // Usa l'URL passato dal Cloud Function, oppure la chat come fallback
+  const url   = payload.data?.url || (APP_ORIGIN + '/chat.html');
 
   return self.registration.showNotification(title, {
     body,
-    icon: "icon192.png",
-    badge: "/archivio-clienti/icon192.png",
-    tag: "chat-message",
+    icon: '/icon192.png',
+    badge: '/icon192.png',
+    tag: 'chat-message',
     data: { url },
     requireInteraction: false,
     silent: false
   });
 });
 
-// Click sulla notifica → focus o apri chat
+// Click sulla notifica → focus su finestra esistente o apri nuova
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification?.data?.url || "/archivio-clienti/chat.html";
+  const targetUrl = event.notification?.data?.url || (APP_ORIGIN + '/chat.html');
 
   event.waitUntil((async () => {
     const allClients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const existing = allClients.find(c => c.url.includes('/archivio-clienti/'));
-    if (existing) { await existing.focus(); return; }
+    // Cerca una finestra già aperta sull'origine dell'app
+    const existing = allClients.find(c => c.url.startsWith(APP_ORIGIN));
+    if (existing) {
+      await existing.focus();
+      // Naviga alla chat specifica se la finestra è già aperta
+      await existing.navigate(targetUrl);
+      return;
+    }
     await self.clients.openWindow(targetUrl);
   })());
 });
